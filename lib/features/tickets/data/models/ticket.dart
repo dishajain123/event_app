@@ -35,6 +35,7 @@ class AppTicket {
   final String userId;
   final String ticketCode;
   final String qrPayload;
+  final String qrSignature;
   final TicketStatus status;
   final DateTime? issuedAt;
   final DateTime? checkedInAt;
@@ -47,6 +48,7 @@ class AppTicket {
     required this.userId,
     required this.ticketCode,
     required this.qrPayload,
+    required this.qrSignature,
     required this.status,
     required this.issuedAt,
     required this.checkedInAt,
@@ -61,6 +63,7 @@ class AppTicket {
       userId: json['user_id'] as String,
       ticketCode: json['ticket_code'] as String,
       qrPayload: json['qr_payload'] as String,
+      qrSignature: json['qr_signature'] as String,
       status: TicketStatus.fromWire(json['status'] as String),
       issuedAt: json['issued_at'] != null ? DateTime.parse(json['issued_at'] as String) : null,
       checkedInAt: json['checked_in_at'] != null ? DateTime.parse(json['checked_in_at'] as String) : null,
