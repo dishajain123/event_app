@@ -1,0 +1,28 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+
+# IDE
+.idea/
+.vscode/
+
+# Platform build artifacts
+android/app/debug
+android/app/profile
+android/app/release
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+
+# Never commit a personal LAN IP or any local override of the dart-define
+# config files (Section 3.8) — copy development.physical-device.example.json
+# to development.local.json instead, which is ignored here.
+config/*.local.json
+
+# Coverage
+coverage/

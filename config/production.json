@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "https://api.example.com/api/v1",
+  "ENVIRONMENT_NAME": "production",
+  "ENABLE_NETWORK_LOGGING": false
+}
