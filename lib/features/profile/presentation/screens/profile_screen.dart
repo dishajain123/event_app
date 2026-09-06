@@ -8,7 +8,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../../auth/application/app_mode_controller.dart';
 import '../../../auth/application/auth_state_provider.dart';
-import '../../../auth/data/models/role_name.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -226,14 +225,12 @@ class _ProfileMenuTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-  final String? trailing;
   final bool danger;
 
   const _ProfileMenuTile({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.trailing,
     this.danger = false,
   });
 
@@ -257,9 +254,7 @@ class _ProfileMenuTile extends StatelessWidget {
                     color: onTap == null ? AppColors.inkSubtle : color),
               ),
             ),
-            if (trailing != null)
-              Text(trailing!, style: AppTypography.captionSubtle)
-            else if (onTap != null)
+            if (onTap != null)
               const Icon(Icons.chevron_right_rounded,
                   color: AppColors.inkSubtle),
           ],

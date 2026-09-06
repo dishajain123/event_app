@@ -13,11 +13,8 @@ import '../shells/staff_mode_shell.dart';
 import 'route_paths.dart';
 import 'router_refresh_notifier.dart';
 
-// Phase 1 placeholder screens — real screens land in Phases 2–7 per the
-// approved plan. Each is intentionally minimal: it exists so every route
-// in RoutePaths resolves to something real and navigable today, proving
-// the shell/switch/redirect machinery works end-to-end before any real
-// feature is built on top of it.
+// Feature screens are imported here so every route is registered in one
+// place and navigation remains easy to audit against RoutePaths.
 import '../../features/events/presentation/screens/home_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/events/presentation/screens/search_screen.dart';

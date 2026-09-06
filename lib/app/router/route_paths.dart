@@ -7,8 +7,7 @@ class RoutePaths {
   static const mobileNumber = '/login';
   static const otpVerify = '/login/verify';
 
-  // Public Mode shell (Section 3.3) — placeholder destinations in Phase 1,
-  // real screens land in Phases 2–4/6/7.
+  // Public Mode shell (Section 3.3).
   static const home = '/home';
   static const myRegistrations = '/registrations/mine';
   static const myTickets = '/tickets/mine';
@@ -91,9 +90,7 @@ class RoutePaths {
   static const identityDocuments = '/profile/identity-documents';
   static const appSettings = '/profile/settings';
 
-  // Staff Mode shell (Section 3.3) — the switch itself is real from Phase
-  // 1 onward (per explicit confirmation this app must support it), the
-  // screens behind it are placeholders until Phase 5.
+  // Staff Mode shell (Section 3.3).
   static const staffScan = '/staff/scan';
   static const staffTasks = '/staff/tasks';
   static const staffMyEvents = '/staff/events';
