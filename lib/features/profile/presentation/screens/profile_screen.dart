@@ -32,7 +32,10 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            _ProfileHeader(name: user.name, mobileNumber: user.mobileNumber, onTap: () => context.push(RoutePaths.editProfile)),
+            _ProfileHeader(
+                name: user.name,
+                mobileNumber: user.mobileNumber,
+                onTap: () => context.push(RoutePaths.editProfile)),
             const SizedBox(height: AppSpacing.xl),
 
             // The Staff Mode switch — only ever shown for an account that
@@ -55,6 +58,11 @@ class ProfileScreen extends ConsumerWidget {
               icon: Icons.notifications_none_rounded,
               label: 'Notifications',
               onTap: () => context.push(RoutePaths.notifications),
+            ),
+            _ProfileMenuTile(
+              icon: Icons.rate_review_outlined,
+              label: 'My Feedback',
+              onTap: () => context.push(RoutePaths.myFeedback),
             ),
             _ProfileMenuTile(
               icon: Icons.volunteer_activism_outlined,
@@ -100,7 +108,8 @@ class _ProfileHeader extends StatelessWidget {
   final String? name;
   final String mobileNumber;
   final VoidCallback onTap;
-  const _ProfileHeader({required this.name, required this.mobileNumber, required this.onTap});
+  const _ProfileHeader(
+      {required this.name, required this.mobileNumber, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -114,15 +123,18 @@ class _ProfileHeader extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
-              child: const Icon(Icons.person_rounded, size: 28, color: AppColors.accentStrong),
+              decoration: const BoxDecoration(
+                  color: AppColors.accentSoft, shape: BoxShape.circle),
+              child: const Icon(Icons.person_rounded,
+                  size: 28, color: AppColors.accentStrong),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name?.isNotEmpty == true ? name! : 'Add your name', style: AppTypography.title),
+                  Text(name?.isNotEmpty == true ? name! : 'Add your name',
+                      style: AppTypography.title),
                   const SizedBox(height: 2),
                   Text(mobileNumber, style: AppTypography.bodyMuted),
                 ],
@@ -144,7 +156,8 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Text(text.toUpperCase(), style: AppTypography.caption.copyWith(letterSpacing: 0.6)),
+      child: Text(text.toUpperCase(),
+          style: AppTypography.caption.copyWith(letterSpacing: 0.6)),
     );
   }
 }
@@ -171,25 +184,31 @@ class _StaffModeSwitchTile extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.staffModeAccentSoft,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.staffModeAccent.withOpacity(0.25)),
+          border:
+              Border.all(color: AppColors.staffModeAccent.withOpacity(0.25)),
         ),
         child: Row(
           children: [
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(color: AppColors.staffModeAccent, shape: BoxShape.circle),
-              child: const Icon(Icons.shield_outlined, color: Colors.white, size: 22),
+              decoration: const BoxDecoration(
+                  color: AppColors.staffModeAccent, shape: BoxShape.circle),
+              child: const Icon(Icons.shield_outlined,
+                  color: Colors.white, size: 22),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Switch to Staff Mode', style: AppTypography.bodyStrong),
+                  const Text('Switch to Staff Mode',
+                      style: AppTypography.bodyStrong),
                   const SizedBox(height: 2),
                   Text(
-                    eventCount == 1 ? 'You have staff access for 1 event' : 'You have staff access for $eventCount events',
+                    eventCount == 1
+                        ? 'You have staff access for 1 event'
+                        : 'You have staff access for $eventCount events',
                     style: AppTypography.caption,
                   ),
                 ],
@@ -228,18 +247,21 @@ class _ProfileMenuTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: onTap == null ? AppColors.inkSubtle : color),
+            Icon(icon,
+                size: 22, color: onTap == null ? AppColors.inkSubtle : color),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 label,
-                style: AppTypography.body.copyWith(color: onTap == null ? AppColors.inkSubtle : color),
+                style: AppTypography.body.copyWith(
+                    color: onTap == null ? AppColors.inkSubtle : color),
               ),
             ),
             if (trailing != null)
               Text(trailing!, style: AppTypography.captionSubtle)
             else if (onTap != null)
-              const Icon(Icons.chevron_right_rounded, color: AppColors.inkSubtle),
+              const Icon(Icons.chevron_right_rounded,
+                  color: AppColors.inkSubtle),
           ],
         ),
       ),

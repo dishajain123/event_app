@@ -13,6 +13,15 @@ class RoutePaths {
   static const myRegistrations = '/registrations/mine';
   static const myTickets = '/tickets/mine';
   static const profile = '/profile';
+  static const myFeedback = '/feedback/mine';
+  static const sponsorship = '/sponsorship';
+  static const sponsorshipInquiry = '/sponsorship/inquire';
+  static const mySponsorshipInquiries = '/sponsorship/inquiries/mine';
+  static const volunteers = '/volunteers';
+  static const volunteerApply = '/volunteers/apply/:eventId';
+  static String volunteerApplyPath(String eventId) =>
+      '/volunteers/apply/$eventId';
+  static const myVolunteerApplications = '/volunteers/applications/mine';
 
   // Phase 2 — Event Discovery & Categories. eventDetail and
   // eventDetailPath both exist because go_router needs the templated
@@ -22,21 +31,29 @@ class RoutePaths {
   // literal '/events/' string itself.
   static const eventDetail = '/events/:eventId';
   static String eventDetailPath(String eventId) => '/events/$eventId';
+  static const eventFeedback = '/events/:eventId/feedback';
+  static String eventFeedbackPath(String eventId) =>
+      '/events/$eventId/feedback';
   static const search = '/search';
 
   // Phase 3 — Registration Engine.
   static const participationTypeSelector = '/events/:eventId/register';
-  static String participationTypeSelectorPath(String eventId) => '/events/$eventId/register';
+  static String participationTypeSelectorPath(String eventId) =>
+      '/events/$eventId/register';
 
-  static const registrationForm = '/events/:eventId/register/:participationType';
-  static String registrationFormPath(String eventId, String participationType) =>
+  static const registrationForm =
+      '/events/:eventId/register/:participationType';
+  static String registrationFormPath(
+          String eventId, String participationType) =>
       '/events/$eventId/register/$participationType';
 
   static const registrationDetail = '/registrations/:registrationId';
-  static String registrationDetailPath(String registrationId) => '/registrations/$registrationId';
+  static String registrationDetailPath(String registrationId) =>
+      '/registrations/$registrationId';
 
   static const createTeam = '/events/:eventId/register/team/create';
-  static String createTeamPath(String eventId) => '/events/$eventId/register/team/create';
+  static String createTeamPath(String eventId) =>
+      '/events/$eventId/register/team/create';
 
   static const teamRoster = '/teams/:teamId';
   static String teamRosterPath(String teamId) => '/teams/$teamId';
@@ -46,7 +63,8 @@ class RoutePaths {
 
   // Phase 4 — Payments & Tickets.
   static const paymentCheckout = '/registrations/:registrationId/pay';
-  static String paymentCheckoutPath(String registrationId) => '/registrations/$registrationId/pay';
+  static String paymentCheckoutPath(String registrationId) =>
+      '/registrations/$registrationId/pay';
 
   static const ticketDetail = '/ticket/:ticketId';
   static String ticketDetailPath(String ticketId) => '/ticket/$ticketId';
@@ -54,7 +72,8 @@ class RoutePaths {
   // Phase 6 — Staff Mode Extended, Growth & Engagement.
   static const notifications = '/notifications';
   static const assistanceRequests = '/assistance';
-  static const requestAssistance = '/events/:eventId/registrations/:registrationId/assistance/new';
+  static const requestAssistance =
+      '/events/:eventId/registrations/:registrationId/assistance/new';
   static String requestAssistancePath(String eventId, String registrationId) =>
       '/events/$eventId/registrations/$registrationId/assistance/new';
   static const referral = '/events/:eventId/refer';
@@ -62,7 +81,8 @@ class RoutePaths {
   static const mediaGallery = '/events/:eventId/gallery';
   static String mediaGalleryPath(String eventId) => '/events/$eventId/gallery';
   static const competitionStages = '/events/:eventId/competition';
-  static String competitionStagesPath(String eventId) => '/events/$eventId/competition';
+  static String competitionStagesPath(String eventId) =>
+      '/events/$eventId/competition';
   static const voting = '/competition/vote/:stageId';
   static String votingPath(String stageId) => '/competition/vote/$stageId';
 

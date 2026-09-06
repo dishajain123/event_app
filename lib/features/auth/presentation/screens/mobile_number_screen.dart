@@ -12,7 +12,9 @@ import '../../application/auth_state_provider.dart';
 import '../../../../app/router/route_paths.dart';
 
 class MobileNumberScreen extends ConsumerStatefulWidget {
-  const MobileNumberScreen({super.key});
+  final String? returnTo;
+
+  const MobileNumberScreen({super.key, this.returnTo});
 
   @override
   ConsumerState<MobileNumberScreen> createState() => _MobileNumberScreenState();
@@ -43,11 +45,18 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
     });
 
     try {
-      final resendSeconds = await ref.read(authStateProvider.notifier).requestOtp(normalized);
+      final resendSeconds =
+          await ref.read(authStateProvider.notifier).requestOtp(normalized);
       if (!mounted) return;
-      context.push(RoutePaths.otpVerify, extra: {
+      final otpPath = Uri(
+        path: RoutePaths.otpVerify,
+        queryParameters:
+            widget.returnTo == null ? null : {'returnTo': widget.returnTo!},
+      ).toString();
+      context.push(otpPath, extra: {
         'mobileNumber': normalized,
         'resendSeconds': resendSeconds,
+        'returnTo': widget.returnTo,
       });
     } on AppException catch (e) {
       setState(() => _errorText = e.message);
@@ -75,7 +84,8 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                     color: AppColors.accent,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.event_available_rounded, color: Colors.white, size: 28),
+                  child: const Icon(Icons.event_available_rounded,
+                      color: Colors.white, size: 28),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Text('Welcome', style: AppTypography.display),

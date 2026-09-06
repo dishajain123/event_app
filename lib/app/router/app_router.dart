@@ -43,10 +43,18 @@ import '../../features/profile/presentation/screens/app_settings_screen.dart';
 import '../../features/tickets/presentation/screens/my_tickets_screen.dart';
 import '../../features/tickets/presentation/screens/ticket_detail_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/feedback/presentation/screens/feedback_screen.dart';
+import '../../features/feedback/presentation/screens/my_feedback_screen.dart';
 import '../../features/staff_mode/check_in/presentation/screens/qr_scanner_screen.dart';
 import '../../features/staff_mode/registration_review/presentation/screens/registration_review_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/my_staff_events_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/staff_profile_screen.dart';
+import '../../features/sponsorships/presentation/screens/sponsorship_opportunities_screen.dart';
+import '../../features/sponsorships/presentation/screens/sponsorship_inquiry_screen.dart';
+import '../../features/sponsorships/presentation/screens/my_sponsorship_inquiries_screen.dart';
+import '../../features/volunteers/presentation/screens/volunteer_opportunities_screen.dart';
+import '../../features/volunteers/presentation/screens/volunteer_application_screen.dart';
+import '../../features/volunteers/presentation/screens/my_volunteer_applications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -65,7 +73,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RoutePaths.mobileNumber,
-        builder: (context, state) => const MobileNumberScreen(),
+        builder: (context, state) => MobileNumberScreen(
+          returnTo: state.uri.queryParameters['returnTo'],
+        ),
       ),
       GoRoute(
         path: RoutePaths.otpVerify,
@@ -74,6 +84,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return OtpVerifyScreen(
             mobileNumber: extra?['mobileNumber'] as String? ?? '',
             initialResendSeconds: extra?['resendSeconds'] as int? ?? 30,
+            returnTo: extra?['returnTo'] as String? ??
+                state.uri.queryParameters['returnTo'],
           );
         },
       ),
@@ -83,13 +95,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => PublicModeShell(child: child),
         routes: [
-          GoRoute(path: RoutePaths.home, builder: (context, state) => const HomeScreen()),
+          GoRoute(
+              path: RoutePaths.home,
+              builder: (context, state) => const HomeScreen()),
           GoRoute(
             path: RoutePaths.myRegistrations,
             builder: (context, state) => const MyRegistrationsScreen(),
           ),
-          GoRoute(path: RoutePaths.myTickets, builder: (context, state) => const MyTicketsScreen()),
-          GoRoute(path: RoutePaths.profile, builder: (context, state) => const ProfileScreen()),
+          GoRoute(
+              path: RoutePaths.myTickets,
+              builder: (context, state) => const MyTicketsScreen()),
+          GoRoute(
+              path: RoutePaths.profile,
+              builder: (context, state) => const ProfileScreen()),
+          GoRoute(
+              path: RoutePaths.myFeedback,
+              builder: (context, state) => const MyFeedbackScreen()),
         ],
       ),
 
@@ -106,6 +127,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: RoutePaths.eventFeedback,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            FeedbackScreen(eventId: state.pathParameters['eventId']!),
+      ),
+      GoRoute(
         path: RoutePaths.search,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
@@ -116,14 +143,46 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: RoutePaths.sponsorship,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SponsorshipOpportunitiesScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.sponsorshipInquiry,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SponsorshipInquiryScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.mySponsorshipInquiries,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MySponsorshipInquiriesScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.volunteers,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const VolunteerOpportunitiesScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.volunteerApply,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => VolunteerApplicationScreen(
+          eventId: state.pathParameters['eventId']!,
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.myVolunteerApplications,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyVolunteerApplicationsScreen(),
+      ),
 
       // Phase 3 — Registration Engine. All full-screen pushes over
       // whichever shell is active, on the root navigator.
       GoRoute(
         path: RoutePaths.participationTypeSelector,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            ParticipationTypeSelectorScreen(eventId: state.pathParameters['eventId']!),
+        builder: (context, state) => ParticipationTypeSelectorScreen(
+            eventId: state.pathParameters['eventId']!),
       ),
       GoRoute(
         path: RoutePaths.registrationForm,
@@ -136,18 +195,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.registrationDetail,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            RegistrationDetailScreen(registrationId: state.pathParameters['registrationId']!),
+        builder: (context, state) => RegistrationDetailScreen(
+            registrationId: state.pathParameters['registrationId']!),
       ),
       GoRoute(
         path: RoutePaths.createTeam,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => CreateTeamScreen(eventId: state.pathParameters['eventId']!),
+        builder: (context, state) =>
+            CreateTeamScreen(eventId: state.pathParameters['eventId']!),
       ),
       GoRoute(
         path: RoutePaths.teamRoster,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => TeamRosterScreen(teamId: state.pathParameters['teamId']!),
+        builder: (context, state) =>
+            TeamRosterScreen(teamId: state.pathParameters['teamId']!),
       ),
       GoRoute(
         path: RoutePaths.myChildren,
@@ -164,13 +225,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.paymentCheckout,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            PaymentCheckoutScreen(registrationId: state.pathParameters['registrationId']!),
+        builder: (context, state) => PaymentCheckoutScreen(
+            registrationId: state.pathParameters['registrationId']!),
       ),
       GoRoute(
         path: RoutePaths.ticketDetail,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => TicketDetailScreen(ticketId: state.pathParameters['ticketId']!),
+        builder: (context, state) =>
+            TicketDetailScreen(ticketId: state.pathParameters['ticketId']!),
       ),
 
       // Phase 6 — Staff Mode Extended, Growth & Engagement.
@@ -195,22 +257,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.referral,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => MyReferralScreen(eventId: state.pathParameters['eventId']!),
+        builder: (context, state) =>
+            MyReferralScreen(eventId: state.pathParameters['eventId']!),
       ),
       GoRoute(
         path: RoutePaths.mediaGallery,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => MediaGalleryScreen(eventId: state.pathParameters['eventId']!),
+        builder: (context, state) =>
+            MediaGalleryScreen(eventId: state.pathParameters['eventId']!),
       ),
       GoRoute(
         path: RoutePaths.competitionStages,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => CompetitionStagesScreen(eventId: state.pathParameters['eventId']!),
+        builder: (context, state) =>
+            CompetitionStagesScreen(eventId: state.pathParameters['eventId']!),
       ),
       GoRoute(
         path: RoutePaths.voting,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => VotingScreen(stageId: state.pathParameters['stageId']!),
+        builder: (context, state) =>
+            VotingScreen(stageId: state.pathParameters['stageId']!),
       ),
 
       // Phase 7 — Profile, Settings & Polish.
@@ -237,13 +303,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => StaffModeShell(child: child),
         routes: [
-          GoRoute(path: RoutePaths.staffScan, builder: (context, state) => const QrScannerScreen()),
-          GoRoute(path: RoutePaths.staffTasks, builder: (context, state) => const RegistrationReviewScreen()),
+          GoRoute(
+              path: RoutePaths.staffScan,
+              builder: (context, state) => const QrScannerScreen()),
+          GoRoute(
+              path: RoutePaths.staffTasks,
+              builder: (context, state) => const RegistrationReviewScreen()),
           GoRoute(
             path: RoutePaths.staffMyEvents,
             builder: (context, state) => const MyStaffEventsScreen(),
           ),
-          GoRoute(path: RoutePaths.staffProfile, builder: (context, state) => const StaffProfileScreen()),
+          GoRoute(
+              path: RoutePaths.staffProfile,
+              builder: (context, state) => const StaffProfileScreen()),
         ],
       ),
     ],
@@ -265,7 +337,9 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (authState is AuthUnauthenticated) {
-    return isAuthRoute ? null : RoutePaths.mobileNumber;
+    if (location == RoutePaths.splash) return RoutePaths.home;
+    if (isAuthRoute || _isGuestAccessibleRoute(location)) return null;
+    return _loginPath(state.matchedLocation);
   }
 
   // Authenticated from here on (AuthState is sealed: Initializing |
@@ -278,7 +352,7 @@ String? _redirect(Ref ref, GoRouterState state) {
     // with Staff Mode access is never dropped straight into Staff Mode
     // without an explicit switch (this was confirmed explicitly before
     // this phase was built; see AppModeController's doc comment).
-    return RoutePaths.home;
+    return state.uri.queryParameters['returnTo'] ?? RoutePaths.home;
   }
 
   final SessionRoles roles = authenticated.roles;
@@ -305,4 +379,24 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   return null;
+}
+
+bool _isGuestAccessibleRoute(String location) {
+  if (location == RoutePaths.home ||
+      location == RoutePaths.search ||
+      location == RoutePaths.sponsorship ||
+      location == RoutePaths.volunteers) return true;
+  if (location.startsWith('/events/')) {
+    return !location.contains('/register') &&
+        !location.contains('/refer') &&
+        !location.contains('/registrations/') &&
+        !location.contains('/feedback');
+  }
+  return false;
+}
+
+String _loginPath(String returnTo) {
+  return Uri(
+      path: RoutePaths.mobileNumber,
+      queryParameters: {'returnTo': returnTo}).toString();
 }

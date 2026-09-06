@@ -22,6 +22,11 @@ class EventConfiguration {
   final double? feeAmount;
   final String currency;
   final int? capacity;
+  final bool volunteerOpen;
+  final DateTime? registrationEndAt;
+  final int registeredCount;
+  final int? availableCapacity;
+  final String registrationStatus;
   final bool approvalRequired;
   final Map<String, dynamic> details;
   final Map<String, dynamic> rules;
@@ -34,6 +39,11 @@ class EventConfiguration {
     required this.feeAmount,
     required this.currency,
     required this.capacity,
+    required this.volunteerOpen,
+    required this.registrationEndAt,
+    required this.registeredCount,
+    required this.availableCapacity,
+    required this.registrationStatus,
     required this.approvalRequired,
     required this.details,
     required this.rules,
@@ -49,6 +59,13 @@ class EventConfiguration {
       feeAmount: parseFlexibleDecimal(json['fee_amount']),
       currency: json['currency'] as String? ?? 'INR',
       capacity: json['capacity'] as int?,
+      volunteerOpen: json['volunteer_open'] as bool? ?? true,
+      registrationEndAt: json['registration_end_at'] != null
+          ? DateTime.parse(json['registration_end_at'] as String)
+          : null,
+      registeredCount: json['registered_count'] as int? ?? 0,
+      availableCapacity: json['available_capacity'] as int?,
+      registrationStatus: json['registration_status'] as String? ?? 'closed',
       approvalRequired: json['approval_required'] as bool? ?? false,
       details: (json['details'] as Map<String, dynamic>?) ?? {},
       rules: (json['rules'] as Map<String, dynamic>?) ?? {},
@@ -63,8 +80,10 @@ class EventConfiguration {
   int? get minAge => rules['min_age'] as int?;
   int? get maxAge => rules['max_age'] as int?;
 
-  int? get minTeamSize => (rules['team_size'] as Map<String, dynamic>?)?['min'] as int?;
-  int? get maxTeamSize => (rules['team_size'] as Map<String, dynamic>?)?['max'] as int?;
+  int? get minTeamSize =>
+      (rules['team_size'] as Map<String, dynamic>?)?['min'] as int?;
+  int? get maxTeamSize =>
+      (rules['team_size'] as Map<String, dynamic>?)?['max'] as int?;
 
   List<String> get requiredDocuments {
     final raw = rules['required_documents'] as List<dynamic>?;

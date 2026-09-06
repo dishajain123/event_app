@@ -23,21 +23,16 @@ class PaymentsApi {
   }
 
   /// Closes the loop after Razorpay's checkout sheet reports success.
-  /// Razorpay's client SDK returns exactly these three values
-  /// (order id, payment id, signature) to the success callback — this
-  /// mirrors `PaymentWebhookIn` exactly, the same shape the gateway's
-  /// own server-to-server webhook call uses. The endpoint requires no
-  /// auth (confirmed against the live router — the signature itself is
-  /// the real security boundary, not a bearer token), so a mobile client
-  /// calling it directly with the checkout SDK's own callback values is
-  /// exactly the flow the backend is built for.
+  /// Razorpay's client SDK returns order id, payment id, and signature to
+  /// the success callback. The app uses the authenticated verification
+  /// endpoint; the webhook endpoint is reserved for gateway delivery.
   Future<AppPayment> confirmPayment({
     required String gatewayOrderId,
     required String gatewayPaymentId,
     required String gatewaySignature,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/payments/webhook',
+      '/payments/verify',
       data: {
         'gateway_order_id': gatewayOrderId,
         'gateway_payment_id': gatewayPaymentId,

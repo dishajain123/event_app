@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/phone_formatter.dart';
+import '../../../../app/router/route_paths.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../application/auth_state_provider.dart';
 import '../widgets/otp_input_field.dart';
@@ -14,11 +15,13 @@ import '../widgets/resend_timer.dart';
 class OtpVerifyScreen extends ConsumerStatefulWidget {
   final String mobileNumber;
   final int initialResendSeconds;
+  final String? returnTo;
 
   const OtpVerifyScreen({
     super.key,
     required this.mobileNumber,
     required this.initialResendSeconds,
+    this.returnTo,
   });
 
   @override
@@ -61,6 +64,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
             mobileNumber: widget.mobileNumber,
             otp: otp,
           );
+      if (mounted) context.go(widget.returnTo ?? RoutePaths.home);
     } on AppException catch (e) {
       setState(() {
         _errorText = e.message;
@@ -74,7 +78,9 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   Future<void> _resend() async {
     setState(() => _resending = true);
     try {
-      final seconds = await ref.read(authStateProvider.notifier).requestOtp(widget.mobileNumber);
+      final seconds = await ref
+          .read(authStateProvider.notifier)
+          .requestOtp(widget.mobileNumber);
       if (mounted) setState(() => _resendSeconds = seconds);
     } on AppException catch (e) {
       if (mounted) setState(() => _errorText = e.message);
@@ -97,7 +103,8 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.arrow_back_rounded),
-                  style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.6)),
+                  style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.6)),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Text('Enter the code', style: AppTypography.display),
@@ -113,7 +120,9 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 ),
                 if (_errorText != null) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Text(_errorText!, style: AppTypography.body.copyWith(color: AppColors.danger)),
+                  Text(_errorText!,
+                      style:
+                          AppTypography.body.copyWith(color: AppColors.danger)),
                 ],
                 const SizedBox(height: AppSpacing.lg),
                 Center(

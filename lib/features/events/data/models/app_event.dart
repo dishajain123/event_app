@@ -59,14 +59,19 @@ class AppEvent {
       mainCategoryId: json['main_category_id'] as String?,
       subCategoryId: json['sub_category_id'] as String?,
       mainCategory: json['main_category'] != null
-          ? MainCategorySummary.fromJson(json['main_category'] as Map<String, dynamic>)
+          ? MainCategorySummary.fromJson(
+              json['main_category'] as Map<String, dynamic>)
           : null,
       subCategory: json['sub_category'] != null
-          ? SubCategorySummary.fromJson(json['sub_category'] as Map<String, dynamic>)
+          ? SubCategorySummary.fromJson(
+              json['sub_category'] as Map<String, dynamic>)
           : null,
-      organizer: json['organizer'] != null ? AppUser.fromJson(json['organizer'] as Map<String, dynamic>) : null,
+      organizer: json['organizer'] != null
+          ? AppUser.fromJson(json['organizer'] as Map<String, dynamic>)
+          : null,
       configuration: json['configuration'] != null
-          ? EventConfigurationSummary.fromJson(json['configuration'] as Map<String, dynamic>)
+          ? EventConfigurationSummary.fromJson(
+              json['configuration'] as Map<String, dynamic>)
           : null,
       startDate: DateTime.parse(json['start_date'] as String),
       endDate: DateTime.parse(json['end_date'] as String),
@@ -74,12 +79,19 @@ class AppEvent {
     );
   }
 
-  /// The category label to actually display — prefers the structured
-  /// taxonomy over the legacy free-text field, per Section 2.1's guidance
-  /// on the two coexisting.
-  String? get displayCategory => mainCategory?.name ?? category;
+  /// The exact structured taxonomy label selected in the Console. The
+  /// legacy free-text value is only a fallback for older events created
+  /// before the category hierarchy existed.
+  String? get displayCategory {
+    if (mainCategory != null && subCategory != null) {
+      return '${mainCategory!.name} / ${subCategory!.name}';
+    }
+    return subCategory?.name ?? mainCategory?.name ?? category;
+  }
 
   bool get isSameDayEvent {
-    return startDate.year == endDate.year && startDate.month == endDate.month && startDate.day == endDate.day;
+    return startDate.year == endDate.year &&
+        startDate.month == endDate.month &&
+        startDate.day == endDate.day;
   }
 }

@@ -98,17 +98,20 @@ class AppRegistration {
 /// Mirrors `RegistrationParticipantIn` — the request-side shape for a
 /// participant when creating a registration.
 class RegistrationParticipantInput {
+  final String? userId;
   final String fullName;
   final String? dateOfBirthIso;
   final bool isCaptain;
 
   const RegistrationParticipantInput({
+    this.userId,
     required this.fullName,
     this.dateOfBirthIso,
     this.isCaptain = false,
   });
 
   Map<String, dynamic> toJson() => {
+        if (userId != null) 'user_id': userId,
         'full_name': fullName,
         if (dateOfBirthIso != null) 'date_of_birth': dateOfBirthIso,
         'is_captain': isCaptain,

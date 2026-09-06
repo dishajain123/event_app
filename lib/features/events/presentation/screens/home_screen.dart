@@ -9,6 +9,7 @@ import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
 import '../../../event_categories/application/event_categories_providers.dart';
 import '../../application/events_providers.dart';
+import '../../data/models/app_event.dart';
 import '../widgets/event_card.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -23,6 +24,16 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Discover'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.handshake_outlined),
+            tooltip: 'Become a sponsor',
+            onPressed: () => context.push(RoutePaths.sponsorship),
+          ),
+          IconButton(
+            icon: const Icon(Icons.volunteer_activism_outlined),
+            tooltip: 'Become a volunteer',
+            onPressed: () => context.push(RoutePaths.volunteers),
+          ),
           IconButton(
             icon: const Icon(Icons.search_rounded),
             onPressed: () => context.push(RoutePaths.search),
@@ -40,8 +51,11 @@ class HomeScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
-                onRetry: () => ref.invalidate(eventsListProvider(noEventsFilter)),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
+                onRetry: () =>
+                    ref.invalidate(eventsListProvider(noEventsFilter)),
               ),
             ],
           ),
@@ -58,16 +72,21 @@ class HomeScreen extends ConsumerWidget {
                   height: 40,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     itemCount: categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final category = categories[index];
                       return ActionChip(
                         label: Text(category.name),
                         onPressed: () => context.push(
                           RoutePaths.search,
-                          extra: {'mainCategoryId': category.id, 'mainCategoryName': category.name},
+                          extra: {
+                            'mainCategoryId': category.id,
+                            'mainCategoryName': category.name
+                          },
                         ),
                       );
                     },
@@ -78,30 +97,20 @@ class HomeScreen extends ConsumerWidget {
 
               if (events.isEmpty)
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xxxl),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg, vertical: AppSpacing.xxxl),
                   child: Center(
-                    child: Text('No events published yet — check back soon.', style: AppTypography.bodyMuted),
+                    child: Text('No events published yet — check back soon.',
+                        style: AppTypography.bodyMuted),
                   ),
                 )
               else ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: Text('Upcoming events', style: AppTypography.title),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                for (final event in events)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                    ),
-                    child: FeaturedEventCard(
-                      event: event,
-                      onTap: () => context.push(RoutePaths.eventDetailPath(event.id)),
-                    ),
-                  ),
+                ..._buildEventSections(context, events),
               ],
             ],
           ),
@@ -109,4 +118,80 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+List<Widget> _buildEventSections(BuildContext context, List<AppEvent> events) {
+  final groups = <String, _EventCategoryGroup>{};
+
+  for (final event in events) {
+    final mainName =
+        event.mainCategory?.name ?? event.category ?? 'Uncategorized';
+    final mainKey = event.mainCategoryId ?? 'legacy-main:$mainName';
+    final mainGroup = groups.putIfAbsent(
+      mainKey,
+      () => _EventCategoryGroup(name: mainName),
+    );
+
+    final subName = event.subCategory?.name;
+    final subKey = event.subCategoryId ??
+        (subName == null ? 'none' : 'legacy-sub:$subName');
+    final subGroup = mainGroup.subcategories.putIfAbsent(
+      subKey,
+      () => _EventSubcategoryGroup(name: subName),
+    );
+    subGroup.events.add(event);
+  }
+
+  return [
+    for (final mainGroup in groups.values) ...[
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          AppSpacing.sm,
+        ),
+        child: Text(mainGroup.name, style: AppTypography.bodyStrong),
+      ),
+      for (final subGroup in mainGroup.subcategories.values) ...[
+        if (subGroup.name != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.xs,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
+            child: Text(subGroup.name!, style: AppTypography.bodyMuted),
+          ),
+        for (final event in subGroup.events)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              0,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            child: FeaturedEventCard(
+              event: event,
+              onTap: () => context.push(RoutePaths.eventDetailPath(event.id)),
+            ),
+          ),
+      ],
+    ],
+  ];
+}
+
+class _EventCategoryGroup {
+  final String name;
+  final Map<String, _EventSubcategoryGroup> subcategories = {};
+
+  _EventCategoryGroup({required this.name});
+}
+
+class _EventSubcategoryGroup {
+  final String? name;
+  final List<AppEvent> events = [];
+
+  _EventSubcategoryGroup({required this.name});
 }

@@ -7,11 +7,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
 import '../../../config_engine/application/config_engine_providers.dart';
 import '../../../config_engine/data/models/configurable_field.dart';
+import '../../../guardians/application/guardians_providers.dart';
 import '../../application/registrations_providers.dart';
 import '../../data/models/registration.dart';
 import '../../data/models/registration_status.dart';
@@ -31,6 +33,8 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
   final Map<String, dynamic> _answers = {};
   final Set<String> _confirmedDocuments = {};
   String? _dateOfBirthIso;
+  String? _childId;
+  final _participantNameController = TextEditingController();
   ValidationResult? _lastValidation;
   bool _validating = false;
 
@@ -48,6 +52,12 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
             '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _participantNameController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkEligibility() async {
@@ -83,9 +93,17 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
           eventId: widget.eventId,
           participationType: widget.participationType,
           dateOfBirthIso: _dateOfBirthIso,
+          childId: _childId,
           documentsProvided: _confirmedDocuments.toList(),
           answers: _answers,
-          participants: const [],
+          participants: _participantNameController.text.trim().isEmpty
+              ? const []
+              : [
+                  RegistrationParticipantInput(
+                    fullName: _participantNameController.text.trim(),
+                    dateOfBirthIso: _dateOfBirthIso,
+                  ),
+                ],
         );
         ref.invalidate(myRegistrationsProvider);
         if (mounted) {
@@ -113,6 +131,7 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
       eventFieldSchemaProvider((eventId: widget.eventId, participationType: widget.participationType)),
     );
     final configAsync = ref.watch(eventConfigurationProvider(widget.eventId));
+    final childrenAsync = ref.watch(myChildrenProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text('Register — ${widget.participationType}')),
@@ -132,6 +151,41 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
             return ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: [
+                childrenAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (children) => children.isEmpty
+                      ? const SizedBox.shrink()
+                      : DropdownButtonFormField<String>(
+                          value: _childId ?? '',
+                          decoration: const InputDecoration(labelText: 'Registering for', hintText: 'Myself'),
+                          items: [
+                            const DropdownMenuItem<String>(value: '', child: Text('Myself')),
+                            ...children.map(
+                              (child) => DropdownMenuItem<String>(
+                                value: child.id,
+                                child: Text(child.fullName),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            final child = value == null || value.isEmpty
+                                ? null
+                                : children.firstWhere((candidate) => candidate.id == value);
+                            setState(() {
+                              _childId = value == null || value.isEmpty ? null : value;
+                              _dateOfBirthIso = child?.dateOfBirth.toIso8601String().split('T').first;
+                            });
+                          },
+                        ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  controller: _participantNameController,
+                  label: 'Another participant (optional)',
+                  hint: 'Leave blank to register yourself',
+                ),
+                const SizedBox(height: AppSpacing.md),
                 if (config != null && config.hasAgeRule) _DateOfBirthField(
                   value: _dateOfBirthIso,
                   onTap: _pickDateOfBirth,

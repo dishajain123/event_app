@@ -13,6 +13,7 @@ import '../../../../shared/widgets/states/app_skeleton.dart';
 import '../../../media/application/media_providers.dart';
 import '../../application/events_providers.dart';
 import '../../data/models/app_event.dart';
+import '../../data/models/event_configuration_summary.dart';
 import '../../data/models/event_status.dart';
 
 class EventDetailScreen extends ConsumerWidget {
@@ -32,7 +33,9 @@ class EventDetailScreen extends ConsumerWidget {
               const _BackBar(),
               Expanded(
                 child: AppErrorState(
-                  error: error is AppException ? error : UnknownException(error.toString()),
+                  error: error is AppException
+                      ? error
+                      : UnknownException(error.toString()),
                   onRetry: () => ref.invalidate(eventDetailProvider(eventId)),
                 ),
               ),
@@ -55,7 +58,8 @@ class EventDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   child: const Center(
-                    child: Icon(Icons.event_rounded, color: Colors.white, size: 56),
+                    child: Icon(Icons.event_rounded,
+                        color: Colors.white, size: 56),
                   ),
                 ),
               ),
@@ -68,10 +72,14 @@ class EventDetailScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        StatusBadge(label: event.status.label, tone: _statusTone(event.status)),
+                        StatusBadge(
+                            label: event.status.label,
+                            tone: _statusTone(event.status)),
                         if (event.displayCategory != null) ...[
                           const SizedBox(width: AppSpacing.sm),
-                          StatusBadge(label: event.displayCategory!, tone: StatusTone.accent),
+                          StatusBadge(
+                              label: event.displayCategory!,
+                              tone: StatusTone.accent),
                         ],
                       ],
                     ),
@@ -90,14 +98,21 @@ class EventDetailScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.lg),
                       Text(event.description!, style: AppTypography.body),
                     ],
-
+                    if (event.configuration != null) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      _RegistrationCapacitySummary(
+                          configuration: event.configuration!),
+                    ],
                     const SizedBox(height: AppSpacing.xl),
-                    if (event.status.acceptsRegistration)
+                    if (event.status.acceptsRegistration &&
+                        event.configuration?.registrationStatus != 'closed' &&
+                        event.configuration?.registrationStatus != 'full')
                       AppButton(
                         label: 'Register',
                         fullWidth: true,
                         size: AppButtonSize.large,
-                        onPressed: () => context.push(RoutePaths.participationTypeSelectorPath(event.id)),
+                        onPressed: () => context.push(
+                            RoutePaths.participationTypeSelectorPath(event.id)),
                       )
                     else
                       Container(
@@ -107,12 +122,25 @@ class EventDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _registrationClosedMessage(event.status),
+                          _registrationClosedMessage(
+                              event.status, event.configuration),
                           style: AppTypography.bodyMuted,
                           textAlign: TextAlign.center,
                         ),
                       ),
-
+                    if (event.status == EventStatus.live ||
+                        event.status == EventStatus.completed ||
+                        event.status == EventStatus.archived) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton(
+                        label: 'Give Feedback',
+                        variant: AppButtonVariant.secondary,
+                        fullWidth: true,
+                        icon: Icons.rate_review_outlined,
+                        onPressed: () => context
+                            .push(RoutePaths.eventFeedbackPath(event.id)),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.xxl),
                     _QuickActionsRow(eventId: eventId),
                     const SizedBox(height: AppSpacing.xl),
@@ -144,13 +172,67 @@ class EventDetailScreen extends ConsumerWidget {
         EventStatus.archived => StatusTone.neutral,
       };
 
-  String _registrationClosedMessage(EventStatus status) => switch (status) {
-        EventStatus.registrationClosed => 'Registration has closed for this event.',
-        EventStatus.live => 'This event is currently live.',
-        EventStatus.completed => 'This event has ended.',
-        EventStatus.archived => 'This event is archived.',
-        _ => 'Registration isn\'t open for this event yet.',
-      };
+  String _registrationClosedMessage(
+      EventStatus status, EventConfigurationSummary? configuration) {
+    if (configuration?.registrationStatus == 'full') {
+      return 'Registration is full for this event.';
+    }
+    if (configuration?.registrationStatus == 'closed') {
+      return 'Registration has closed for this event.';
+    }
+    return switch (status) {
+      EventStatus.registrationClosed =>
+        'Registration has closed for this event.',
+      EventStatus.live => 'This event is currently live.',
+      EventStatus.completed => 'This event has ended.',
+      EventStatus.archived => 'This event is archived.',
+      _ => 'Registration isn\'t open for this event yet.',
+    };
+  }
+}
+
+class _RegistrationCapacitySummary extends StatelessWidget {
+  final EventConfigurationSummary configuration;
+
+  const _RegistrationCapacitySummary({required this.configuration});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCapacity = configuration.capacity != null;
+    final isLimited = configuration.registrationStatus == 'limited';
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isLimited ? AppColors.warningSoft : AppColors.backgroundAlt,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasCapacity)
+            Text(
+              '${configuration.registeredCount} registered${configuration.availableCapacity != null ? ' · ${configuration.availableCapacity} seats available' : ''} of ${configuration.capacity}',
+              style: AppTypography.bodyStrong,
+            ),
+          if (!hasCapacity)
+            Text('${configuration.registeredCount} registered',
+                style: AppTypography.bodyStrong),
+          if (configuration.registrationEndAt != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Registration closes ${_formatFullDateTime(configuration.registrationEndAt!)}',
+              style: AppTypography.bodyMuted,
+            ),
+          ],
+          if (isLimited) ...[
+            const SizedBox(height: AppSpacing.xs),
+            const Text('Limited seats available — Register now!',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _QuickActionsRow extends StatelessWidget {
@@ -181,7 +263,8 @@ class _QuickActionsRow extends StatelessWidget {
           child: _QuickActionChip(
             icon: Icons.emoji_events_outlined,
             label: 'Competition',
-            onTap: () => context.push(RoutePaths.competitionStagesPath(eventId)),
+            onTap: () =>
+                context.push(RoutePaths.competitionStagesPath(eventId)),
           ),
         ),
       ],
@@ -193,7 +276,8 @@ class _QuickActionChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _QuickActionChip({required this.icon, required this.label, required this.onTap});
+  const _QuickActionChip(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +294,9 @@ class _QuickActionChip extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.accentStrong, size: 20),
             const SizedBox(height: 4),
-            Text(label, style: AppTypography.captionSubtle, textAlign: TextAlign.center),
+            Text(label,
+                style: AppTypography.captionSubtle,
+                textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -245,9 +331,11 @@ class _DateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.inkSubtle),
+        const Icon(Icons.calendar_today_rounded,
+            size: 16, color: AppColors.inkSubtle),
         const SizedBox(width: 6),
-        Text(_formatFullDateRange(event.startDate, event.endDate), style: AppTypography.bodyMuted),
+        Text(_formatFullDateRange(event.startDate, event.endDate),
+            style: AppTypography.bodyMuted),
       ],
     );
   }
@@ -255,12 +343,35 @@ class _DateRow extends StatelessWidget {
 
 String _formatFullDateRange(DateTime start, DateTime end) {
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   String fmt(DateTime d) => '${months[d.month - 1]} ${d.day}, ${d.year}';
-  final sameDay = start.year == end.year && start.month == end.month && start.day == end.day;
+  final sameDay = start.year == end.year &&
+      start.month == end.month &&
+      start.day == end.day;
   return sameDay ? fmt(start) : '${fmt(start)} – ${fmt(end)}';
+}
+
+String _formatFullDateTime(DateTime value) {
+  final hour = value.hour == 0
+      ? 12
+      : value.hour > 12
+          ? value.hour - 12
+          : value.hour;
+  final minute = value.minute.toString().padLeft(2, '0');
+  final period = value.hour >= 12 ? 'PM' : 'AM';
+  return '${_formatFullDateRange(value, value)} at $hour:$minute $period';
 }
 
 class _VenuesSection extends ConsumerWidget {
@@ -285,14 +396,17 @@ class _VenuesSection extends ConsumerWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 18, color: AppColors.inkSubtle),
+                      const Icon(Icons.location_on_outlined,
+                          size: 18, color: AppColors.inkSubtle),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(venue.name, style: AppTypography.bodyStrong),
-                            if (venue.address != null) Text(venue.address!, style: AppTypography.caption),
+                            if (venue.address != null)
+                              Text(venue.address!,
+                                  style: AppTypography.caption),
                           ],
                         ),
                       ),
@@ -319,7 +433,8 @@ class _ScheduleSection extends ConsumerWidget {
       error: (_, __) => const SizedBox.shrink(),
       data: (items) {
         if (items.isEmpty) return const SizedBox.shrink();
-        final sorted = [...items]..sort((a, b) => a.startTime.compareTo(b.startTime));
+        final sorted = [...items]
+          ..sort((a, b) => a.startTime.compareTo(b.startTime));
         return _Section(
           title: 'Schedule',
           child: Column(
@@ -336,7 +451,8 @@ class _ScheduleSection extends ConsumerWidget {
                           style: AppTypography.caption,
                         ),
                       ),
-                      Expanded(child: Text(item.title, style: AppTypography.body)),
+                      Expanded(
+                          child: Text(item.title, style: AppTypography.body)),
                     ],
                   ),
                 ),
@@ -367,7 +483,21 @@ class _SponsorsSection extends ConsumerWidget {
             runSpacing: AppSpacing.sm,
             children: [
               for (final sponsor in sponsors)
-                Chip(label: Text(sponsor.name), backgroundColor: AppColors.accentSoft),
+                Card(
+                  child: ListTile(
+                    leading: sponsor.logoUrl == null
+                        ? const Icon(Icons.handshake_outlined)
+                        : Image.network(sponsor.logoUrl!,
+                            width: 44, height: 44, fit: BoxFit.contain),
+                    title: Text(sponsor.name),
+                    subtitle: Text(
+                      [
+                        sponsor.category,
+                        sponsor.description ?? sponsor.offerDetails
+                      ].whereType<String>().join(' · '),
+                    ),
+                  ),
+                ),
             ],
           ),
         );
@@ -409,7 +539,8 @@ class _MediaSection extends ConsumerWidget {
                       width: 96,
                       height: 96,
                       color: AppColors.backgroundAlt,
-                      child: const Icon(Icons.image_not_supported_outlined, color: AppColors.inkSubtle),
+                      child: const Icon(Icons.image_not_supported_outlined,
+                          color: AppColors.inkSubtle),
                     ),
                   ),
                 );
