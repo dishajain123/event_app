@@ -19,6 +19,7 @@ dependencies:
 
   # Networking (Section 3.5)
   dio: ^5.5.0
+  url_launcher: ^6.3.1
 
   # Token storage (Section 3.4)
   flutter_secure_storage: ^9.2.2

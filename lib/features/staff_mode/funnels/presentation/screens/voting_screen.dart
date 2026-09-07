@@ -25,7 +25,9 @@ class VotingScreen extends ConsumerWidget {
       body: entriesAsync.when(
         loading: () => const AppSkeleton.cardList(),
         error: (error, stackTrace) => AppErrorState(
-          error: error is AppException ? error : UnknownException(error.toString()),
+          error: error is AppException
+              ? error
+              : UnknownException(error.toString()),
           onRetry: () => ref.invalidate(publicVoteEntriesProvider(stageId)),
         ),
         data: (entries) {
@@ -33,14 +35,16 @@ class VotingScreen extends ConsumerWidget {
             return const AppEmptyState(
               icon: Icons.how_to_vote_outlined,
               title: 'No entries yet',
-              description: 'Check back once entries have been submitted for this stage.',
+              description:
+                  'Check back once entries have been submitted for this stage.',
             );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: entries.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) => _EntryCard(stageId: stageId, entry: entries[index]),
+            itemBuilder: (context, index) =>
+                _EntryCard(stageId: stageId, entry: entries[index]),
           );
         },
       ),
@@ -80,20 +84,26 @@ class _EntryCard extends ConsumerWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
-            child: const Icon(Icons.person_rounded, color: AppColors.accentStrong),
+            decoration: const BoxDecoration(
+                color: AppColors.accentSoft, shape: BoxShape.circle),
+            child:
+                const Icon(Icons.person_rounded, color: AppColors.accentStrong),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Entry #${entry.id.substring(0, 8)}', style: AppTypography.bodyStrong),
+                Text('Entry #${entry.id.substring(0, 8)}',
+                    style: AppTypography.bodyStrong),
                 Text('${entry.voteCount} votes', style: AppTypography.caption),
               ],
             ),
           ),
-          AppButton(label: 'Vote', variant: AppButtonVariant.secondary, onPressed: () => _vote(context, ref)),
+          AppButton(
+              label: 'Vote',
+              variant: AppButtonVariant.secondary,
+              onPressed: () => _vote(context, ref)),
         ],
       ),
     );

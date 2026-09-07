@@ -54,14 +54,39 @@ class ProfileScreen extends ConsumerWidget {
               onTap: () => context.push(RoutePaths.myChildren),
             ),
             _ProfileMenuTile(
+              icon: Icons.groups_rounded,
+              label: 'My Teams',
+              onTap: () => context.push(RoutePaths.myTeams),
+            ),
+            _ProfileMenuTile(
               icon: Icons.notifications_none_rounded,
               label: 'Notifications',
               onTap: () => context.push(RoutePaths.notifications),
             ),
             _ProfileMenuTile(
+              icon: Icons.swap_horiz_rounded,
+              label: 'Ticket transfers',
+              onTap: () => context.push(RoutePaths.ticketTransfers),
+            ),
+            _ProfileMenuTile(
+              icon: Icons.queue_outlined,
+              label: 'My Waitlists',
+                onTap: () => context.push(RoutePaths.myWaitlists),
+              ),
+              ListTile(
+                leading: const Icon(Icons.work_history_outlined),
+                title: const Text('Volunteer shifts'),
+                onTap: () => context.push(RoutePaths.myVolunteerShifts),
+              ),
+            _ProfileMenuTile(
               icon: Icons.rate_review_outlined,
               label: 'My Feedback',
               onTap: () => context.push(RoutePaths.myFeedback),
+            ),
+            _ProfileMenuTile(
+              icon: Icons.workspace_premium_outlined,
+              label: 'Certificates & badges',
+              onTap: () => context.push(RoutePaths.certificates),
             ),
             _ProfileMenuTile(
               icon: Icons.volunteer_activism_outlined,

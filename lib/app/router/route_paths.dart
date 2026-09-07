@@ -11,8 +11,12 @@ class RoutePaths {
   static const home = '/home';
   static const myRegistrations = '/registrations/mine';
   static const myTickets = '/tickets/mine';
+  static const ticketTransfers = '/tickets/transfers';
+  static const myWaitlists = '/waitlists/mine';
   static const profile = '/profile';
   static const myFeedback = '/feedback/mine';
+  static const certificates = '/achievements';
+  static const certificateDetail = '/achievements/:certificateId';
   static const sponsorship = '/sponsorship';
   static const sponsorshipInquiry = '/sponsorship/inquire';
   static const mySponsorshipInquiries = '/sponsorship/inquiries/mine';
@@ -21,6 +25,7 @@ class RoutePaths {
   static String volunteerApplyPath(String eventId) =>
       '/volunteers/apply/$eventId';
   static const myVolunteerApplications = '/volunteers/applications/mine';
+  static const myVolunteerShifts = '/volunteers/shifts/mine';
 
   // Phase 2 — Event Discovery & Categories. eventDetail and
   // eventDetailPath both exist because go_router needs the templated
@@ -33,6 +38,12 @@ class RoutePaths {
   static const eventFeedback = '/events/:eventId/feedback';
   static String eventFeedbackPath(String eventId) =>
       '/events/$eventId/feedback';
+  static const eventInteractions = '/events/:eventId/interactions';
+  static String eventInteractionsPath(String eventId) =>
+      '/events/$eventId/interactions';
+  static const eventNetworking = '/events/:eventId/networking';
+  static String eventNetworkingPath(String eventId) =>
+      '/events/$eventId/networking';
   static const search = '/search';
 
   // Phase 3 — Registration Engine.
@@ -46,6 +57,9 @@ class RoutePaths {
           String eventId, String participationType) =>
       '/events/$eventId/register/$participationType';
 
+  static const waitlistJoin = '/events/:eventId/waitlist';
+  static String waitlistJoinPath(String eventId) => '/events/$eventId/waitlist';
+
   static const registrationDetail = '/registrations/:registrationId';
   static String registrationDetailPath(String registrationId) =>
       '/registrations/$registrationId';
@@ -56,6 +70,7 @@ class RoutePaths {
 
   static const teamRoster = '/teams/:teamId';
   static String teamRosterPath(String teamId) => '/teams/$teamId';
+  static const myTeams = '/teams/mine';
 
   static const myChildren = '/children';
   static const addChild = '/children/add';
@@ -95,4 +110,5 @@ class RoutePaths {
   static const staffTasks = '/staff/tasks';
   static const staffMyEvents = '/staff/events';
   static const staffProfile = '/staff/profile';
+  static const staffIncidents = '/staff/incidents';
 }

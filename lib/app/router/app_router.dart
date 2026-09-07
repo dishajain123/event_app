@@ -24,6 +24,7 @@ import '../../features/registrations/presentation/screens/participation_type_sel
 import '../../features/registrations/presentation/screens/registration_form_screen.dart';
 import '../../features/teams/presentation/screens/create_team_screen.dart';
 import '../../features/teams/presentation/screens/team_roster_screen.dart';
+import '../../features/teams/presentation/screens/my_teams_screen.dart';
 import '../../features/guardians/presentation/screens/my_children_screen.dart';
 import '../../features/guardians/presentation/screens/add_child_screen.dart';
 import '../../features/payments/presentation/screens/payment_checkout_screen.dart';
@@ -39,19 +40,28 @@ import '../../features/profile/presentation/screens/identity_documents_screen.da
 import '../../features/profile/presentation/screens/app_settings_screen.dart';
 import '../../features/tickets/presentation/screens/my_tickets_screen.dart';
 import '../../features/tickets/presentation/screens/ticket_detail_screen.dart';
+import '../../features/tickets/presentation/screens/incoming_transfers_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/feedback/presentation/screens/feedback_screen.dart';
 import '../../features/feedback/presentation/screens/my_feedback_screen.dart';
+import '../../features/interactions/presentation/screens/event_interactions_screen.dart';
+import '../../features/networking/presentation/screens/networking_screen.dart';
+import '../../features/certificates/presentation/screens/certificates_screen.dart';
+import '../../features/certificates/presentation/screens/certificate_detail_screen.dart';
 import '../../features/staff_mode/check_in/presentation/screens/barcode_scanner_screen.dart';
 import '../../features/staff_mode/registration_review/presentation/screens/registration_review_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/my_staff_events_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/staff_profile_screen.dart';
+import '../../features/staff_mode/incidents/presentation/screens/incidents_screen.dart';
 import '../../features/sponsorships/presentation/screens/sponsorship_opportunities_screen.dart';
 import '../../features/sponsorships/presentation/screens/sponsorship_inquiry_screen.dart';
 import '../../features/sponsorships/presentation/screens/my_sponsorship_inquiries_screen.dart';
 import '../../features/volunteers/presentation/screens/volunteer_opportunities_screen.dart';
 import '../../features/volunteers/presentation/screens/volunteer_application_screen.dart';
 import '../../features/volunteers/presentation/screens/my_volunteer_applications_screen.dart';
+import '../../features/volunteers/presentation/screens/my_volunteer_shifts_screen.dart';
+import '../../features/waitlists/presentation/screens/my_waitlists_screen.dart';
+import '../../features/waitlists/presentation/screens/waitlist_join_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -103,11 +113,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               path: RoutePaths.myTickets,
               builder: (context, state) => const MyTicketsScreen()),
           GoRoute(
+              path: RoutePaths.ticketTransfers,
+              builder: (context, state) => const IncomingTransfersScreen()),
+          GoRoute(
+              path: RoutePaths.myWaitlists,
+              builder: (context, state) => const MyWaitlistsScreen()),
+          GoRoute(
               path: RoutePaths.profile,
               builder: (context, state) => const ProfileScreen()),
           GoRoute(
               path: RoutePaths.myFeedback,
               builder: (context, state) => const MyFeedbackScreen()),
+          GoRoute(
+              path: RoutePaths.certificates,
+              builder: (context, state) => const CertificatesScreen()),
+          GoRoute(
+              path: RoutePaths.certificateDetail,
+              builder: (context, state) =>
+                  CertificateDetailScreen(certificate: state.extra as dynamic)),
         ],
       ),
 
@@ -128,6 +151,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             FeedbackScreen(eventId: state.pathParameters['eventId']!),
+      ),
+      GoRoute(
+        path: RoutePaths.eventInteractions,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            EventInteractionsScreen(eventId: state.pathParameters['eventId']!),
+      ),
+      GoRoute(
+        path: RoutePaths.eventNetworking,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => NetworkingScreen(
+          eventId: state.pathParameters['eventId']!,
+        ),
       ),
       GoRoute(
         path: RoutePaths.search,
@@ -172,6 +208,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MyVolunteerApplicationsScreen(),
       ),
+      GoRoute(
+        path: RoutePaths.myVolunteerShifts,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyVolunteerShiftsScreen(),
+      ),
 
       // Phase 3 — Registration Engine. All full-screen pushes over
       // whichever shell is active, on the root navigator.
@@ -190,6 +231,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: RoutePaths.waitlistJoin,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            WaitlistJoinScreen(eventId: state.pathParameters['eventId']!),
+      ),
+      GoRoute(
         path: RoutePaths.registrationDetail,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => RegistrationDetailScreen(
@@ -200,6 +247,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             CreateTeamScreen(eventId: state.pathParameters['eventId']!),
+      ),
+      GoRoute(
+        path: RoutePaths.myTeams,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyTeamsScreen(),
       ),
       GoRoute(
         path: RoutePaths.teamRoster,
@@ -313,6 +365,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: RoutePaths.staffProfile,
               builder: (context, state) => const StaffProfileScreen()),
+          GoRoute(
+              path: RoutePaths.staffIncidents,
+              builder: (context, state) => const IncidentsScreen()),
         ],
       ),
     ],
@@ -385,9 +440,11 @@ bool _isGuestAccessibleRoute(String location) {
       location == RoutePaths.volunteers) return true;
   if (location.startsWith('/events/')) {
     return !location.contains('/register') &&
+        !location.contains('/waitlist') &&
         !location.contains('/refer') &&
         !location.contains('/registrations/') &&
-        !location.contains('/feedback');
+        !location.contains('/feedback') &&
+        !location.contains('/networking');
   }
   return false;
 }

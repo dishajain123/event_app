@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'models/funnel_entry.dart';
+import 'models/competition.dart';
 
 /// Mirrors `app/modules/funnels/router.py`. Stage listing and voting are
 /// open to any authenticated user; listing entries for management
@@ -12,9 +13,44 @@ class FunnelsApi {
   final Dio _dio;
   const FunnelsApi(this._dio);
 
+  Future<List<CompetitionSummary>> listCompetitions(String eventId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/competitions',
+      queryParameters: {'event_id': eventId, 'page': 1, 'page_size': 50},
+    );
+    final items = response.data?['items'] as List<dynamic>? ?? const [];
+    return items
+        .map(
+            (item) => CompetitionSummary.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CompetitionStanding>> standings(String competitionId) async {
+    final response =
+        await _dio.get<List<dynamic>>('/competitions/$competitionId/standings');
+    return (response.data ?? const [])
+        .map((item) =>
+            CompetitionStanding.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CompetitionMatchSummary>> matches(String competitionId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/competitions/$competitionId/matches',
+      queryParameters: {'page': 1, 'page_size': 50},
+    );
+    final items = response.data?['items'] as List<dynamic>? ?? const [];
+    return items
+        .map((item) =>
+            CompetitionMatchSummary.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<CompetitionStage>> listStages(String eventId) async {
     final response = await _dio.get<List<dynamic>>('/events/$eventId/stages');
-    return response.data!.map((item) => CompetitionStage.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => CompetitionStage.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<FunnelEntry>> listPublicVoteEntries(String stageId) async {
@@ -22,20 +58,27 @@ class FunnelsApi {
       '/entries/public',
       queryParameters: {'stage_id': stageId},
     );
-    return response.data!.map((item) => FunnelEntry.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => FunnelEntry.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<FunnelEntry>> listEntriesForReview(String stageId) async {
-    final response = await _dio.get<List<dynamic>>('/entries', queryParameters: {'stage_id': stageId});
-    return response.data!.map((item) => FunnelEntry.fromJson(item as Map<String, dynamic>)).toList();
+    final response = await _dio
+        .get<List<dynamic>>('/entries', queryParameters: {'stage_id': stageId});
+    return response.data!
+        .map((item) => FunnelEntry.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<FunnelEntry> vote(String entryId) async {
-    final response = await _dio.post<Map<String, dynamic>>('/entries/$entryId/vote');
+    final response =
+        await _dio.post<Map<String, dynamic>>('/entries/$entryId/vote');
     return FunnelEntry.fromJson(response.data!);
   }
 
-  Future<FunnelEntry> advance(String entryId, {required String decision, double? score, String? notes}) async {
+  Future<FunnelEntry> advance(String entryId,
+      {required String decision, double? score, String? notes}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/entries/$entryId/advance',
       data: {

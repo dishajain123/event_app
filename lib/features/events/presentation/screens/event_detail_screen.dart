@@ -105,8 +105,17 @@ class EventDetailScreen extends ConsumerWidget {
                     ],
                     const SizedBox(height: AppSpacing.xl),
                     if (event.status.acceptsRegistration &&
-                        event.configuration?.registrationStatus != 'closed' &&
-                        event.configuration?.registrationStatus != 'full')
+                        event.configuration?.registrationStatus == 'full')
+                      AppButton(
+                        label: 'Join Waitlist',
+                        fullWidth: true,
+                        size: AppButtonSize.large,
+                        icon: Icons.queue_outlined,
+                        onPressed: () =>
+                            context.push(RoutePaths.waitlistJoinPath(event.id)),
+                      )
+                    else if (event.status.acceptsRegistration &&
+                        event.configuration?.registrationStatus != 'closed')
                       AppButton(
                         label: 'Register',
                         fullWidth: true,
@@ -139,6 +148,30 @@ class EventDetailScreen extends ConsumerWidget {
                         icon: Icons.rate_review_outlined,
                         onPressed: () => context
                             .push(RoutePaths.eventFeedbackPath(event.id)),
+                      ),
+                    ],
+                    if (event.status == EventStatus.live ||
+                        event.status == EventStatus.completed) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton(
+                        label: 'Live polls & Q&A',
+                        variant: AppButtonVariant.secondary,
+                        fullWidth: true,
+                        icon: Icons.question_answer_outlined,
+                        onPressed: () => context
+                            .push(RoutePaths.eventInteractionsPath(event.id)),
+                      ),
+                    ],
+                    if (event.status == EventStatus.live) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton(
+                        label: 'Participant networking',
+                        variant: AppButtonVariant.secondary,
+                        fullWidth: true,
+                        icon: Icons.people_alt_outlined,
+                        onPressed: () => context.push(
+                          RoutePaths.eventNetworkingPath(event.id),
+                        ),
                       ),
                     ],
                     const SizedBox(height: AppSpacing.xxl),

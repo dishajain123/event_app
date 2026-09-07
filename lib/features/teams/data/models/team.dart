@@ -4,7 +4,8 @@ enum TeamStatus {
   inviting('inviting'),
   submitted('submitted'),
   approved('approved'),
-  rejected('rejected');
+  rejected('rejected'),
+  archived('archived');
 
   final String wireValue;
   const TeamStatus(this.wireValue);
@@ -12,7 +13,8 @@ enum TeamStatus {
   static TeamStatus fromWire(String value) {
     return TeamStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown team status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown team status from backend: $value'),
     );
   }
 
@@ -22,7 +24,22 @@ enum TeamStatus {
         TeamStatus.submitted => 'Submitted',
         TeamStatus.approved => 'Approved',
         TeamStatus.rejected => 'Rejected',
+        TeamStatus.archived => 'Archived',
       };
+}
+
+enum TeamMemberRole {
+  captain('captain'),
+  manager('manager'),
+  member('member');
+
+  final String wireValue;
+  const TeamMemberRole(this.wireValue);
+  static TeamMemberRole fromWire(String? value) =>
+      TeamMemberRole.values.firstWhere(
+        (role) => role.wireValue == value,
+        orElse: () => TeamMemberRole.member,
+      );
 }
 
 /// Mirrors `app/modules/teams/models.py`'s `InvitationStatus` StrEnum
@@ -38,7 +55,8 @@ enum InvitationStatus {
   static InvitationStatus fromWire(String value) {
     return InvitationStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown invitation status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown invitation status from backend: $value'),
     );
   }
 }
@@ -49,6 +67,9 @@ class AppTeam {
   final String eventId;
   final String captainUserId;
   final String name;
+  final String teamCode;
+  final String? managerUserId;
+  final String? registrationId;
   final TeamStatus status;
   final DateTime? captainDateOfBirth;
   final DateTime? submittedAt;
@@ -61,6 +82,9 @@ class AppTeam {
     required this.eventId,
     required this.captainUserId,
     required this.name,
+    required this.teamCode,
+    required this.managerUserId,
+    required this.registrationId,
     required this.status,
     required this.captainDateOfBirth,
     required this.submittedAt,
@@ -75,10 +99,16 @@ class AppTeam {
       eventId: json['event_id'] as String,
       captainUserId: json['captain_user_id'] as String,
       name: json['name'] as String,
+      teamCode: json['team_code'] as String? ?? '',
+      managerUserId: json['manager_user_id'] as String?,
+      registrationId: json['registration_id'] as String?,
       status: TeamStatus.fromWire(json['status'] as String),
-      captainDateOfBirth:
-          json['captain_date_of_birth'] != null ? DateTime.parse(json['captain_date_of_birth'] as String) : null,
-      submittedAt: json['submitted_at'] != null ? DateTime.parse(json['submitted_at'] as String) : null,
+      captainDateOfBirth: json['captain_date_of_birth'] != null
+          ? DateTime.parse(json['captain_date_of_birth'] as String)
+          : null,
+      submittedAt: json['submitted_at'] != null
+          ? DateTime.parse(json['submitted_at'] as String)
+          : null,
       approvedBy: json['approved_by'] as String?,
       rejectedBy: json['rejected_by'] as String?,
       rejectionReason: json['rejection_reason'] as String?,
@@ -94,6 +124,7 @@ class TeamMember {
   final String fullName;
   final DateTime? dateOfBirth;
   final bool isCaptain;
+  final TeamMemberRole role;
 
   const TeamMember({
     required this.id,
@@ -102,6 +133,7 @@ class TeamMember {
     required this.fullName,
     required this.dateOfBirth,
     required this.isCaptain,
+    required this.role,
   });
 
   factory TeamMember.fromJson(Map<String, dynamic> json) {
@@ -110,8 +142,11 @@ class TeamMember {
       teamId: json['team_id'] as String,
       userId: json['user_id'] as String?,
       fullName: json['full_name'] as String,
-      dateOfBirth: json['date_of_birth'] != null ? DateTime.parse(json['date_of_birth'] as String) : null,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.parse(json['date_of_birth'] as String)
+          : null,
       isCaptain: json['is_captain'] as bool,
+      role: TeamMemberRole.fromWire(json['role'] as String?),
     );
   }
 }
@@ -141,7 +176,9 @@ class TeamInvitation {
       inviteeMobile: json['invitee_mobile'] as String,
       token: json['token'] as String,
       status: InvitationStatus.fromWire(json['status'] as String),
-      respondedAt: json['responded_at'] != null ? DateTime.parse(json['responded_at'] as String) : null,
+      respondedAt: json['responded_at'] != null
+          ? DateTime.parse(json['responded_at'] as String)
+          : null,
     );
   }
 }

@@ -5,7 +5,12 @@ enum StageType {
   juryReview('jury_review'),
   publicVote('public_vote'),
   topNCutoff('top_n_cutoff'),
-  manualReview('manual_review');
+  manualReview('manual_review'),
+  group('group'),
+  knockout('knockout'),
+  quarterFinal('quarter_final'),
+  semiFinal('semi_final'),
+  finalStage('final');
 
   final String wireValue;
   const StageType(this.wireValue);
@@ -13,7 +18,8 @@ enum StageType {
   static StageType fromWire(String value) {
     return StageType.values.firstWhere(
       (t) => t.wireValue == value,
-      orElse: () => throw FormatException('Unknown stage type from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown stage type from backend: $value'),
     );
   }
 
@@ -22,6 +28,11 @@ enum StageType {
         StageType.publicVote => 'Public Vote',
         StageType.topNCutoff => 'Top-N Cutoff',
         StageType.manualReview => 'Manual Review',
+        StageType.group => 'Group Stage',
+        StageType.knockout => 'Knockout',
+        StageType.quarterFinal => 'Quarter Final',
+        StageType.semiFinal => 'Semi Final',
+        StageType.finalStage => 'Final',
       };
 }
 
@@ -38,7 +49,8 @@ enum EntryStatus {
   static EntryStatus fromWire(String value) {
     return EntryStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown entry status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown entry status from backend: $value'),
     );
   }
 }

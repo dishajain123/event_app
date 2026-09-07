@@ -93,6 +93,66 @@ class TicketDetailScreen extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
+              if (ticket.status == TicketStatus.issued ||
+                  ticket.status == TicketStatus.active) ...[
+                const SizedBox(height: AppSpacing.lg),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('Transfer ticket'),
+                  onPressed: () async {
+                    final controller = TextEditingController();
+                    final recipient = await showDialog<String>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Transfer ticket'),
+                        content: TextField(
+                          controller: controller,
+                          decoration: const InputDecoration(
+                              labelText: 'Recipient user ID'),
+                        ),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text('Cancel')),
+                          FilledButton(
+                              onPressed: () => Navigator.pop(
+                                  dialogContext, controller.text.trim()),
+                              child: const Text('Send')),
+                        ],
+                      ),
+                    );
+                    if (recipient == null ||
+                        recipient.isEmpty ||
+                        !context.mounted) return;
+                    try {
+                      await ref
+                          .read(ticketsRepositoryProvider)
+                          .transfer(ticket.id, recipient);
+                      ref.invalidate(ticketDetailProvider(ticketId));
+                      if (context.mounted)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Transfer request sent.')));
+                    } catch (error) {
+                      if (context.mounted)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error.toString())));
+                    }
+                  },
+                ),
+              ],
+              if (ticket.validDates.isNotEmpty ||
+                  ticket.validFrom != null ||
+                  ticket.validUntil != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  ticket.validDates.isNotEmpty
+                      ? 'Valid dates: ${ticket.validDates.join(', ')}'
+                      : 'Validity: ${ticket.validFrom ?? 'event start'} to ${ticket.validUntil ?? 'event end'}',
+                  style: AppTypography.caption,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),

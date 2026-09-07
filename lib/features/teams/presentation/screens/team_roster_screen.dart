@@ -20,6 +20,7 @@ const _teamStatusTones = {
   TeamStatus.submitted: StatusTone.accent,
   TeamStatus.approved: StatusTone.success,
   TeamStatus.rejected: StatusTone.danger,
+  TeamStatus.archived: StatusTone.neutral,
 };
 
 class TeamRosterScreen extends ConsumerWidget {
@@ -37,7 +38,9 @@ class TeamRosterScreen extends ConsumerWidget {
         child: teamAsync.when(
           loading: () => const AppSkeleton.detailPage(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
             onRetry: () => ref.invalidate(teamDetailProvider(teamId)),
           ),
           data: (team) => RefreshIndicator(
@@ -50,13 +53,25 @@ class TeamRosterScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(team.name, style: AppTypography.headline)),
-                    StatusBadge(label: team.status.label, tone: _teamStatusTones[team.status] ?? StatusTone.neutral),
+                    Expanded(
+                        child: Text(team.name, style: AppTypography.headline)),
+                    StatusBadge(
+                        label: team.status.label,
+                        tone: _teamStatusTones[team.status] ??
+                            StatusTone.neutral),
                   ],
                 ),
+                if (team.teamCode.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text('Team code: ${team.teamCode}',
+                      style: AppTypography.body
+                          .copyWith(color: AppColors.inkSubtle)),
+                ],
                 if (team.rejectionReason != null) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  Text(team.rejectionReason!, style: AppTypography.body.copyWith(color: AppColors.danger)),
+                  Text(team.rejectionReason!,
+                      style:
+                          AppTypography.body.copyWith(color: AppColors.danger)),
                 ],
                 const SizedBox(height: AppSpacing.xl),
                 Text('Members', style: AppTypography.title),
@@ -64,7 +79,9 @@ class TeamRosterScreen extends ConsumerWidget {
                 membersAsync.when(
                   loading: () => const AppSkeleton.cardList(count: 2),
                   error: (error, stackTrace) => AppErrorState(
-                    error: error is AppException ? error : UnknownException(error.toString()),
+                    error: error is AppException
+                        ? error
+                        : UnknownException(error.toString()),
                     onRetry: () => ref.invalidate(teamMembersProvider(teamId)),
                   ),
                   data: (members) => Column(
@@ -74,11 +91,19 @@ class TeamRosterScreen extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: Row(
                             children: [
-                              const Icon(Icons.person_rounded, size: 18, color: AppColors.inkSubtle),
+                              const Icon(Icons.person_rounded,
+                                  size: 18, color: AppColors.inkSubtle),
                               const SizedBox(width: AppSpacing.sm),
-                              Expanded(child: Text(member.fullName, style: AppTypography.body)),
+                              Expanded(
+                                  child: Text(member.fullName,
+                                      style: AppTypography.body)),
                               if (member.isCaptain)
-                                const StatusBadge(label: 'Captain', tone: StatusTone.accent),
+                                const StatusBadge(
+                                    label: 'Captain', tone: StatusTone.accent),
+                              if (!member.isCaptain &&
+                                  member.role == TeamMemberRole.manager)
+                                const StatusBadge(
+                                    label: 'Manager', tone: StatusTone.warning),
                             ],
                           ),
                         ),
@@ -86,7 +111,8 @@ class TeamRosterScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                if (team.status == TeamStatus.draft || team.status == TeamStatus.inviting) ...[
+                if (team.status == TeamStatus.draft ||
+                    team.status == TeamStatus.inviting) ...[
                   AppButton(
                     label: 'Invite member',
                     variant: AppButtonVariant.secondary,
@@ -123,7 +149,8 @@ class TeamRosterScreen extends ConsumerWidget {
         ),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(28)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +171,8 @@ class TeamRosterScreen extends ConsumerWidget {
                   final normalized = tryNormalizeMobileNumber(controller.text);
                   if (normalized == null) {
                     ScaffoldMessenger.of(sheetContext).showSnackBar(
-                      const SnackBar(content: Text('Enter a valid mobile number.')),
+                      const SnackBar(
+                          content: Text('Enter a valid mobile number.')),
                     );
                     return;
                   }
@@ -155,7 +183,8 @@ class TeamRosterScreen extends ConsumerWidget {
                     if (sheetContext.mounted) Navigator.of(sheetContext).pop();
                   } on AppException catch (e) {
                     if (sheetContext.mounted) {
-                      ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text(e.message)));
+                      ScaffoldMessenger.of(sheetContext)
+                          .showSnackBar(SnackBar(content: Text(e.message)));
                     }
                   }
                 },
@@ -167,7 +196,8 @@ class TeamRosterScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _submitTeam(BuildContext context, WidgetRef ref, AppTeam team) async {
+  Future<void> _submitTeam(
+      BuildContext context, WidgetRef ref, AppTeam team) async {
     await showConfirmActionSheet(
       context,
       title: 'Submit "${team.name}"?',

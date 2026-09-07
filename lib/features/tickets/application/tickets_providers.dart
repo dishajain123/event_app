@@ -14,7 +14,13 @@ final myTicketsProvider = FutureProvider<List<AppTicket>>((ref) async {
   return repository.listMyTickets();
 });
 
-final ticketDetailProvider = FutureProvider.family<AppTicket, String>((ref, ticketId) async {
+final ticketDetailProvider =
+    FutureProvider.family<AppTicket, String>((ref, ticketId) async {
   final repository = ref.watch(ticketsRepositoryProvider);
   return repository.getTicket(ticketId);
+});
+
+final incomingTicketTransfersProvider =
+    FutureProvider<List<TicketTransfer>>((ref) async {
+  return ref.watch(ticketsRepositoryProvider).listIncomingTransfers();
 });

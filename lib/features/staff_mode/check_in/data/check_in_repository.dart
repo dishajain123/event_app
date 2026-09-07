@@ -34,7 +34,11 @@ final class CheckInFailed extends CheckInResult {
 class SyncSummary {
   final int succeeded;
   final int failed;
-  const SyncSummary({required this.succeeded, required this.failed});
+  final int requiresAttention;
+  const SyncSummary(
+      {required this.succeeded,
+      required this.failed,
+      this.requiresAttention = 0});
 }
 
 class CheckInRepository {
@@ -57,6 +61,14 @@ class CheckInRepository {
   String _generateLocalId() {
     _localIdCounter += 1;
     return '${DateTime.now().microsecondsSinceEpoch}-$_localIdCounter';
+  }
+
+  int _retryDelaySeconds(int retryCount) {
+    var delay = 1;
+    for (var index = 0; index < retryCount && delay < 60; index++) {
+      delay *= 2;
+    }
+    return delay > 60 ? 60 : delay;
   }
 
   /// VERIFICATION NOTE (same caveat as razorpay_checkout_service.dart and
@@ -83,7 +95,7 @@ class CheckInRepository {
     final online = await _isOnline;
 
     if (!online) {
-      await _queue.add(
+      final added = await _queue.add(
         QueuedCheckIn(
           localId: _generateLocalId(),
           scanPayload: scanPayload,
@@ -92,12 +104,17 @@ class CheckInRepository {
           scannedAt: DateTime.now(),
         ),
       );
+      if (!added) return const CheckInDuplicate();
       return const CheckInQueuedOffline();
     }
 
     try {
-      final ticket = await _ticketsRepository.resolveByScan(
+      final validation = await _ticketsRepository.validateScan(
           scanPayload: scanPayload, barcodeSignature: barcodeSignature);
+      if (!validation.valid || validation.ticket == null) {
+        return CheckInFailed('${validation.reason}: ${validation.message}');
+      }
+      final ticket = validation.ticket!;
       await _ticketsRepository.checkIn(ticket.id,
           venueId: venueId, scanPayload: scanPayload);
       return CheckInSuccess(ticket);
@@ -141,21 +158,52 @@ class CheckInRepository {
     final items = await _queue.list();
     var succeeded = 0;
     var failed = 0;
+    var requiresAttention = 0;
     final toRemove = <String>{};
 
+    final now = DateTime.now();
     for (final item in items) {
+      if (item.syncStatus != 'pending' ||
+          item.retryCount >= 5 ||
+          now.difference(item.updatedAt).inSeconds <
+              _retryDelaySeconds(item.retryCount)) {
+        continue;
+      }
       try {
         await _ticketsRepository.syncOneOfflineCheckIn(item.toSyncPayload());
         toRemove.add(item.localId);
         succeeded++;
-      } on AppException {
+      } on AppException catch (error) {
         failed++;
+        final nextRetry = item.retryCount + 1;
+        final permanent = error is UnauthorizedException ||
+            error is ForbiddenException ||
+            error is NotFoundException ||
+            error is ValidationException;
+        await _queue.update(QueuedCheckIn(
+          localId: item.localId,
+          scanPayload: item.scanPayload,
+          barcodeSignature: item.barcodeSignature,
+          venueId: item.venueId,
+          scannedAt: item.scannedAt,
+          operationType: item.operationType,
+          entityId: item.entityId,
+          retryCount: nextRetry,
+          lastError: error.message,
+          syncStatus: permanent || nextRetry >= 5 ? 'failed' : 'pending',
+          createdAt: item.createdAt,
+          updatedAt: DateTime.now(),
+        ));
+        if (permanent || nextRetry >= 5) requiresAttention++;
       }
     }
 
     if (toRemove.isNotEmpty) {
       await _queue.removeByLocalIds(toRemove);
     }
-    return SyncSummary(succeeded: succeeded, failed: failed);
+    return SyncSummary(
+        succeeded: succeeded,
+        failed: failed,
+        requiresAttention: requiresAttention);
   }
 }

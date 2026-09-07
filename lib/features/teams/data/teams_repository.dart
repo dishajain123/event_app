@@ -6,9 +6,15 @@ class TeamsRepository {
   final TeamsApi _api;
   const TeamsRepository(this._api);
 
-  Future<AppTeam> createTeam({required String eventId, required String name, String? captainDateOfBirthIso}) async {
+  Future<AppTeam> createTeam(
+      {required String eventId,
+      required String name,
+      String? captainDateOfBirthIso}) async {
     try {
-      return await _api.createTeam(eventId: eventId, name: name, captainDateOfBirthIso: captainDateOfBirthIso);
+      return await _api.createTeam(
+          eventId: eventId,
+          name: name,
+          captainDateOfBirthIso: captainDateOfBirthIso);
     } catch (e) {
       throw mapDioException(e);
     }
@@ -30,7 +36,8 @@ class TeamsRepository {
     }
   }
 
-  Future<TeamInvitation> inviteMember(String teamId, String inviteeMobile) async {
+  Future<TeamInvitation> inviteMember(
+      String teamId, String inviteeMobile) async {
     try {
       return await _api.inviteMember(teamId, inviteeMobile);
     } catch (e) {
@@ -44,7 +51,8 @@ class TeamsRepository {
     required bool accept,
   }) async {
     try {
-      return await _api.respondToInvitation(teamId: teamId, invitationId: invitationId, accept: accept);
+      return await _api.respondToInvitation(
+          teamId: teamId, invitationId: invitationId, accept: accept);
     } catch (e) {
       throw mapDioException(e);
     }
@@ -53,6 +61,38 @@ class TeamsRepository {
   Future<AppTeam> submitTeam(String teamId) async {
     try {
       return await _api.submitTeam(teamId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<void> requestToJoin(String teamId) async {
+    try {
+      await _api.requestToJoin(teamId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<void> leaveTeam(String teamId) async {
+    try {
+      await _api.leaveTeam(teamId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<List<AppTeam>> listMyTeams() async {
+    try {
+      return await _api.listMyTeams();
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<List<TeamInvitation>> listMyInvitations() async {
+    try {
+      return await _api.listMyInvitations();
     } catch (e) {
       throw mapDioException(e);
     }

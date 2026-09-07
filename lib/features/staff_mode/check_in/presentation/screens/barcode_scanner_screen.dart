@@ -33,6 +33,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   String? _feedbackMessage;
 
   int _queuedCount = 0;
+  int _attentionCount = 0;
   bool _syncing = false;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
@@ -55,7 +56,13 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   Future<void> _refreshQueuedCount() async {
     final repository = ref.read(checkInRepositoryProvider);
     final queued = await repository.listQueued();
-    if (mounted) setState(() => _queuedCount = queued.length);
+    if (mounted)
+      setState(() {
+        _queuedCount =
+            queued.where((item) => item.syncStatus == 'pending').length;
+        _attentionCount =
+            queued.where((item) => item.syncStatus == 'failed').length;
+      });
   }
 
   Future<void> _syncQueue() async {
@@ -72,7 +79,9 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             content: Text(
               summary.failed == 0
                   ? 'Synced ${summary.succeeded} queued check-in${summary.succeeded == 1 ? '' : 's'}.'
-                  : 'Synced ${summary.succeeded}, ${summary.failed} still need attention.',
+                  : summary.requiresAttention > 0
+                      ? 'Synced ${summary.succeeded}; ${summary.requiresAttention} require attention.'
+                      : 'Synced ${summary.succeeded}; retry pending for ${summary.failed}.',
             ),
           ),
         );
@@ -201,6 +210,23 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                 controller: _manualCodeController,
                 loading: _processing,
                 onSubmit: _submitManualEntry,
+              ),
+            ),
+          if (_attentionCount > 0)
+            Positioned(
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              bottom: AppSpacing.lg,
+              child: Material(
+                color: AppColors.danger,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                      '$_attentionCount check-in operation${_attentionCount == 1 ? '' : 's'} require attention.',
+                      style: AppTypography.bodyStrong
+                          .copyWith(color: Colors.white)),
+                ),
               ),
             ),
         ],

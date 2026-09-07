@@ -28,6 +28,12 @@ const _tabs = [
     activeIcon: Icons.shield_rounded,
     label: 'Staff'
   ),
+  (
+    path: RoutePaths.staffIncidents,
+    icon: Icons.warning_amber_outlined,
+    activeIcon: Icons.warning_amber,
+    label: 'Incidents',
+  ),
 ];
 
 /// Only ever reachable for an account holding at least one Staff-Mode-

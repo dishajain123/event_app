@@ -22,11 +22,52 @@ class TicketsRepository {
     }
   }
 
+  Future<void> transfer(String ticketId, String recipientUserId) async {
+    try {
+      await _api.transfer(ticketId, recipientUserId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<List<TicketTransfer>> listIncomingTransfers() async {
+    try {
+      return await _api.listIncomingTransfers();
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<void> respondToTransfer(String transferId,
+      {required bool accept}) async {
+    try {
+      await _api.respondToTransfer(transferId, accept: accept);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
   Future<AppTicket> resolveByScan(
       {required String scanPayload, required String barcodeSignature}) async {
     try {
       return await _api.resolveByScan(
           scanPayload: scanPayload, barcodeSignature: barcodeSignature);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<TicketValidation> validateScan(
+      {required String scanPayload,
+      required String barcodeSignature,
+      String? eventId,
+      String? accessZoneId}) async {
+    try {
+      return await _api.validateScan(
+          scanPayload: scanPayload,
+          barcodeSignature: barcodeSignature,
+          eventId: eventId,
+          accessZoneId: accessZoneId);
     } catch (e) {
       throw mapDioException(e);
     }

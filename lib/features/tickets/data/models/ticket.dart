@@ -1,9 +1,13 @@
 /// Mirrors `app/modules/tickets/models.py`'s `TicketStatus` StrEnum
 /// exactly.
 enum TicketStatus {
+  active('active'),
   issued('issued'),
+  used('used'),
   checkedIn('checked_in'),
-  cancelled('cancelled');
+  cancelled('cancelled'),
+  expired('expired'),
+  revoked('revoked');
 
   final String wireValue;
   const TicketStatus(this.wireValue);
@@ -18,8 +22,12 @@ enum TicketStatus {
 
   String get label => switch (this) {
         TicketStatus.issued => 'Ready to scan',
+        TicketStatus.active => 'Ready to scan',
+        TicketStatus.used => 'Used',
         TicketStatus.checkedIn => 'Checked in',
         TicketStatus.cancelled => 'Cancelled',
+        TicketStatus.expired => 'Expired',
+        TicketStatus.revoked => 'Revoked',
       };
 }
 
@@ -37,9 +45,14 @@ class AppTicket {
   final String ticketCode;
   final String barcodePayload;
   final String barcodeSignature;
+  final String accessType;
+  final int entryCount;
   final TicketStatus status;
   final DateTime? issuedAt;
   final DateTime? checkedInAt;
+  final DateTime? validFrom;
+  final DateTime? validUntil;
+  final List<String> validDates;
 
   const AppTicket({
     required this.id,
@@ -50,9 +63,14 @@ class AppTicket {
     required this.ticketCode,
     required this.barcodePayload,
     required this.barcodeSignature,
+    required this.accessType,
+    required this.entryCount,
     required this.status,
     required this.issuedAt,
     required this.checkedInAt,
+    required this.validFrom,
+    required this.validUntil,
+    required this.validDates,
   });
 
   factory AppTicket.fromJson(Map<String, dynamic> json) {
@@ -65,6 +83,8 @@ class AppTicket {
       ticketCode: json['ticket_code'] as String,
       barcodePayload: json['barcode_payload'] as String,
       barcodeSignature: json['barcode_signature'] as String,
+      accessType: json['access_type'] as String? ?? 'general',
+      entryCount: json['entry_count'] as int? ?? 0,
       status: TicketStatus.fromWire(json['status'] as String),
       issuedAt: json['issued_at'] != null
           ? DateTime.parse(json['issued_at'] as String)
@@ -72,6 +92,69 @@ class AppTicket {
       checkedInAt: json['checked_in_at'] != null
           ? DateTime.parse(json['checked_in_at'] as String)
           : null,
+      validFrom: json['valid_from'] != null
+          ? DateTime.parse(json['valid_from'] as String)
+          : null,
+      validUntil: json['valid_until'] != null
+          ? DateTime.parse(json['valid_until'] as String)
+          : null,
+      validDates:
+          (json['valid_dates'] as List<dynamic>? ?? const []).cast<String>(),
     );
   }
+}
+
+class TicketTransfer {
+  final String id;
+  final String ticketId;
+  final String eventId;
+  final String fromUserId;
+  final String toUserId;
+  final String status;
+  final DateTime createdAt;
+  final DateTime? respondedAt;
+
+  const TicketTransfer({
+    required this.id,
+    required this.ticketId,
+    required this.eventId,
+    required this.fromUserId,
+    required this.toUserId,
+    required this.status,
+    required this.createdAt,
+    this.respondedAt,
+  });
+
+  factory TicketTransfer.fromJson(Map<String, dynamic> json) => TicketTransfer(
+        id: json['id'] as String,
+        ticketId: json['ticket_id'] as String,
+        eventId: json['event_id'] as String,
+        fromUserId: json['from_user_id'] as String,
+        toUserId: json['to_user_id'] as String,
+        status: json['status'] as String,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        respondedAt: json['responded_at'] == null
+            ? null
+            : DateTime.parse(json['responded_at'] as String),
+      );
+}
+
+class TicketValidation {
+  final bool valid;
+  final String reason;
+  final AppTicket? ticket;
+  final String message;
+  const TicketValidation(
+      {required this.valid,
+      required this.reason,
+      required this.ticket,
+      required this.message});
+  factory TicketValidation.fromJson(Map<String, dynamic> json) =>
+      TicketValidation(
+          valid: json['valid'] as bool,
+          reason: json['reason'] as String,
+          ticket: json['ticket'] == null
+              ? null
+              : AppTicket.fromJson(json['ticket'] as Map<String, dynamic>),
+          message: json['message'] as String);
 }

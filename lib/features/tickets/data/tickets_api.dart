@@ -19,6 +19,27 @@ class TicketsApi {
     return AppTicket.fromJson(response.data!);
   }
 
+  Future<void> transfer(String ticketId, String recipientUserId) async {
+    await _dio.post<Map<String, dynamic>>('/tickets/$ticketId/transfer',
+        data: {'recipient_user_id': recipientUserId});
+  }
+
+  Future<void> respondToTransfer(String transferId,
+      {required bool accept}) async {
+    await _dio.post<Map<String, dynamic>>(
+        '/tickets/transfers/$transferId/${accept ? 'accept' : 'reject'}');
+  }
+
+  Future<List<TicketTransfer>> listIncomingTransfers() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/tickets/transfers/mine',
+      queryParameters: {'page': 1, 'page_size': 50},
+    );
+    return (response.data?['items'] as List<dynamic>? ?? [])
+        .map((item) => TicketTransfer.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   /// The scanner's first call after every scan: a scanned barcode payload
   /// alone never contains the ticket's real
   /// UUID — this resolves it (and verifies the signature server-side)
@@ -33,6 +54,22 @@ class TicketsApi {
       },
     );
     return AppTicket.fromJson(response.data!);
+  }
+
+  Future<TicketValidation> validateScan(
+      {required String scanPayload,
+      required String barcodeSignature,
+      String? eventId,
+      String? accessZoneId}) async {
+    final response = await _dio
+        .post<Map<String, dynamic>>('/tickets/validate', queryParameters: {
+      if (eventId != null) 'event_id': eventId,
+      if (accessZoneId != null) 'access_zone_id': accessZoneId,
+    }, data: {
+      'scan_payload': scanPayload,
+      'barcode_signature': barcodeSignature
+    });
+    return TicketValidation.fromJson(response.data!);
   }
 
   Future<void> checkIn(String ticketId,

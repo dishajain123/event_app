@@ -18,3 +18,12 @@ final teamMembersProvider = FutureProvider.family<List<TeamMember>, String>((ref
   final repository = ref.watch(teamsRepositoryProvider);
   return repository.listMembers(teamId);
 });
+
+final myTeamsProvider = FutureProvider<List<AppTeam>>((ref) async {
+  return ref.watch(teamsRepositoryProvider).listMyTeams();
+});
+
+final myTeamInvitationsProvider =
+    FutureProvider<List<TeamInvitation>>((ref) async {
+  return ref.watch(teamsRepositoryProvider).listMyInvitations();
+});
