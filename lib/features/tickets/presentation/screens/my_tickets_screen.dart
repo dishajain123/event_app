@@ -36,7 +36,9 @@ class MyTicketsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myTicketsProvider),
               ),
             ],
@@ -49,7 +51,8 @@ class MyTicketsScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.confirmation_number_outlined,
                     title: 'No tickets yet',
-                    description: 'Once a registration is confirmed, your ticket appears here.',
+                    description:
+                        'Once a registration is confirmed, your ticket appears here.',
                   ),
                 ],
               );
@@ -57,12 +60,14 @@ class MyTicketsScreen extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: tickets.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final ticket = tickets[index];
                 return InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () => context.push(RoutePaths.ticketDetailPath(ticket.id)),
+                  onTap: () =>
+                      context.push(RoutePaths.ticketDetailPath(ticket.id)),
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
@@ -74,25 +79,31 @@ class MyTicketsScreen extends ConsumerWidget {
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
-                          child: const Icon(Icons.confirmation_number_rounded, color: AppColors.accentStrong),
+                          decoration: const BoxDecoration(
+                              color: AppColors.accentSoft,
+                              shape: BoxShape.circle),
+                          child: const Icon(Icons.confirmation_number_rounded,
+                              color: AppColors.accentStrong),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(ticket.ticketCode, style: AppTypography.bodyStrong),
+                              Text(ticket.ticketCode,
+                                  style: AppTypography.bodyStrong),
                               if (ticket.checkedInAt != null)
                                 Text('Checked in', style: AppTypography.caption)
                               else
-                                const Text('Tap to view your QR code', style: AppTypography.caption),
+                                const Text('Tap to view your barcode',
+                                    style: AppTypography.caption),
                             ],
                           ),
                         ),
                         StatusBadge(
                           label: ticket.status.label,
-                          tone: _ticketStatusTones[ticket.status] ?? StatusTone.neutral,
+                          tone: _ticketStatusTones[ticket.status] ??
+                              StatusTone.neutral,
                         ),
                       ],
                     ),

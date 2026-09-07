@@ -15,7 +15,7 @@ import '../../data/models/referral.dart';
 /// Deliberately uses the built-in clipboard rather than a native share
 /// sheet (which would need the `share_plus` package — one more
 /// third-party API this sandbox can't verify against real installed
-/// source, on top of razorpay_flutter/qr_flutter/mobile_scanner/
+/// source, on top of the mobile platform integrations.
 /// connectivity_plus already carrying that caveat). Copy-to-clipboard is
 /// a genuine, complete, dependency-free way to share a code today;
 /// upgrading to a native share sheet is a reasonable later polish item,
@@ -41,7 +41,9 @@ class MyReferralScreen extends ConsumerWidget {
         child: referralAsync.when(
           loading: () => const AppSkeleton.detailPage(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
             onRetry: () => ref.invalidate(myReferralProvider(eventId)),
           ),
           data: (referral) => ListView(
@@ -50,7 +52,8 @@ class MyReferralScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.accent, AppColors.accentStrong]),
+                  gradient: const LinearGradient(
+                      colors: [AppColors.accent, AppColors.accentStrong]),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
@@ -58,22 +61,27 @@ class MyReferralScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Your referral code',
-                      style: AppTypography.caption.copyWith(color: Colors.white.withOpacity(0.85)),
+                      style: AppTypography.caption
+                          .copyWith(color: Colors.white.withOpacity(0.85)),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       referral.profile.referralCode,
-                      style: AppTypography.display.copyWith(color: Colors.white, letterSpacing: 2),
+                      style: AppTypography.display
+                          .copyWith(color: Colors.white, letterSpacing: 2),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     AppButton(
                       label: 'Copy code',
                       variant: AppButtonVariant.secondary,
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: referral.profile.referralCode));
+                        await Clipboard.setData(
+                            ClipboardData(text: referral.profile.referralCode));
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Copied — share it with a friend.')),
+                            const SnackBar(
+                                content:
+                                    Text('Copied — share it with a friend.')),
                           );
                         }
                       },
@@ -88,7 +96,9 @@ class MyReferralScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               if (referral.rewards.isEmpty)
-                Text('No referrals tracked yet — share your code to get started.', style: AppTypography.bodyMuted)
+                Text(
+                    'No referrals tracked yet — share your code to get started.',
+                    style: AppTypography.bodyMuted)
               else
                 for (final reward in referral.rewards)
                   Container(
@@ -108,7 +118,8 @@ class MyReferralScreen extends ConsumerWidget {
                         ),
                         StatusBadge(
                           label: reward.status.label,
-                          tone: _statusTones[reward.status] ?? StatusTone.neutral,
+                          tone:
+                              _statusTones[reward.status] ?? StatusTone.neutral,
                         ),
                       ],
                     ),

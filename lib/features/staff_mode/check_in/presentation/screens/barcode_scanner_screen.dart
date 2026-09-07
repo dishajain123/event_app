@@ -11,23 +11,20 @@ import '../../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../application/check_in_providers.dart';
 import '../../data/check_in_repository.dart';
 
-/// VERIFICATION NOTE (same caveat as razorpay_checkout_service.dart,
-/// ticket_detail_screen.dart, and check_in_repository.dart's
-/// connectivity check): `MobileScanner`, `MobileScannerController`, and
-/// `BarcodeCapture`/`Barcode.rawValue` are `mobile_scanner` v5.x's public
-/// API, written from training knowledge — not verified against the real
-/// installed source, since pub.dev isn't reachable from this sandbox.
-class QrScannerScreen extends ConsumerStatefulWidget {
-  const QrScannerScreen({super.key});
+class BarcodeScannerScreen extends ConsumerStatefulWidget {
+  const BarcodeScannerScreen({super.key});
 
   @override
-  ConsumerState<QrScannerScreen> createState() => _QrScannerScreenState();
+  ConsumerState<BarcodeScannerScreen> createState() =>
+      _BarcodeScannerScreenState();
 }
 
 enum _FeedbackKind { success, duplicate, error, queued }
 
-class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
-  final _controller = MobileScannerController();
+class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
+  final _controller = MobileScannerController(
+    formats: const [BarcodeFormat.code128],
+  );
   bool _processing = false;
   bool _manualEntryOpen = false;
   final _manualCodeController = TextEditingController();
@@ -47,7 +44,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
     // have to remember to tap "Sync now" the instant signal comes back;
     // the manual button (below) exists for the case they want to trigger
     // it sooner, or confirm it actually ran.
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((results) {
       if (!results.contains(ConnectivityResult.none)) {
         _syncQueue();
       }
@@ -96,17 +94,18 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
     final rawValue = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
     if (rawValue == null) return;
 
-    // The QR encodes "qr_payload|qr_signature" (see ticket_detail_screen.dart's
-    // fix note) — split back into the two values the backend needs.
+    // The Code 128 value encodes "barcode_payload|barcode_signature".
     final parts = rawValue.split('|');
     if (parts.length != 2) {
-      _showFeedback(_FeedbackKind.error, 'Unrecognized code — this may not be an event ticket.');
+      _showFeedback(_FeedbackKind.error,
+          'Unrecognized code — this may not be an event ticket.');
       return;
     }
 
     setState(() => _processing = true);
     final repository = ref.read(checkInRepositoryProvider);
-    final result = await repository.processScan(scanPayload: parts[0], qrSignature: parts[1]);
+    final result = await repository.processScan(
+        scanPayload: parts[0], barcodeSignature: parts[1]);
     _handleResult(result);
   }
 
@@ -126,7 +125,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
       case CheckInSuccess():
         _showFeedback(_FeedbackKind.success, 'Checked in successfully.');
       case CheckInQueuedOffline():
-        _showFeedback(_FeedbackKind.queued, 'No connection — queued to sync later.');
+        _showFeedback(
+            _FeedbackKind.queued, 'No connection — queued to sync later.');
         _refreshQueuedCount();
       case CheckInDuplicate():
         _showFeedback(_FeedbackKind.duplicate, 'Already checked in.');
@@ -166,7 +166,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.cloud_upload_outlined),
               ),
@@ -179,7 +180,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.keyboard_rounded),
-            onPressed: () => setState(() => _manualEntryOpen = !_manualEntryOpen),
+            onPressed: () =>
+                setState(() => _manualEntryOpen = !_manualEntryOpen),
           ),
         ],
       ),
@@ -188,7 +190,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
           MobileScanner(controller: _controller, onDetect: _handleDetect),
           _ScannerOverlay(),
           if (_feedbackKind != null)
-            _FeedbackBanner(kind: _feedbackKind!, message: _feedbackMessage ?? ''),
+            _FeedbackBanner(
+                kind: _feedbackKind!, message: _feedbackMessage ?? ''),
           if (_manualEntryOpen)
             Positioned(
               left: 0,
@@ -230,7 +233,10 @@ class _FeedbackBanner extends StatelessWidget {
   const _FeedbackBanner({required this.kind, required this.message});
 
   (Color, IconData) get _style => switch (kind) {
-        _FeedbackKind.success => (AppColors.success, Icons.check_circle_rounded),
+        _FeedbackKind.success => (
+            AppColors.success,
+            Icons.check_circle_rounded
+          ),
         _FeedbackKind.duplicate => (AppColors.warning, Icons.info_rounded),
         _FeedbackKind.queued => (AppColors.info, Icons.cloud_off_rounded),
         _FeedbackKind.error => (AppColors.danger, Icons.error_rounded),
@@ -245,13 +251,16 @@ class _FeedbackBanner extends StatelessWidget {
       right: AppSpacing.lg,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
             Icon(icon, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: Text(message, style: AppTypography.bodyStrong.copyWith(color: Colors.white)),
+              child: Text(message,
+                  style:
+                      AppTypography.bodyStrong.copyWith(color: Colors.white)),
             ),
           ],
         ),
@@ -264,7 +273,10 @@ class _ManualEntrySheet extends StatelessWidget {
   final TextEditingController controller;
   final bool loading;
   final VoidCallback onSubmit;
-  const _ManualEntrySheet({required this.controller, required this.loading, required this.onSubmit});
+  const _ManualEntrySheet(
+      {required this.controller,
+      required this.loading,
+      required this.onSubmit});
 
   @override
   Widget build(BuildContext context) {
@@ -285,11 +297,19 @@ class _ManualEntrySheet extends StatelessWidget {
         children: [
           Text('Enter ticket code', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
-          Text('For a damaged or unreadable QR code.', style: AppTypography.caption),
+          Text('For a damaged or unreadable barcode.',
+              style: AppTypography.caption),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(controller: controller, hint: 'TKT-XXXXXXXXXXXXXXXX', autofocus: true),
+          AppTextField(
+              controller: controller,
+              hint: 'TKT-XXXXXXXXXXXXXXXX',
+              autofocus: true),
           const SizedBox(height: AppSpacing.lg),
-          AppButton(label: 'Check in', fullWidth: true, loading: loading, onPressed: onSubmit),
+          AppButton(
+              label: 'Check in',
+              fullWidth: true,
+              loading: loading,
+              onPressed: onSubmit),
         ],
       ),
     );

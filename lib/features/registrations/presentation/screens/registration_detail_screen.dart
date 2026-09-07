@@ -9,8 +9,11 @@ import '../../../../shared/widgets/badges/status_badge.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
+import '../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../application/registrations_providers.dart';
+import '../../data/models/registration.dart';
 import '../../data/models/registration_status.dart';
+import '../../../tickets/application/tickets_providers.dart';
 
 class RegistrationDetailScreen extends ConsumerWidget {
   final String registrationId;
@@ -87,10 +90,75 @@ class RegistrationDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ],
+              if (registration.cancellationReason != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text('Cancellation note: ${registration.cancellationReason}', style: AppTypography.bodyMuted),
+              ],
+              if (registration.paymentStatus != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Payment: ${registration.paymentStatus!.replaceAll('_', ' ')}',
+                  style: AppTypography.bodyMuted,
+                ),
+              ],
+              if (registration.refundStatus != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Refund: ${registration.refundStatus!.replaceAll('_', ' ')}',
+                  style: AppTypography.bodyMuted,
+                ),
+              ],
+              if (_canShowCancel(registration)) ...[
+                const SizedBox(height: AppSpacing.xl),
+                AppButton(
+                  label: 'Cancel registration',
+                  fullWidth: true,
+                  variant: AppButtonVariant.danger,
+                  onPressed: () => _cancel(context, ref, registration.id),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  bool _canShowCancel(AppRegistration registration) {
+    const eligible = {
+      RegistrationStatus.started,
+      RegistrationStatus.submitted,
+      RegistrationStatus.pendingVerification,
+      RegistrationStatus.pendingPayment,
+      RegistrationStatus.approved,
+      RegistrationStatus.confirmed,
+      RegistrationStatus.refundFailed,
+    };
+    if (!eligible.contains(registration.status)) return false;
+    final deadline = registration.cancellationDeadlineAt;
+    return deadline == null || DateTime.now().isBefore(deadline);
+  }
+
+  Future<void> _cancel(BuildContext context, WidgetRef ref, String registrationId) async {
+    final confirmed = await showConfirmActionSheet(
+      context,
+      title: 'Cancel this registration?',
+      description: 'Paid registrations enter refund review. Your ticket is cancelled only after a full refund succeeds.',
+      confirmLabel: 'Cancel registration',
+      danger: true,
+      requireReason: true,
+      reasonLabel: 'Reason for cancellation',
+      onConfirm: (reason) async {
+        await ref.read(cancelRegistrationProvider)(registrationId, reason: reason);
+        ref.invalidate(registrationDetailProvider(registrationId));
+        ref.invalidate(myRegistrationsProvider);
+        ref.invalidate(myTicketsProvider);
+      },
+    );
+    if (confirmed && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cancellation status updated.')),
+      );
+    }
   }
 }

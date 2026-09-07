@@ -18,6 +18,8 @@ const _statusTones = {
   RegistrationStatus.submitted: StatusTone.info,
   RegistrationStatus.pendingVerification: StatusTone.warning,
   RegistrationStatus.pendingPayment: StatusTone.warning,
+  RegistrationStatus.refundPending: StatusTone.warning,
+  RegistrationStatus.refundFailed: StatusTone.danger,
   RegistrationStatus.approved: StatusTone.accent,
   RegistrationStatus.confirmed: StatusTone.success,
   RegistrationStatus.checkedIn: StatusTone.success,

@@ -9,7 +9,9 @@ class TicketsApi {
 
   Future<List<AppTicket>> listMyTickets() async {
     final response = await _dio.get<List<dynamic>>('/tickets/mine');
-    return response.data!.map((item) => AppTicket.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => AppTicket.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AppTicket> getTicket(String ticketId) async {
@@ -17,19 +19,24 @@ class TicketsApi {
     return AppTicket.fromJson(response.data!);
   }
 
-  /// The scanner's first call after every scan (Section 9, Phase 5's
-  /// fix): a scanned qr_payload alone never contains the ticket's real
+  /// The scanner's first call after every scan: a scanned barcode payload
+  /// alone never contains the ticket's real
   /// UUID — this resolves it (and verifies the signature server-side)
   /// before POST /{ticket_id}/check-in can be called.
-  Future<AppTicket> resolveByScan({required String scanPayload, required String qrSignature}) async {
+  Future<AppTicket> resolveByScan(
+      {required String scanPayload, required String barcodeSignature}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/tickets/resolve',
-      data: {'scan_payload': scanPayload, 'qr_signature': qrSignature},
+      data: {
+        'scan_payload': scanPayload,
+        'barcode_signature': barcodeSignature
+      },
     );
     return AppTicket.fromJson(response.data!);
   }
 
-  Future<void> checkIn(String ticketId, {String? venueId, String? scanPayload}) async {
+  Future<void> checkIn(String ticketId,
+      {String? venueId, String? scanPayload}) async {
     await _dio.post<Map<String, dynamic>>(
       '/tickets/$ticketId/check-in',
       data: {
@@ -39,12 +46,13 @@ class TicketsApi {
     );
   }
 
-  /// The manual-entry fallback for a damaged/unreadable QR — looks up
+  /// The manual-entry fallback for a damaged/unreadable barcode — looks up
   /// by ticket_code alone, no signature required (see the backend's
   /// resolve_by_ticket_code for why this narrower trust model is
   /// justified for this one fallback path).
   Future<AppTicket> resolveByCode(String ticketCode) async {
-    final response = await _dio.get<Map<String, dynamic>>('/tickets/by-code/$ticketCode');
+    final response =
+        await _dio.get<Map<String, dynamic>>('/tickets/by-code/$ticketCode');
     return AppTicket.fromJson(response.data!);
   }
 
@@ -59,6 +67,8 @@ class TicketsApi {
   /// CheckInRepository.syncQueue) calls this once per queued item and
   /// removes only the ones that actually succeed.
   Future<void> syncOneOfflineCheckIn(Map<String, dynamic> scan) async {
-    await _dio.post<List<dynamic>>('/check-ins/sync', data: {'scans': [scan]});
+    await _dio.post<List<dynamic>>('/check-ins/sync', data: {
+      'scans': [scan]
+    });
   }
 }

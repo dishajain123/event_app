@@ -73,4 +73,12 @@ class RegistrationsApi {
     );
     return AppRegistration.fromJson(response.data!);
   }
+
+  Future<AppRegistration> cancelRegistration(String registrationId, {String? reason}) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/registrations/$registrationId/cancel',
+      data: {if (reason != null && reason.isNotEmpty) 'reason': reason},
+    );
+    return AppRegistration.fromJson(response.data!);
+  }
 }

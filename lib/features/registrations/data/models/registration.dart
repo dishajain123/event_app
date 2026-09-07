@@ -47,6 +47,13 @@ class AppRegistration {
   final String? rejectionReason;
   final DateTime? checkedInAt;
   final DateTime? completedAt;
+  final DateTime? cancellationDeadlineAt;
+  final DateTime? cancellationRequestedAt;
+  final DateTime? cancelledAt;
+  final String? cancelledBy;
+  final String? cancellationReason;
+  final String? paymentStatus;
+  final String? refundStatus;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<RegistrationParticipant> participants;
@@ -65,6 +72,13 @@ class AppRegistration {
     required this.rejectionReason,
     required this.checkedInAt,
     required this.completedAt,
+    required this.cancellationDeadlineAt,
+    required this.cancellationRequestedAt,
+    required this.cancelledAt,
+    required this.cancelledBy,
+    required this.cancellationReason,
+    required this.paymentStatus,
+    required this.refundStatus,
     required this.createdAt,
     required this.updatedAt,
     required this.participants,
@@ -86,6 +100,17 @@ class AppRegistration {
       rejectionReason: json['rejection_reason'] as String?,
       checkedInAt: json['checked_in_at'] != null ? DateTime.parse(json['checked_in_at'] as String) : null,
       completedAt: json['completed_at'] != null ? DateTime.parse(json['completed_at'] as String) : null,
+      cancellationDeadlineAt: json['cancellation_deadline_at'] != null
+          ? DateTime.parse(json['cancellation_deadline_at'] as String)
+          : null,
+      cancellationRequestedAt: json['cancellation_requested_at'] != null
+          ? DateTime.parse(json['cancellation_requested_at'] as String)
+          : null,
+      cancelledAt: json['cancelled_at'] != null ? DateTime.parse(json['cancelled_at'] as String) : null,
+      cancelledBy: json['cancelled_by'] as String?,
+      cancellationReason: json['cancellation_reason'] as String?,
+      paymentStatus: json['payment_status'] as String?,
+      refundStatus: json['refund_status'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       participants: rawParticipants

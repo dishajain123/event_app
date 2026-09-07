@@ -11,7 +11,8 @@ enum TicketStatus {
   static TicketStatus fromWire(String value) {
     return TicketStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown ticket status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown ticket status from backend: $value'),
     );
   }
 
@@ -34,8 +35,8 @@ class AppTicket {
   final String? paymentId;
   final String userId;
   final String ticketCode;
-  final String qrPayload;
-  final String qrSignature;
+  final String barcodePayload;
+  final String barcodeSignature;
   final TicketStatus status;
   final DateTime? issuedAt;
   final DateTime? checkedInAt;
@@ -47,8 +48,8 @@ class AppTicket {
     required this.paymentId,
     required this.userId,
     required this.ticketCode,
-    required this.qrPayload,
-    required this.qrSignature,
+    required this.barcodePayload,
+    required this.barcodeSignature,
     required this.status,
     required this.issuedAt,
     required this.checkedInAt,
@@ -62,11 +63,15 @@ class AppTicket {
       paymentId: json['payment_id'] as String?,
       userId: json['user_id'] as String,
       ticketCode: json['ticket_code'] as String,
-      qrPayload: json['qr_payload'] as String,
-      qrSignature: json['qr_signature'] as String,
+      barcodePayload: json['barcode_payload'] as String,
+      barcodeSignature: json['barcode_signature'] as String,
       status: TicketStatus.fromWire(json['status'] as String),
-      issuedAt: json['issued_at'] != null ? DateTime.parse(json['issued_at'] as String) : null,
-      checkedInAt: json['checked_in_at'] != null ? DateTime.parse(json['checked_in_at'] as String) : null,
+      issuedAt: json['issued_at'] != null
+          ? DateTime.parse(json['issued_at'] as String)
+          : null,
+      checkedInAt: json['checked_in_at'] != null
+          ? DateTime.parse(json['checked_in_at'] as String)
+          : null,
     );
   }
 }

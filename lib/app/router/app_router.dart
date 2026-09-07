@@ -42,7 +42,7 @@ import '../../features/tickets/presentation/screens/ticket_detail_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/feedback/presentation/screens/feedback_screen.dart';
 import '../../features/feedback/presentation/screens/my_feedback_screen.dart';
-import '../../features/staff_mode/check_in/presentation/screens/qr_scanner_screen.dart';
+import '../../features/staff_mode/check_in/presentation/screens/barcode_scanner_screen.dart';
 import '../../features/staff_mode/registration_review/presentation/screens/registration_review_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/my_staff_events_screen.dart';
 import '../../features/staff_mode/assignments/presentation/screens/staff_profile_screen.dart';
@@ -302,7 +302,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
               path: RoutePaths.staffScan,
-              builder: (context, state) => const QrScannerScreen()),
+              builder: (context, state) => const BarcodeScannerScreen()),
           GoRoute(
               path: RoutePaths.staffTasks,
               builder: (context, state) => const RegistrationReviewScreen()),

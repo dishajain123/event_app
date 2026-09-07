@@ -4,12 +4,14 @@ import '../data/models/app_notification.dart';
 import '../data/notifications_api.dart';
 import '../data/notifications_repository.dart';
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+final notificationsRepositoryProvider =
+    Provider<NotificationsRepository>((ref) {
   final dio = ref.watch(apiClientProvider);
   return NotificationsRepository(NotificationsApi(dio));
 });
 
-final myNotificationsProvider = FutureProvider<List<AppNotification>>((ref) async {
+final myNotificationsProvider =
+    FutureProvider<List<AppNotification>>((ref) async {
   final repository = ref.watch(notificationsRepositoryProvider);
   return repository.listMine();
 });
@@ -22,4 +24,9 @@ final unreadNotificationCountProvider = Provider<int>((ref) {
     data: (notifications) => notifications.where((n) => n.isUnread).length,
     orElse: () => 0,
   );
+});
+
+final notificationPreferencesProvider =
+    FutureProvider<NotificationPreferences>((ref) async {
+  return ref.watch(notificationsRepositoryProvider).getPreferences();
 });

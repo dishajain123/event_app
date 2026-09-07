@@ -18,3 +18,8 @@ final registrationDetailProvider = FutureProvider.family<AppRegistration, String
   final repository = ref.watch(registrationsRepositoryProvider);
   return repository.getRegistration(registrationId);
 });
+
+final cancelRegistrationProvider = Provider<Future<AppRegistration> Function(String, {String? reason})>((ref) {
+  final repository = ref.watch(registrationsRepositoryProvider);
+  return (registrationId, {String? reason}) => repository.cancelRegistration(registrationId, reason: reason);
+});

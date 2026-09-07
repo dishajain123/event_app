@@ -6,18 +6,28 @@ import '../router/route_paths.dart';
 const _tabs = [
   (
     path: RoutePaths.staffScan,
-    icon: Icons.qr_code_scanner_outlined,
-    activeIcon: Icons.qr_code_scanner_rounded,
+    icon: Icons.document_scanner_outlined,
+    activeIcon: Icons.document_scanner_rounded,
     label: 'Scan',
   ),
-  (path: RoutePaths.staffTasks, icon: Icons.fact_check_outlined, activeIcon: Icons.fact_check_rounded, label: 'Tasks'),
+  (
+    path: RoutePaths.staffTasks,
+    icon: Icons.fact_check_outlined,
+    activeIcon: Icons.fact_check_rounded,
+    label: 'Tasks'
+  ),
   (
     path: RoutePaths.staffMyEvents,
     icon: Icons.event_note_outlined,
     activeIcon: Icons.event_note_rounded,
     label: 'My Events',
   ),
-  (path: RoutePaths.staffProfile, icon: Icons.shield_outlined, activeIcon: Icons.shield_rounded, label: 'Staff'),
+  (
+    path: RoutePaths.staffProfile,
+    icon: Icons.shield_outlined,
+    activeIcon: Icons.shield_rounded,
+    label: 'Staff'
+  ),
 ];
 
 /// Only ever reachable for an account holding at least one Staff-Mode-
@@ -53,9 +63,10 @@ class StaffModeShell extends StatelessWidget {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-          bottomNavigationBarTheme: Theme.of(context).bottomNavigationBarTheme.copyWith(
-                selectedItemColor: AppColors.staffModeAccent,
-              ),
+          bottomNavigationBarTheme:
+              Theme.of(context).bottomNavigationBarTheme.copyWith(
+                    selectedItemColor: AppColors.staffModeAccent,
+                  ),
         ),
         child: BottomNavigationBar(
           currentIndex: currentIndex,

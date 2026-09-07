@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/network/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -27,7 +28,9 @@ class NotificationsInboxScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myNotificationsProvider),
               ),
             ],
@@ -40,17 +43,21 @@ class NotificationsInboxScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.notifications_none_rounded,
                     title: 'No notifications yet',
-                    description: "Updates about your registrations and events will show up here.",
+                    description:
+                        "Updates about your registrations and events will show up here.",
                   ),
                 ],
               );
             }
-            final sorted = [...notifications]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            final sorted = [...notifications]
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: sorted.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) => _NotificationTile(notification: sorted[index]),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (context, index) =>
+                  _NotificationTile(notification: sorted[index]),
             );
           },
         ),
@@ -73,6 +80,11 @@ class _NotificationTile extends ConsumerWidget {
               try {
                 await repository.markRead(notification.id);
                 ref.invalidate(myNotificationsProvider);
+                final deepLink =
+                    notification.targetMetadata?['deep_link'] as String?;
+                if (deepLink != null && deepLink.startsWith('/')) {
+                  if (context.mounted) context.push(deepLink);
+                }
               } on AppException {
                 // A failed mark-read isn't worth interrupting the user
                 // over — the notification simply stays marked unread and
@@ -83,7 +95,9 @@ class _NotificationTile extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: notification.isUnread ? Colors.white.withOpacity(0.85) : Colors.white.withOpacity(0.5),
+          color: notification.isUnread
+              ? Colors.white.withOpacity(0.85)
+              : Colors.white.withOpacity(0.5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -94,7 +108,8 @@ class _NotificationTile extends ConsumerWidget {
                 margin: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                    color: AppColors.accent, shape: BoxShape.circle),
               )
             else
               const SizedBox(width: 16),
@@ -104,12 +119,15 @@ class _NotificationTile extends ConsumerWidget {
                 children: [
                   Text(
                     notification.title,
-                    style: notification.isUnread ? AppTypography.bodyStrong : AppTypography.body,
+                    style: notification.isUnread
+                        ? AppTypography.bodyStrong
+                        : AppTypography.body,
                   ),
                   const SizedBox(height: 4),
                   Text(notification.body, style: AppTypography.bodyMuted),
                   const SizedBox(height: 6),
-                  Text(_relativeTime(notification.createdAt), style: AppTypography.captionSubtle),
+                  Text(_relativeTime(notification.createdAt),
+                      style: AppTypography.captionSubtle),
                 ],
               ),
             ),

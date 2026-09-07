@@ -21,4 +21,38 @@ class NotificationsRepository {
       throw mapDioException(e);
     }
   }
+
+  Future<DeviceTokenRegistration> registerDevice(
+      {required String token, required String platform}) async {
+    try {
+      return await _api.registerDevice(token: token, platform: platform);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<void> removeDevice(String deviceId) async {
+    try {
+      await _api.removeDevice(deviceId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<NotificationPreferences> getPreferences() async {
+    try {
+      return await _api.getPreferences();
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<NotificationPreferences> updatePreferences(
+      Map<String, bool> values) async {
+    try {
+      return await _api.updatePreferences(values);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
 }

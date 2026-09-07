@@ -6,6 +6,10 @@ import '../data/auth_repository.dart';
 import '../data/models/app_user.dart';
 import 'app_mode_controller.dart';
 import 'session_roles.dart';
+import '../../notifications/application/push_token_source.dart';
+import '../../notifications/data/notifications_api.dart';
+import '../../notifications/data/notifications_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 sealed class AuthState {
   const AuthState();
@@ -27,7 +31,8 @@ class AuthAuthenticated extends AuthState {
   const AuthAuthenticated({required this.user, required this.roles});
 
   AuthAuthenticated copyWith({AppUser? user, SessionRoles? roles}) {
-    return AuthAuthenticated(user: user ?? this.user, roles: roles ?? this.roles);
+    return AuthAuthenticated(
+        user: user ?? this.user, roles: roles ?? this.roles);
   }
 }
 
@@ -40,8 +45,13 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 class AuthStateNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final AppModeController _appModeController;
+  final NotificationsRepository _notificationsRepository;
+  final PushTokenSource _pushTokenSource = const PushTokenSource();
+  bool _pushInitialized = false;
 
-  AuthStateNotifier(this._repository, this._appModeController) : super(const AuthInitializing());
+  AuthStateNotifier(
+      this._repository, this._appModeController, this._notificationsRepository)
+      : super(const AuthInitializing());
 
   /// Called once, from the Splash screen, before the router decides which
   /// shell to land the user in (Section 8, Phase 1).
@@ -66,7 +76,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     return _repository.requestOtp(mobileNumber);
   }
 
-  Future<void> verifyOtpAndLogIn({required String mobileNumber, required String otp}) async {
+  Future<void> verifyOtpAndLogIn(
+      {required String mobileNumber, required String otp}) async {
     await _repository.verifyOtp(mobileNumber: mobileNumber, otp: otp);
     await _loadUserAndRoles();
   }
@@ -74,7 +85,45 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> _loadUserAndRoles() async {
     final user = await _repository.getMe();
     final assignments = await _repository.getMyRoleAssignments();
-    state = AuthAuthenticated(user: user, roles: SessionRoles.fromAssignments(assignments));
+    state = AuthAuthenticated(
+        user: user, roles: SessionRoles.fromAssignments(assignments));
+    await _registerPushDeviceIfAvailable();
+  }
+
+  Future<void> _registerPushDeviceIfAvailable() async {
+    if (_pushInitialized) return;
+    _pushInitialized = true;
+    await _pushTokenSource.initializeMessageHandlers(
+      onOpened: (data) {
+        final deepLink = data['deep_link'];
+        if (deepLink is String && deepLink.startsWith('/')) {
+          PushTokenSource.pendingDeepLink.value = deepLink;
+        }
+      },
+    );
+    final token = await _pushTokenSource.getToken();
+    if (token == null) return;
+    try {
+      final device = await _notificationsRepository.registerDevice(
+        token: token,
+        platform: const PushTokenSource().platform,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('event_app.notification_device_id', device.id);
+      _pushTokenSource.tokenChanges.listen((nextToken) async {
+        try {
+          final refreshed = await _notificationsRepository.registerDevice(
+            token: nextToken,
+            platform: _pushTokenSource.platform,
+          );
+          await prefs.setString('event_app.notification_device_id', refreshed.id);
+        } catch (_) {
+          // Token refresh retries on the next authenticated startup.
+        }
+      });
+    } catch (_) {
+      // Authentication must not fail because push registration is unavailable.
+    }
   }
 
   /// Re-fetches just the role-assignments — called after an action that
@@ -94,11 +143,23 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> updateProfile({String? name, String? email}) async {
     final current = state;
     if (current is! AuthAuthenticated) return;
-    final updatedUser = await _repository.updateProfile(name: name, email: email);
+    final updatedUser =
+        await _repository.updateProfile(name: name, email: email);
     state = current.copyWith(user: updatedUser);
   }
 
   Future<void> logout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceId = prefs.getString('event_app.notification_device_id');
+      if (deviceId != null) {
+        await _notificationsRepository.removeDevice(deviceId);
+      }
+      await prefs.remove('event_app.notification_device_id');
+    } catch (_) {
+      // Device cleanup is best effort; backend tokens expire or are invalidated
+      // automatically after provider failures.
+    }
     await _repository.logout();
     await _appModeController.reset();
     state = const AuthUnauthenticated();
@@ -114,10 +175,15 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   }
 }
 
-final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
+final authStateProvider =
+    StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
   final appModeController = ref.watch(appModeProvider.notifier);
-  final notifier = AuthStateNotifier(repository, appModeController);
+  final notifier = AuthStateNotifier(
+    repository,
+    appModeController,
+    NotificationsRepository(NotificationsApi(ref.watch(apiClientProvider))),
+  );
 
   ref.watch(sessionExpiredNotifierProvider).setListener(() {
     notifier.forceLogoutFromExpiredSession();

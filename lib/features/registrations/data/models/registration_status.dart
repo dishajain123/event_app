@@ -1,11 +1,13 @@
 /// Mirrors `app/modules/registrations/models.py`'s `RegistrationStatus`
-/// StrEnum exactly — ten values, transcribed from the actual backend
+/// StrEnum exactly — twelve values, transcribed from the actual backend
 /// source.
 enum RegistrationStatus {
   started('started'),
   submitted('submitted'),
   pendingVerification('pending_verification'),
   pendingPayment('pending_payment'),
+  refundPending('refund_pending'),
+  refundFailed('refund_failed'),
   approved('approved'),
   confirmed('confirmed'),
   checkedIn('checked_in'),
@@ -30,6 +32,8 @@ enum RegistrationStatus {
         RegistrationStatus.submitted => 'Submitted',
         RegistrationStatus.pendingVerification => 'Pending Verification',
         RegistrationStatus.pendingPayment => 'Pending Payment',
+        RegistrationStatus.refundPending => 'Refund Pending',
+        RegistrationStatus.refundFailed => 'Refund Failed',
         RegistrationStatus.approved => 'Approved',
         RegistrationStatus.confirmed => 'Confirmed',
         RegistrationStatus.checkedIn => 'Checked In',

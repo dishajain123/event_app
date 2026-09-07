@@ -75,6 +75,8 @@ class AppPayment {
   final DateTime? verifiedAt;
   final DateTime? capturedAt;
   final DateTime createdAt;
+  final String reconciliationStatus;
+  final String? reconciliationError;
 
   const AppPayment({
     required this.id,
@@ -90,6 +92,8 @@ class AppPayment {
     required this.verifiedAt,
     required this.capturedAt,
     required this.createdAt,
+    this.reconciliationStatus = 'not_required',
+    this.reconciliationError,
   });
 
   factory AppPayment.fromJson(Map<String, dynamic> json) {
@@ -107,6 +111,8 @@ class AppPayment {
       verifiedAt: json['verified_at'] != null ? DateTime.parse(json['verified_at'] as String) : null,
       capturedAt: json['captured_at'] != null ? DateTime.parse(json['captured_at'] as String) : null,
       createdAt: DateTime.parse(json['created_at'] as String),
+      reconciliationStatus: json['reconciliation_status'] as String? ?? 'not_required',
+      reconciliationError: json['reconciliation_error'] as String?,
     );
   }
 }

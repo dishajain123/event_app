@@ -43,7 +43,8 @@ class CheckInRepository {
   final Connectivity _connectivity;
   int _localIdCounter = 0;
 
-  CheckInRepository(this._ticketsRepository, this._queue, {Connectivity? connectivity})
+  CheckInRepository(this._ticketsRepository, this._queue,
+      {Connectivity? connectivity})
       : _connectivity = connectivity ?? Connectivity();
 
   /// A locally-unique ID for queue list rendering/removal only — never
@@ -75,7 +76,10 @@ class CheckInRepository {
   /// network attempt (Section 13.2) and reported as queued, not failed —
   /// this is expected, correct behavior for a volunteer scanning at a
   /// gate with poor signal, not an error state.
-  Future<CheckInResult> processScan({required String scanPayload, required String qrSignature, String? venueId}) async {
+  Future<CheckInResult> processScan(
+      {required String scanPayload,
+      required String barcodeSignature,
+      String? venueId}) async {
     final online = await _isOnline;
 
     if (!online) {
@@ -83,7 +87,7 @@ class CheckInRepository {
         QueuedCheckIn(
           localId: _generateLocalId(),
           scanPayload: scanPayload,
-          qrSignature: qrSignature,
+          barcodeSignature: barcodeSignature,
           venueId: venueId,
           scannedAt: DateTime.now(),
         ),
@@ -92,13 +96,16 @@ class CheckInRepository {
     }
 
     try {
-      final ticket = await _ticketsRepository.resolveByScan(scanPayload: scanPayload, qrSignature: qrSignature);
-      await _ticketsRepository.checkIn(ticket.id, venueId: venueId, scanPayload: scanPayload);
+      final ticket = await _ticketsRepository.resolveByScan(
+          scanPayload: scanPayload, barcodeSignature: barcodeSignature);
+      await _ticketsRepository.checkIn(ticket.id,
+          venueId: venueId, scanPayload: scanPayload);
       return CheckInSuccess(ticket);
     } on AppException catch (e) {
       // A duplicate check-in is a distinct, expected outcome (someone
       // already scanned this ticket) — never a generic failure message.
-      if (e is ValidationException && e.message.toLowerCase().contains('already')) {
+      if (e is ValidationException &&
+          e.message.toLowerCase().contains('already')) {
         return const CheckInDuplicate();
       }
       return CheckInFailed(e.message);
@@ -112,13 +119,15 @@ class CheckInRepository {
   /// already the exception case), resolves by ticket_code alone (see
   /// TicketsApi.resolveByCode), then checks in exactly like the camera
   /// path.
-  Future<CheckInResult> processManualEntry({required String ticketCode, String? venueId}) async {
+  Future<CheckInResult> processManualEntry(
+      {required String ticketCode, String? venueId}) async {
     try {
       final ticket = await _ticketsRepository.resolveByCode(ticketCode.trim());
       await _ticketsRepository.checkIn(ticket.id, venueId: venueId);
       return CheckInSuccess(ticket);
     } on AppException catch (e) {
-      if (e is ValidationException && e.message.toLowerCase().contains('already')) {
+      if (e is ValidationException &&
+          e.message.toLowerCase().contains('already')) {
         return const CheckInDuplicate();
       }
       return CheckInFailed(e.message);

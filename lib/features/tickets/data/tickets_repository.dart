@@ -22,9 +22,11 @@ class TicketsRepository {
     }
   }
 
-  Future<AppTicket> resolveByScan({required String scanPayload, required String qrSignature}) async {
+  Future<AppTicket> resolveByScan(
+      {required String scanPayload, required String barcodeSignature}) async {
     try {
-      return await _api.resolveByScan(scanPayload: scanPayload, qrSignature: qrSignature);
+      return await _api.resolveByScan(
+          scanPayload: scanPayload, barcodeSignature: barcodeSignature);
     } catch (e) {
       throw mapDioException(e);
     }
@@ -38,7 +40,8 @@ class TicketsRepository {
     }
   }
 
-  Future<void> checkIn(String ticketId, {String? venueId, String? scanPayload}) async {
+  Future<void> checkIn(String ticketId,
+      {String? venueId, String? scanPayload}) async {
     try {
       await _api.checkIn(ticketId, venueId: venueId, scanPayload: scanPayload);
     } catch (e) {

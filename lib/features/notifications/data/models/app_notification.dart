@@ -11,7 +11,8 @@ enum NotificationChannel {
   static NotificationChannel fromWire(String value) {
     return NotificationChannel.values.firstWhere(
       (c) => c.wireValue == value,
-      orElse: () => throw FormatException('Unknown notification channel from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown notification channel from backend: $value'),
     );
   }
 }
@@ -28,7 +29,8 @@ enum NotificationDeliveryStatus {
   static NotificationDeliveryStatus fromWire(String value) {
     return NotificationDeliveryStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown delivery status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown delivery status from backend: $value'),
     );
   }
 }
@@ -46,6 +48,10 @@ class AppNotification {
   final NotificationDeliveryStatus deliveryStatus;
   final DateTime? sentAt;
   final DateTime? readAt;
+  final Map<String, dynamic>? targetMetadata;
+  final String notificationType;
+  final String? providerMessageId;
+  final int attemptCount;
   final DateTime createdAt;
 
   const AppNotification({
@@ -59,6 +65,10 @@ class AppNotification {
     required this.deliveryStatus,
     required this.sentAt,
     required this.readAt,
+    required this.targetMetadata,
+    required this.notificationType,
+    required this.providerMessageId,
+    required this.attemptCount,
     required this.createdAt,
   });
 
@@ -71,9 +81,19 @@ class AppNotification {
       channel: NotificationChannel.fromWire(json['channel'] as String),
       title: json['title'] as String,
       body: json['body'] as String,
-      deliveryStatus: NotificationDeliveryStatus.fromWire(json['delivery_status'] as String),
-      sentAt: json['sent_at'] != null ? DateTime.parse(json['sent_at'] as String) : null,
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at'] as String) : null,
+      deliveryStatus: NotificationDeliveryStatus.fromWire(
+          json['delivery_status'] as String),
+      sentAt: json['sent_at'] != null
+          ? DateTime.parse(json['sent_at'] as String)
+          : null,
+      readAt: json['read_at'] != null
+          ? DateTime.parse(json['read_at'] as String)
+          : null,
+      targetMetadata:
+          (json['target_metadata'] as Map?)?.cast<String, dynamic>(),
+      notificationType: json['notification_type'] as String? ?? 'operational',
+      providerMessageId: json['provider_message_id'] as String?,
+      attemptCount: json['attempt_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

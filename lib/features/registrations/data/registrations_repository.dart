@@ -73,4 +73,12 @@ class RegistrationsRepository {
       throw mapDioException(e);
     }
   }
+
+  Future<AppRegistration> cancelRegistration(String registrationId, {String? reason}) async {
+    try {
+      return await _api.cancelRegistration(registrationId, reason: reason);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
 }
