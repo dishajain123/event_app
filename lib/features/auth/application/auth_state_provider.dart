@@ -82,6 +82,33 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     await _loadUserAndRoles();
   }
 
+  Future<int> signupEmail({required String email, required String password}) {
+    return _repository.signupEmail(email: email, password: password);
+  }
+
+  Future<void> verifyEmailCodeAndLogIn(
+      {required String email, required String code}) async {
+    await _repository.verifyEmailCode(email: email, code: code);
+    await _loadUserAndRoles();
+  }
+
+  Future<void> loginEmail({required String email, required String password}) async {
+    await _repository.loginEmail(email: email, password: password);
+    await _loadUserAndRoles();
+  }
+
+  Future<int> resendEmailVerification(String email) {
+    return _repository.resendEmailVerification(email);
+  }
+
+  Future<void> resetPassword({required String email, required String code, required String password}) {
+    return _repository.resetPassword(email: email, code: code, password: password);
+  }
+
+  Future<int> requestPasswordReset(String email) {
+    return _repository.requestPasswordReset(email);
+  }
+
   Future<void> _loadUserAndRoles() async {
     final user = await _repository.getMe();
     final assignments = await _repository.getMyRoleAssignments();

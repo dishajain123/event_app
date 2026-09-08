@@ -1,6 +1,6 @@
 {
   "_comment": "Copy this to development.local.json and replace the IP with your machine's actual LAN address (e.g. run `ipconfig getifaddr en0` on macOS or `ip addr` on Linux) when testing on a physical device instead of the Android emulator. development.local.json is gitignored — never commit a personal LAN IP.",
-  "API_BASE_URL": "http://192.168.1.100:8000/api/v1",
+  "API_BASE_URL": "http://192.168.1.100:8001/api/v1",
   "ENVIRONMENT_NAME": "development",
   "ENABLE_NETWORK_LOGGING": true
 }

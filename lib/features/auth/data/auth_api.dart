@@ -28,8 +28,49 @@ class AuthApi {
     return TokenPair.fromJson(response.data!);
   }
 
-  Future<void> logout() async {
-    await _dio.post<void>('/auth/logout');
+  Future<OtpRequestResult> signupEmail({required String email, required String password}) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/email/signup', data: {'email': email, 'password': password},
+    );
+    return OtpRequestResult.fromJson(response.data!);
+  }
+
+  Future<TokenPair> verifyEmailCode({required String email, required String code}) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/email/verify', data: {'email': email, 'code': code},
+    );
+    return TokenPair.fromJson(response.data!);
+  }
+
+  Future<TokenPair> loginEmail({required String email, required String password}) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/email/login', data: {'email': email, 'password': password});
+    return TokenPair.fromJson(response.data!);
+  }
+
+  Future<OtpRequestResult> resendEmailVerification(String email) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/email/verify/resend', data: {'email': email});
+    return OtpRequestResult.fromJson(response.data!);
+  }
+
+  Future<OtpRequestResult> requestPasswordReset(String email) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/email/password-reset/request', data: {'email': email});
+    return OtpRequestResult.fromJson(response.data!);
+  }
+
+  Future<void> resetPassword({required String email, required String code, required String password}) async {
+    await _dio.post<void>('/auth/email/password-reset', data: {
+      'email': email, 'code': code, 'new_password': password,
+    });
+  }
+
+  Future<void> logout({String? refreshToken, String? accessToken}) async {
+    await _dio.post<void>('/auth/logout', data: {
+      if (refreshToken != null) 'refresh_token': refreshToken,
+      if (accessToken != null) 'access_token': accessToken,
+    });
   }
 
   Future<AppUser> getMe() async {

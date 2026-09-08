@@ -25,6 +25,16 @@ class MyStaffEventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final assignmentsAsync = ref.watch(myStaffAssignmentsProvider);
+    ref.listen(myStaffAssignmentsProvider, (_, next) {
+      if (next.hasValue &&
+          next.value!
+              .any((item) => item.status == StaffAssignmentStatus.active)) {
+        // A manager may activate a volunteer while this session is open.
+        // Refresh the authoritative RBAC assignments so the Staff Mode
+        // switch appears without forcing a logout/login cycle.
+        ref.read(authStateProvider.notifier).refreshRoles();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Events')),

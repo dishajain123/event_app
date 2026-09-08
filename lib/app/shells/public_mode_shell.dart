@@ -11,6 +11,12 @@ const _tabs = [
     label: 'Home'
   ),
   (
+    path: RoutePaths.events,
+    icon: Icons.event_outlined,
+    activeIcon: Icons.event_rounded,
+    label: 'Events',
+  ),
+  (
     path: RoutePaths.myRegistrations,
     icon: Icons.assignment_outlined,
     activeIcon: Icons.assignment_rounded,

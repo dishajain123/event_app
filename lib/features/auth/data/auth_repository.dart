@@ -25,6 +25,15 @@ class AuthRepository {
     }
   }
 
+  Future<int> signupEmail({required String email, required String password}) async {
+    try {
+      final result = await _api.signupEmail(email: email, password: password);
+      return result.resendAvailableInSeconds;
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
   /// Verifies the OTP, persists the resulting token pair, and returns the
   /// access token — the caller (AuthStateNotifier) is responsible for the
   /// subsequent role-assignments bootstrap, not this method, so this stays
@@ -40,6 +49,40 @@ class AuthRepository {
     } catch (e) {
       throw mapDioException(e);
     }
+  }
+
+  Future<String> verifyEmailCode({required String email, required String code}) async {
+    try {
+      final tokens = await _api.verifyEmailCode(email: email, code: code);
+      await _tokenStorage.saveTokens(
+          accessToken: tokens.accessToken, refreshToken: tokens.refreshToken);
+      return tokens.accessToken;
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<String> loginEmail({required String email, required String password}) async {
+    try {
+      final tokens = await _api.loginEmail(email: email, password: password);
+      await _tokenStorage.saveTokens(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken);
+      return tokens.accessToken;
+    } catch (e) { throw mapDioException(e); }
+  }
+
+  Future<int> resendEmailVerification(String email) async {
+    try { return (await _api.resendEmailVerification(email)).resendAvailableInSeconds; }
+    catch (e) { throw mapDioException(e); }
+  }
+
+  Future<void> resetPassword({required String email, required String code, required String password}) async {
+    try { await _api.resetPassword(email: email, code: code, password: password); }
+    catch (e) { throw mapDioException(e); }
+  }
+
+  Future<int> requestPasswordReset(String email) async {
+    try { return (await _api.requestPasswordReset(email)).resendAvailableInSeconds; }
+    catch (e) { throw mapDioException(e); }
   }
 
   Future<AppUser> getMe() async {
@@ -69,8 +112,10 @@ class AuthRepository {
   Future<bool> hasStoredSession() => _tokenStorage.hasStoredSession();
 
   Future<void> logout() async {
+    final refreshToken = await _tokenStorage.getRefreshToken();
+    final accessToken = await _tokenStorage.getAccessToken();
     try {
-      await _api.logout();
+      await _api.logout(refreshToken: refreshToken, accessToken: accessToken);
     } catch (_) {
       // Best-effort — /auth/logout is a no-op placeholder on the backend
       // today (Section 2.4/3.4). The local session is what actually

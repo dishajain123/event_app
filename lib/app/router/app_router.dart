@@ -18,6 +18,8 @@ import 'router_refresh_notifier.dart';
 import '../../features/events/presentation/screens/home_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/events/presentation/screens/search_screen.dart';
+import '../../features/events/presentation/screens/events_screen.dart';
+import '../../features/event_categories/presentation/screens/main_category_screen.dart';
 import '../../features/registrations/presentation/screens/my_registrations_screen.dart';
 import '../../features/registrations/presentation/screens/registration_detail_screen.dart';
 import '../../features/registrations/presentation/screens/participation_type_selector_screen.dart';
@@ -89,7 +91,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return OtpVerifyScreen(
-            mobileNumber: extra?['mobileNumber'] as String? ?? '',
+            mobileNumber: extra?['mobileNumber'] as String?,
+            email: extra?['email'] as String?,
+            isEmail: extra?['isEmail'] as bool? ?? false,
             initialResendSeconds: extra?['resendSeconds'] as int? ?? 30,
             returnTo: extra?['returnTo'] as String? ??
                 state.uri.queryParameters['returnTo'],
@@ -105,6 +109,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: RoutePaths.home,
               builder: (context, state) => const HomeScreen()),
+          GoRoute(
+            path: RoutePaths.events,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return EventsScreen(
+                initialMainCategoryId: extra?['mainCategoryId'] as String?,
+                initialSubCategoryId: extra?['subCategoryId'] as String?,
+              );
+            },
+          ),
           GoRoute(
             path: RoutePaths.myRegistrations,
             builder: (context, state) => const MyRegistrationsScreen(),
@@ -139,12 +153,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // the root navigator rather than nested inside the ShellRoute above,
       // so they cover the bottom nav rather than appearing as a tab.
       GoRoute(
+        path: RoutePaths.mainCategory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => MainCategoryScreen(
+          categoryId: state.pathParameters['categoryId']!,
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.eventDetail,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final eventId = state.pathParameters['eventId']!;
           return EventDetailScreen(eventId: eventId);
         },
+      ),
+      GoRoute(
+        path: RoutePaths.staffAccess,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyStaffEventsScreen(),
       ),
       GoRoute(
         path: RoutePaths.eventFeedback,

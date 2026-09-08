@@ -27,12 +27,12 @@ flutter pub get
 
 The app reads compile-time values from `--dart-define-from-file`. Existing configurations are:
 
-- `config/development.json`: Android emulator, backend on host port 8000 (`10.0.2.2`)
+- `config/development.json`: Android emulator, backend on host port 8001 (`10.0.2.2`)
 - `config/staging.json`: staging API placeholder
 - `config/production.json`: production API placeholder
 - `config/development.physical-device.example.json`: template for a physical device
 
-Start the backend on port 8000 for the default development file:
+Start the backend on port 8001 for the default development file:
 
 ```bash
 flutter run \
@@ -40,7 +40,7 @@ flutter run \
   --dart-define-from-file=config/development.json
 ```
 
-If the backend runs from Docker on port 8001, copy the development config to a gitignored local file and change the URL to `http://10.0.2.2:8001/api/v1`:
+If the backend uses a different Docker or host port, copy the development config to a gitignored local file and change the URL accordingly:
 
 ```bash
 cp config/development.json config/development.local.json
@@ -75,7 +75,7 @@ Add `NSCameraUsageDescription` to `ios/Runner/Info.plist`:
 <string>Used to scan participant tickets at event check-in.</string>
 ```
 
-The camera is used by Staff Mode for QR ticket scanning. Razorpay and QR plugins should be tested on a real device before release.
+The camera is used by Staff Mode for Code 128 ticket scanning. Razorpay and barcode plugins should be tested on a real device before release.
 
 ## Main User Flows
 
@@ -88,7 +88,7 @@ The camera is used by Staff Mode for QR ticket scanning. Razorpay and QR plugins
 5. Select Viewer/Participant or another configured participation type.
 6. Register for self, child, other participant, or team when permitted.
 7. Complete Razorpay payment for paid events.
-8. View the confirmed registration and signed QR ticket.
+8. View the confirmed registration and signed Code 128 barcode ticket.
 
 ### Staff
 

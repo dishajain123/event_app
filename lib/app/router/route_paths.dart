@@ -9,11 +9,16 @@ class RoutePaths {
 
   // Public Mode shell (Section 3.3).
   static const home = '/home';
+  static const events = '/events';
+  static const mainCategory = '/categories/:categoryId';
+  static String mainCategoryPath(String categoryId) =>
+      '/categories/$categoryId';
   static const myRegistrations = '/registrations/mine';
   static const myTickets = '/tickets/mine';
   static const ticketTransfers = '/tickets/transfers';
   static const myWaitlists = '/waitlists/mine';
   static const profile = '/profile';
+  static const staffAccess = '/profile/staff-access';
   static const myFeedback = '/feedback/mine';
   static const certificates = '/achievements';
   static const certificateDetail = '/achievements/:certificateId';

@@ -47,6 +47,17 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.xl),
             ],
 
+            // Pending staff invitations must be reachable before the user
+            // has an active staff role. The backend still decides whether an
+            // invitation belongs to this user and whether it can be accepted.
+            _ProfileMenuTile(
+              icon: Icons.badge_outlined,
+              label: roles.hasStaffModeAccess
+                  ? 'Staff access and invitations'
+                  : 'Staff invitations',
+              onTap: () => context.push(RoutePaths.staffAccess),
+            ),
+
             const _SectionLabel('Account'),
             _ProfileMenuTile(
               icon: Icons.child_care_rounded,

@@ -5,7 +5,6 @@ import '../../../../core/network/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/phone_formatter.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../application/auth_state_provider.dart';
@@ -13,13 +12,17 @@ import '../widgets/otp_input_field.dart';
 import '../widgets/resend_timer.dart';
 
 class OtpVerifyScreen extends ConsumerStatefulWidget {
-  final String mobileNumber;
+  final String? mobileNumber;
+  final String? email;
+  final bool isEmail;
   final int initialResendSeconds;
   final String? returnTo;
 
   const OtpVerifyScreen({
     super.key,
-    required this.mobileNumber,
+    this.mobileNumber,
+    this.email,
+    this.isEmail = false,
     required this.initialResendSeconds,
     this.returnTo,
   });
@@ -60,10 +63,13 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
       // Router redirect logic (app/router/app_router.dart) sends the user
       // to the correct shell once authStateProvider resolves to
       // Authenticated — this screen doesn't decide where to go next.
-      await ref.read(authStateProvider.notifier).verifyOtpAndLogIn(
-            mobileNumber: widget.mobileNumber,
-            otp: otp,
-          );
+      if (widget.isEmail) {
+        await ref.read(authStateProvider.notifier).verifyEmailCodeAndLogIn(
+              email: widget.email!, code: otp);
+      } else {
+        await ref.read(authStateProvider.notifier).verifyOtpAndLogIn(
+              mobileNumber: widget.mobileNumber!, otp: otp);
+      }
       if (mounted) context.go(widget.returnTo ?? RoutePaths.home);
     } on AppException catch (e) {
       setState(() {
@@ -78,9 +84,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   Future<void> _resend() async {
     setState(() => _resending = true);
     try {
-      final seconds = await ref
-          .read(authStateProvider.notifier)
-          .requestOtp(widget.mobileNumber);
+      final notifier = ref.read(authStateProvider.notifier);
+      final seconds = widget.isEmail
+          ? await notifier.resendEmailVerification(widget.email!)
+          : await notifier.requestOtp(widget.mobileNumber!);
       if (mounted) setState(() => _resendSeconds = seconds);
     } on AppException catch (e) {
       if (mounted) setState(() => _errorText = e.message);
@@ -110,7 +117,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 const Text('Enter the code', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Sent to ${formatMobileNumberForDisplay(widget.mobileNumber)}',
+                  'Sent to ${widget.isEmail ? widget.email : widget.mobileNumber}',
                   style: AppTypography.bodyMuted,
                 ),
                 const SizedBox(height: AppSpacing.xxl),
