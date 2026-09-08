@@ -88,9 +88,9 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                       color: Colors.white, size: 28),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text('Welcome', style: AppTypography.display),
+                const Text('Welcome', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
-                Text(
+                const Text(
                   "Enter your mobile number and we'll send you a verification code.",
                   style: AppTypography.bodyMuted,
                 ),
@@ -120,8 +120,8 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                   size: AppButtonSize.large,
                 ),
                 const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: AppSpacing.lg),
                   child: Text(
                     'Only accounts you sign in to here are ever created — there is no separate sign-up.',
                     style: AppTypography.captionSubtle,

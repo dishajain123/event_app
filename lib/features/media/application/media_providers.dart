@@ -9,7 +9,8 @@ final mediaRepositoryProvider = Provider<MediaRepository>((ref) {
   return MediaRepository(MediaApi(dio));
 });
 
-final eventMediaProvider = FutureProvider.family<List<EventMedia>, String>((ref, eventId) async {
+final eventMediaProvider =
+    FutureProvider.family<List<EventMedia>, String>((ref, eventId) async {
   final repository = ref.watch(mediaRepositoryProvider);
   return repository.listEventMedia(eventId);
 });

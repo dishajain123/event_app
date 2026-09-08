@@ -71,7 +71,7 @@ class MyTicketsScreen extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -93,7 +93,8 @@ class MyTicketsScreen extends ConsumerWidget {
                               Text(ticket.ticketCode,
                                   style: AppTypography.bodyStrong),
                               if (ticket.checkedInAt != null)
-                                Text('Checked in', style: AppTypography.caption)
+                                const Text('Checked in',
+                                    style: AppTypography.caption)
                               else
                                 const Text('Tap to view your barcode',
                                     style: AppTypography.caption),

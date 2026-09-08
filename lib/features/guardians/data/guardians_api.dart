@@ -24,6 +24,8 @@ class GuardiansApi {
 
   Future<List<ChildProfile>> listChildren() async {
     final response = await _dio.get<List<dynamic>>('/guardians/children');
-    return response.data!.map((item) => ChildProfile.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => ChildProfile.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

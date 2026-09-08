@@ -44,7 +44,9 @@ class IdentityDocumentsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myIdentityDocumentsProvider),
               ),
             ],
@@ -57,7 +59,8 @@ class IdentityDocumentsScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.badge_outlined,
                     title: 'No documents yet',
-                    description: 'Add an identity document if an event requires one for verification.',
+                    description:
+                        'Add an identity document if an event requires one for verification.',
                     actionLabel: 'Add document',
                     onAction: () => _showAddSheet(context, ref),
                   ),
@@ -67,13 +70,14 @@ class IdentityDocumentsScreen extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: documents.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final doc = documents[index];
                 return Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -81,14 +85,20 @@ class IdentityDocumentsScreen extends ConsumerWidget {
                       Container(
                         width: 44,
                         height: 44,
-                        decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
-                        child: const Icon(Icons.badge_outlined, color: AppColors.accentStrong),
+                        decoration: const BoxDecoration(
+                            color: AppColors.accentSoft,
+                            shape: BoxShape.circle),
+                        child: const Icon(Icons.badge_outlined,
+                            color: AppColors.accentStrong),
                       ),
                       const SizedBox(width: AppSpacing.md),
-                      Expanded(child: Text(doc.documentType.label, style: AppTypography.bodyStrong)),
+                      Expanded(
+                          child: Text(doc.documentType.label,
+                              style: AppTypography.bodyStrong)),
                       StatusBadge(
                         label: doc.verificationStatus.label,
-                        tone: _statusTones[doc.verificationStatus] ?? StatusTone.neutral,
+                        tone: _statusTones[doc.verificationStatus] ??
+                            StatusTone.neutral,
                       ),
                     ],
                   ),
@@ -115,30 +125,35 @@ class IdentityDocumentsScreen extends ConsumerWidget {
             left: AppSpacing.xl,
             right: AppSpacing.xl,
             top: AppSpacing.xl,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.xl,
+            bottom:
+                MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.xl,
           ),
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(28)),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add document', style: AppTypography.headline),
+                const Text('Add document', style: AppTypography.headline),
                 const SizedBox(height: AppSpacing.lg),
                 DropdownButtonFormField<DocumentType>(
-                  value: selectedType,
+                  initialValue: selectedType,
                   items: [
                     for (final type in DocumentType.values)
                       DropdownMenuItem(value: type, child: Text(type.label)),
                   ],
                   onChanged: (value) {
-                    if (value != null) setSheetState(() => selectedType = value);
+                    if (value != null) {
+                      setSheetState(() => selectedType = value);
+                    }
                   },
                   decoration: const InputDecoration(labelText: 'Document type'),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                AppTextField(controller: numberController, label: 'Document number'),
+                AppTextField(
+                    controller: numberController, label: 'Document number'),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
                   label: 'Add',
@@ -147,18 +162,24 @@ class IdentityDocumentsScreen extends ConsumerWidget {
                     final number = numberController.text.trim();
                     if (number.length < 4) {
                       ScaffoldMessenger.of(sheetContext).showSnackBar(
-                        const SnackBar(content: Text('Enter a valid document number.')),
+                        const SnackBar(
+                            content: Text('Enter a valid document number.')),
                       );
                       return;
                     }
                     try {
-                      final repository = ref.read(identityDocumentsRepositoryProvider);
-                      await repository.upload(documentType: selectedType, documentNumber: number);
+                      final repository =
+                          ref.read(identityDocumentsRepositoryProvider);
+                      await repository.upload(
+                          documentType: selectedType, documentNumber: number);
                       ref.invalidate(myIdentityDocumentsProvider);
-                      if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                      if (sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop();
+                      }
                     } on AppException catch (e) {
                       if (sheetContext.mounted) {
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text(e.message)));
+                        ScaffoldMessenger.of(sheetContext)
+                            .showSnackBar(SnackBar(content: Text(e.message)));
                       }
                     }
                   },

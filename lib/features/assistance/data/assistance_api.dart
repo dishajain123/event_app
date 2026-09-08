@@ -21,7 +21,8 @@ class AssistanceApi {
       data: {
         'registration_id': registrationId,
         'reason': reason,
-        if (requestedFeeWaiverAmount != null) 'requested_fee_waiver_amount': requestedFeeWaiverAmount,
+        if (requestedFeeWaiverAmount != null)
+          'requested_fee_waiver_amount': requestedFeeWaiverAmount,
       },
     );
     return AssistanceRequest.fromJson(response.data!);
@@ -29,6 +30,8 @@ class AssistanceApi {
 
   Future<List<AssistanceRequest>> listMine() async {
     final response = await _dio.get<List<dynamic>>('/assistance-requests/mine');
-    return response.data!.map((item) => AssistanceRequest.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => AssistanceRequest.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

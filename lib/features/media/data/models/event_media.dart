@@ -90,7 +90,9 @@ class EventMedia {
       publicUrl: json['public_url'] as String,
       isPublished: json['is_published'] as bool,
       sortOrder: json['sort_order'] as int,
-      highlight: json['highlight'] != null ? Highlight.fromJson(json['highlight'] as Map<String, dynamic>) : null,
+      highlight: json['highlight'] != null
+          ? Highlight.fromJson(json['highlight'] as Map<String, dynamic>)
+          : null,
     );
   }
 

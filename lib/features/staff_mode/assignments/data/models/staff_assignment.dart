@@ -13,7 +13,8 @@ enum StaffAssignmentStatus {
   static StaffAssignmentStatus fromWire(String value) {
     return StaffAssignmentStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown staff assignment status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown staff assignment status from backend: $value'),
     );
   }
 
@@ -64,13 +65,19 @@ class StaffAssignment {
       userId: json['user_id'] as String?,
       inviteeMobile: json['invitee_mobile'] as String,
       fullName: json['full_name'] as String?,
-      roleName: json['role_name'] != null ? RoleName.fromWire(json['role_name'] as String) : null,
+      roleName: json['role_name'] != null
+          ? RoleName.fromWire(json['role_name'] as String)
+          : null,
       roleLabel: json['role_label'] as String,
       status: StaffAssignmentStatus.fromWire(json['status'] as String),
       invitedBy: json['invited_by'] as String,
       acceptedBy: json['accepted_by'] as String?,
-      acceptedAt: json['accepted_at'] != null ? DateTime.parse(json['accepted_at'] as String) : null,
-      revokedAt: json['revoked_at'] != null ? DateTime.parse(json['revoked_at'] as String) : null,
+      acceptedAt: json['accepted_at'] != null
+          ? DateTime.parse(json['accepted_at'] as String)
+          : null,
+      revokedAt: json['revoked_at'] != null
+          ? DateTime.parse(json['revoked_at'] as String)
+          : null,
     );
   }
 }

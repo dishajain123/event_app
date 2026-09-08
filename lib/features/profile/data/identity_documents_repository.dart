@@ -6,9 +6,12 @@ class IdentityDocumentsRepository {
   final IdentityDocumentsApi _api;
   const IdentityDocumentsRepository(this._api);
 
-  Future<IdentityDocument> upload({required DocumentType documentType, required String documentNumber}) async {
+  Future<IdentityDocument> upload(
+      {required DocumentType documentType,
+      required String documentNumber}) async {
     try {
-      return await _api.upload(documentType: documentType, documentNumber: documentNumber);
+      return await _api.upload(
+          documentType: documentType, documentNumber: documentNumber);
     } catch (e) {
       throw mapDioException(e);
     }

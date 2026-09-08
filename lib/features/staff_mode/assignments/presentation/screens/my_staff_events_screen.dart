@@ -36,7 +36,9 @@ class MyStaffEventsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myStaffAssignmentsProvider),
               ),
             ],
@@ -49,20 +51,25 @@ class MyStaffEventsScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.event_note_outlined,
                     title: 'No staff assignments yet',
-                    description: "When an Event Manager invites you as staff, it'll show up here.",
+                    description:
+                        "When an Event Manager invites you as staff, it'll show up here.",
                   ),
                 ],
               );
             }
 
-            final pending = assignments.where((a) => a.status == StaffAssignmentStatus.invited).toList();
-            final active = assignments.where((a) => a.status == StaffAssignmentStatus.active).toList();
+            final pending = assignments
+                .where((a) => a.status == StaffAssignmentStatus.invited)
+                .toList();
+            final active = assignments
+                .where((a) => a.status == StaffAssignmentStatus.active)
+                .toList();
 
             return ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: [
                 if (pending.isNotEmpty) ...[
-                  Text('Pending invitations', style: AppTypography.title),
+                  const Text('Pending invitations', style: AppTypography.title),
                   const SizedBox(height: AppSpacing.md),
                   for (final assignment in pending) ...[
                     _AssignmentCard(assignment: assignment),
@@ -71,7 +78,7 @@ class MyStaffEventsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                 ],
                 if (active.isNotEmpty) ...[
-                  Text('Active', style: AppTypography.title),
+                  const Text('Active', style: AppTypography.title),
                   const SizedBox(height: AppSpacing.md),
                   for (final assignment in active) ...[
                     _AssignmentCard(assignment: assignment),
@@ -95,7 +102,8 @@ class _AssignmentCard extends ConsumerWidget {
     await showConfirmActionSheet(
       context,
       title: 'Accept this invitation?',
-      description: 'You\'ll gain "${assignment.roleLabel}" access for this event immediately.',
+      description:
+          'You\'ll gain "${assignment.roleLabel}" access for this event immediately.',
       confirmLabel: 'Accept',
       onConfirm: (reason) async {
         final repository = ref.read(staffAssignmentsRepositoryProvider);
@@ -116,7 +124,7 @@ class _AssignmentCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -124,7 +132,9 @@ class _AssignmentCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(assignment.roleLabel, style: AppTypography.bodyStrong)),
+              Expanded(
+                  child: Text(assignment.roleLabel,
+                      style: AppTypography.bodyStrong)),
               StatusBadge(
                 label: assignment.status.label,
                 tone: _statusTones[assignment.status] ?? StatusTone.neutral,
@@ -137,7 +147,10 @@ class _AssignmentCard extends ConsumerWidget {
           ],
           if (isPending) ...[
             const SizedBox(height: AppSpacing.md),
-            AppButton(label: 'Accept', variant: AppButtonVariant.secondary, onPressed: () => _accept(context, ref)),
+            AppButton(
+                label: 'Accept',
+                variant: AppButtonVariant.secondary,
+                onPressed: () => _accept(context, ref)),
           ],
         ],
       ),

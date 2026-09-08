@@ -14,14 +14,16 @@ sealed class AppException implements Exception {
 /// arrived at all. Maps to Section 3.7's "Error — network" state: retry
 /// makes sense here.
 final class NetworkException extends AppException {
-  const NetworkException([super.message = 'Check your connection and try again.']);
+  const NetworkException(
+      [super.message = 'Check your connection and try again.']);
 }
 
 /// The backend responded, but with a 401 that survived a refresh attempt
 /// (see AuthInterceptor). Maps to Section 3.7's "Unauthorized" state: the
 /// session is over, not retryable.
 final class UnauthorizedException extends AppException {
-  const UnauthorizedException([super.message = 'Your session has ended. Please log in again.']);
+  const UnauthorizedException(
+      [super.message = 'Your session has ended. Please log in again.']);
 }
 
 /// The backend responded with a 403 — the caller is authenticated but not
@@ -51,7 +53,9 @@ final class ValidationException extends AppException {
 /// A 5xx, or any successful-looking response that failed to parse into the
 /// shape the app expected.
 final class ServerException extends AppException {
-  const ServerException([super.message = 'Something went wrong on our end. Please try again shortly.']);
+  const ServerException(
+      [super.message =
+          'Something went wrong on our end. Please try again shortly.']);
 }
 
 /// A catch-all for anything that doesn't fit the above — kept deliberately

@@ -11,7 +11,8 @@ class PaymentsApi {
   final Dio _dio;
   const PaymentsApi(this._dio);
 
-  Future<PaymentGatewayOrder> initiatePayment({required String registrationId, String? discountCode}) async {
+  Future<PaymentGatewayOrder> initiatePayment(
+      {required String registrationId, String? discountCode}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/payments/initiate',
       data: {

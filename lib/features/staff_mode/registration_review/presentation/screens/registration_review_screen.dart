@@ -19,11 +19,15 @@ import '../../../../auth/data/models/role_name.dart';
 /// Registrations a review action is actually meaningful for — mirrors
 /// the console's own DECIDABLE_REGISTRATION_STATUSES exactly, so the
 /// queue only ever shows something an Event Manager can act on.
-const _decidableStatuses = {RegistrationStatus.submitted, RegistrationStatus.pendingVerification};
+const _decidableStatuses = {
+  RegistrationStatus.submitted,
+  RegistrationStatus.pendingVerification
+};
 
 final _reviewableEventIdProvider = StateProvider<String?>((ref) => null);
 
-final _eventRegistrationsForReviewProvider = FutureProvider.family<List<AppRegistration>, String>((ref, eventId) async {
+final _eventRegistrationsForReviewProvider =
+    FutureProvider.family<List<AppRegistration>, String>((ref, eventId) async {
   final repository = ref.watch(registrationsRepositoryProvider);
   final all = await repository.listRegistrationsForEvent(eventId);
   return all.where((r) => _decidableStatuses.contains(r.status)).toList();
@@ -43,7 +47,9 @@ class RegistrationReviewScreen extends ConsumerWidget {
         child: assignmentsAsync.when(
           loading: () => const AppSkeleton.cardList(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
             onRetry: () => ref.invalidate(myStaffAssignmentsProvider),
           ),
           data: (assignments) {
@@ -52,7 +58,9 @@ class RegistrationReviewScreen extends ConsumerWidget {
             // permission checks) — not open to the broader Staff Mode
             // roles the way check-in is.
             final managedEventIds = assignments
-                .where((a) => a.status == StaffAssignmentStatus.active && a.roleName == RoleName.eventManager)
+                .where((a) =>
+                    a.status == StaffAssignmentStatus.active &&
+                    a.roleName == RoleName.eventManager)
                 .map((a) => a.eventId)
                 .toSet()
                 .toList();
@@ -61,7 +69,8 @@ class RegistrationReviewScreen extends ConsumerWidget {
               return const AppEmptyState(
                 icon: Icons.fact_check_outlined,
                 title: 'No events to review',
-                description: 'Registration review is available once you hold an Event Manager assignment.',
+                description:
+                    'Registration review is available once you hold an Event Manager assignment.',
               );
             }
 
@@ -72,11 +81,14 @@ class RegistrationReviewScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: DropdownButtonFormField<String>(
-                    value: effectiveEventId,
+                    initialValue: effectiveEventId,
                     items: [
-                      for (final id in managedEventIds) DropdownMenuItem(value: id, child: Text(id)),
+                      for (final id in managedEventIds)
+                        DropdownMenuItem(value: id, child: Text(id)),
                     ],
-                    onChanged: (value) => ref.read(_reviewableEventIdProvider.notifier).state = value,
+                    onChanged: (value) => ref
+                        .read(_reviewableEventIdProvider.notifier)
+                        .state = value,
                     decoration: const InputDecoration(labelText: 'Event'),
                   ),
                 ),
@@ -96,17 +108,22 @@ class _TaskList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final registrationsAsync = ref.watch(_eventRegistrationsForReviewProvider(eventId));
+    final registrationsAsync =
+        ref.watch(_eventRegistrationsForReviewProvider(eventId));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_eventRegistrationsForReviewProvider(eventId)),
+      onRefresh: () async =>
+          ref.invalidate(_eventRegistrationsForReviewProvider(eventId)),
       child: registrationsAsync.when(
         loading: () => const AppSkeleton.cardList(),
         error: (error, stackTrace) => ListView(
           children: [
             AppErrorState(
-              error: error is AppException ? error : UnknownException(error.toString()),
-              onRetry: () => ref.invalidate(_eventRegistrationsForReviewProvider(eventId)),
+              error: error is AppException
+                  ? error
+                  : UnknownException(error.toString()),
+              onRetry: () =>
+                  ref.invalidate(_eventRegistrationsForReviewProvider(eventId)),
             ),
           ],
         ),
@@ -118,7 +135,8 @@ class _TaskList extends ConsumerWidget {
                 AppEmptyState(
                   icon: Icons.check_circle_outline_rounded,
                   title: 'All caught up',
-                  description: 'No registrations are waiting for a decision right now.',
+                  description:
+                      'No registrations are waiting for a decision right now.',
                 ),
               ],
             );
@@ -127,7 +145,8 @@ class _TaskList extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: registrations.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) => _TaskCard(eventId: eventId, registration: registrations[index]),
+            itemBuilder: (context, index) =>
+                _TaskCard(eventId: eventId, registration: registrations[index]),
           );
         },
       ),
@@ -157,7 +176,8 @@ class _TaskCard extends ConsumerWidget {
     await showConfirmActionSheet(
       context,
       title: 'Reject this registration?',
-      description: 'A reason is required and will be visible to the registrant.',
+      description:
+          'A reason is required and will be visible to the registrant.',
       requireReason: true,
       reasonLabel: 'Reason for rejection',
       confirmLabel: 'Reject',
@@ -175,7 +195,7 @@ class _TaskCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -191,7 +211,8 @@ class _TaskCard extends ConsumerWidget {
                   style: AppTypography.bodyStrong,
                 ),
               ),
-              StatusBadge(label: registration.status.label, tone: StatusTone.warning),
+              StatusBadge(
+                  label: registration.status.label, tone: StatusTone.warning),
             ],
           ),
           const SizedBox(height: 4),
@@ -208,7 +229,8 @@ class _TaskCard extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: AppButton(label: 'Approve', onPressed: () => _approve(context, ref)),
+                child: AppButton(
+                    label: 'Approve', onPressed: () => _approve(context, ref)),
               ),
             ],
           ),

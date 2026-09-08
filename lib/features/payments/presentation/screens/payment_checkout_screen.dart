@@ -18,7 +18,8 @@ class PaymentCheckoutScreen extends ConsumerStatefulWidget {
   const PaymentCheckoutScreen({super.key, required this.registrationId});
 
   @override
-  ConsumerState<PaymentCheckoutScreen> createState() => _PaymentCheckoutScreenState();
+  ConsumerState<PaymentCheckoutScreen> createState() =>
+      _PaymentCheckoutScreenState();
 }
 
 class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
@@ -41,7 +42,8 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
     });
     try {
       final repository = ref.read(paymentsRepositoryProvider);
-      final order = await repository.initiatePayment(registrationId: widget.registrationId);
+      final order = await repository.initiatePayment(
+          registrationId: widget.registrationId);
       if (mounted) setState(() => _order = order);
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -80,7 +82,8 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
     );
   }
 
-  Future<void> _confirmPayment(String orderId, String paymentId, String signature) async {
+  Future<void> _confirmPayment(
+      String orderId, String paymentId, String signature) async {
     try {
       final repository = ref.read(paymentsRepositoryProvider);
       // By the time this call returns, the backend has already verified
@@ -100,7 +103,8 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
       if (mounted) {
         context.go('/tickets/mine');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment successful — your ticket is ready.')),
+          const SnackBar(
+              content: Text('Payment successful — your ticket is ready.')),
         );
       }
     } on AppException catch (e) {
@@ -130,9 +134,10 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_initiating)
-                const Expanded(child: Center(child: CircularProgressIndicator()))
+                const Expanded(
+                    child: Center(child: CircularProgressIndicator()))
               else if (_order != null) ...[
-                Text('Amount due', style: AppTypography.bodyMuted),
+                const Text('Amount due', style: AppTypography.bodyMuted),
                 const SizedBox(height: 4),
                 Text(
                   '${_order!.currency} ${_order!.amount.toStringAsFixed(2)}',
@@ -146,7 +151,9 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
                       color: AppColors.dangerSoft,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(_error!, style: AppTypography.body.copyWith(color: AppColors.danger)),
+                    child: Text(_error!,
+                        style: AppTypography.body
+                            .copyWith(color: AppColors.danger)),
                   ),
                 const Spacer(),
                 AppButton(
@@ -162,7 +169,9 @@ class _PaymentCheckoutScreenState extends ConsumerState<PaymentCheckoutScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_error!, style: AppTypography.body, textAlign: TextAlign.center),
+                        Text(_error!,
+                            style: AppTypography.body,
+                            textAlign: TextAlign.center),
                         const SizedBox(height: AppSpacing.lg),
                         AppButton(label: 'Try again', onPressed: _initiate),
                       ],

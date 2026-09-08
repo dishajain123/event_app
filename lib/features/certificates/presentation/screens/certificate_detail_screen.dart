@@ -55,9 +55,10 @@ class CertificateDetailScreen extends ConsumerWidget {
               onPressed: () async {
                 final opened = await launchUrl(Uri.parse(artifactUrl),
                     mode: LaunchMode.externalApplication);
-                if (!opened && context.mounted)
+                if (!opened && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Unable to open certificate artifact.')));
+                }
               },
             ),
           if (!revoked && item.artifactUrl != null)

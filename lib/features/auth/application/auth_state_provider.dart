@@ -116,7 +116,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
             token: nextToken,
             platform: _pushTokenSource.platform,
           );
-          await prefs.setString('event_app.notification_device_id', refreshed.id);
+          await prefs.setString(
+              'event_app.notification_device_id', refreshed.id);
         } catch (_) {
           // Token refresh retries on the next authenticated startup.
         }

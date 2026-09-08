@@ -120,7 +120,9 @@ class _ReportIncidentScreenState extends ConsumerState<ReportIncidentScreen> {
   Future<void> _submit() async {
     if (_category.text.trim().isEmpty ||
         _title.text.trim().isEmpty ||
-        _description.text.trim().isEmpty) return;
+        _description.text.trim().isEmpty) {
+      return;
+    }
     setState(() => _saving = true);
     try {
       await ref.read(incidentsRepositoryProvider).create(
@@ -131,9 +133,10 @@ class _ReportIncidentScreenState extends ConsumerState<ReportIncidentScreen> {
           description: _description.text.trim());
       if (mounted) Navigator.pop(context);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Unable to report incident: $error')));
+      }
     }
     if (mounted) setState(() => _saving = false);
   }
@@ -148,7 +151,7 @@ class _ReportIncidentScreenState extends ConsumerState<ReportIncidentScreen> {
             hint: 'Medical, safety, venue...'),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-            value: _severity,
+            initialValue: _severity,
             decoration: const InputDecoration(labelText: 'Severity'),
             items: const ['low', 'medium', 'high', 'critical']
                 .map((v) => DropdownMenuItem(value: v, child: Text(v)))

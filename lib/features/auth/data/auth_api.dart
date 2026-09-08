@@ -19,7 +19,8 @@ class AuthApi {
     return OtpRequestResult.fromJson(response.data!);
   }
 
-  Future<TokenPair> verifyOtp({required String mobileNumber, required String otp}) async {
+  Future<TokenPair> verifyOtp(
+      {required String mobileNumber, required String otp}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/auth/otp/verify',
       data: {'mobile_number': mobileNumber, 'otp': otp},
@@ -37,7 +38,8 @@ class AuthApi {
   }
 
   Future<List<RoleAssignment>> getMyRoleAssignments() async {
-    final response = await _dio.get<List<dynamic>>('/users/me/role-assignments');
+    final response =
+        await _dio.get<List<dynamic>>('/users/me/role-assignments');
     return response.data!
         .map((item) => RoleAssignment.fromJson(item as Map<String, dynamic>))
         .toList();

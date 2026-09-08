@@ -65,9 +65,10 @@ class _SponsorshipInquiryScreenState
           const SnackBar(content: Text('Inquiry submitted successfully.')));
       Navigator.of(context).pop();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.toString())));
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -92,7 +93,7 @@ class _SponsorshipInquiryScreenState
             _field(_phone, 'Phone number', keyboardType: TextInputType.phone),
             _field(_email, 'Email', keyboardType: TextInputType.emailAddress),
             DropdownButtonFormField<String>(
-              value: _categoryId,
+              initialValue: _categoryId,
               decoration:
                   const InputDecoration(labelText: 'Sponsorship category'),
               items: [
@@ -103,7 +104,7 @@ class _SponsorshipInquiryScreenState
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(
-              value: _packageId,
+              initialValue: _packageId,
               decoration:
                   const InputDecoration(labelText: 'Interested package'),
               items: [
@@ -120,10 +121,11 @@ class _SponsorshipInquiryScreenState
                 title: Text(event.name),
                 value: _eventIds.contains(event.id),
                 onChanged: (selected) => setState(() {
-                  if (selected == true)
+                  if (selected == true) {
                     _eventIds.add(event.id);
-                  else
+                  } else {
                     _eventIds.remove(event.id);
+                  }
                 }),
               ),
             _field(_business, 'Business details',

@@ -45,7 +45,9 @@ class MyRegistrationsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myRegistrationsProvider),
               ),
             ],
@@ -58,17 +60,21 @@ class MyRegistrationsScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.assignment_outlined,
                     title: 'No registrations yet',
-                    description: 'Register for an event from the Home tab to see it here.',
+                    description:
+                        'Register for an event from the Home tab to see it here.',
                   ),
                 ],
               );
             }
-            final sorted = [...registrations]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            final sorted = [...registrations]
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: sorted.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) => _RegistrationCard(registration: sorted[index]),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) =>
+                  _RegistrationCard(registration: sorted[index]),
             );
           },
         ),
@@ -85,11 +91,12 @@ class _RegistrationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
-      onTap: () => context.push(RoutePaths.registrationDetailPath(registration.id)),
+      onTap: () =>
+          context.push(RoutePaths.registrationDetailPath(registration.id)),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -99,7 +106,8 @@ class _RegistrationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    registration.participationType[0].toUpperCase() + registration.participationType.substring(1),
+                    registration.participationType[0].toUpperCase() +
+                        registration.participationType.substring(1),
                     style: AppTypography.bodyStrong,
                   ),
                   const SizedBox(height: 4),

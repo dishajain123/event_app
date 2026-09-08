@@ -15,7 +15,8 @@ class ConfigEngineRepository {
     }
   }
 
-  Future<EventFieldSchema?> getFieldSchema(String eventId, String participationType) async {
+  Future<EventFieldSchema?> getFieldSchema(
+      String eventId, String participationType) async {
     try {
       return await _api.getFieldSchema(eventId, participationType);
     } catch (e) {

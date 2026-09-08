@@ -29,7 +29,8 @@ class _WaitlistJoinScreenState extends ConsumerState<WaitlistJoinScreen> {
         error: (error, _) => Center(child: Text(error.toString())),
         data: (configuration) {
           if (configuration == null) {
-            return const Center(child: Text('Waitlist configuration is unavailable.'));
+            return const Center(
+                child: Text('Waitlist configuration is unavailable.'));
           }
           _selectedType ??= configuration.participationTypes.firstOrNull;
           return Padding(
@@ -42,7 +43,7 @@ class _WaitlistJoinScreenState extends ConsumerState<WaitlistJoinScreen> {
                   'Choose the participation type to join its FIFO queue.'),
               const SizedBox(height: AppSpacing.lg),
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 items: configuration.participationTypes
                     .map((type) =>
                         DropdownMenuItem(value: type, child: Text(type)))
@@ -77,9 +78,10 @@ class _WaitlistJoinScreenState extends ConsumerState<WaitlistJoinScreen> {
         context.pop();
       }
     } on AppException catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

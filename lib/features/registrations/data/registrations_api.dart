@@ -45,28 +45,37 @@ class RegistrationsApi {
 
   Future<List<AppRegistration>> listMyRegistrations() async {
     final response = await _dio.get<List<dynamic>>('/registrations/mine');
-    return response.data!.map((item) => AppRegistration.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => AppRegistration.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AppRegistration> getRegistration(String registrationId) async {
-    final response = await _dio.get<Map<String, dynamic>>('/registrations/$registrationId');
+    final response =
+        await _dio.get<Map<String, dynamic>>('/registrations/$registrationId');
     return AppRegistration.fromJson(response.data!);
   }
 
   /// Event-Manager-only actions (Section 8, Phase 6's registration
   /// review queue) — mirrors POST /registrations/{id}/approve and
   /// /reject exactly.
-  Future<List<AppRegistration>> listRegistrationsForEvent(String eventId) async {
-    final response = await _dio.get<List<dynamic>>('/registrations', queryParameters: {'event_id': eventId});
-    return response.data!.map((item) => AppRegistration.fromJson(item as Map<String, dynamic>)).toList();
+  Future<List<AppRegistration>> listRegistrationsForEvent(
+      String eventId) async {
+    final response = await _dio.get<List<dynamic>>('/registrations',
+        queryParameters: {'event_id': eventId});
+    return response.data!
+        .map((item) => AppRegistration.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AppRegistration> approveRegistration(String registrationId) async {
-    final response = await _dio.post<Map<String, dynamic>>('/registrations/$registrationId/approve');
+    final response = await _dio
+        .post<Map<String, dynamic>>('/registrations/$registrationId/approve');
     return AppRegistration.fromJson(response.data!);
   }
 
-  Future<AppRegistration> rejectRegistration(String registrationId, String reason) async {
+  Future<AppRegistration> rejectRegistration(
+      String registrationId, String reason) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/registrations/$registrationId/reject',
       data: {'reason': reason},
@@ -74,7 +83,8 @@ class RegistrationsApi {
     return AppRegistration.fromJson(response.data!);
   }
 
-  Future<AppRegistration> cancelRegistration(String registrationId, {String? reason}) async {
+  Future<AppRegistration> cancelRegistration(String registrationId,
+      {String? reason}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/registrations/$registrationId/cancel',
       data: {if (reason != null && reason.isNotEmpty) 'reason': reason},

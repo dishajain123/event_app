@@ -72,10 +72,12 @@ class _ConfirmActionSheetContent extends StatefulWidget {
   });
 
   @override
-  State<_ConfirmActionSheetContent> createState() => _ConfirmActionSheetContentState();
+  State<_ConfirmActionSheetContent> createState() =>
+      _ConfirmActionSheetContentState();
 }
 
-class _ConfirmActionSheetContentState extends State<_ConfirmActionSheetContent> {
+class _ConfirmActionSheetContentState
+    extends State<_ConfirmActionSheetContent> {
   bool _submitting = false;
   String? _errorMessage;
   final _reasonController = TextEditingController();
@@ -86,7 +88,8 @@ class _ConfirmActionSheetContentState extends State<_ConfirmActionSheetContent> 
     super.dispose();
   }
 
-  bool get _canConfirm => !widget.requireReason || _reasonController.text.trim().isNotEmpty;
+  bool get _canConfirm =>
+      !widget.requireReason || _reasonController.text.trim().isNotEmpty;
 
   Future<void> _handleConfirm() async {
     setState(() {
@@ -94,7 +97,8 @@ class _ConfirmActionSheetContentState extends State<_ConfirmActionSheetContent> 
       _errorMessage = null;
     });
     try {
-      await widget.onConfirm(widget.requireReason ? _reasonController.text.trim() : null);
+      await widget.onConfirm(
+          widget.requireReason ? _reasonController.text.trim() : null);
       if (mounted) Navigator.of(context).pop(true);
     } on AppException catch (e) {
       if (mounted) {
@@ -133,7 +137,7 @@ class _ConfirmActionSheetContentState extends State<_ConfirmActionSheetContent> 
                 height: 4,
                 margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                 decoration: BoxDecoration(
-                  color: AppColors.inkSubtle.withOpacity(0.3),
+                  color: AppColors.inkSubtle.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -173,14 +177,18 @@ class _ConfirmActionSheetContentState extends State<_ConfirmActionSheetContent> 
                   child: AppButton(
                     label: 'Cancel',
                     variant: AppButtonVariant.ghost,
-                    onPressed: _submitting ? null : () => Navigator.of(context).pop(false),
+                    onPressed: _submitting
+                        ? null
+                        : () => Navigator.of(context).pop(false),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: AppButton(
                     label: widget.confirmLabel,
-                    variant: widget.danger ? AppButtonVariant.danger : AppButtonVariant.primary,
+                    variant: widget.danger
+                        ? AppButtonVariant.danger
+                        : AppButtonVariant.primary,
                     loading: _submitting,
                     onPressed: _canConfirm ? _handleConfirm : null,
                   ),

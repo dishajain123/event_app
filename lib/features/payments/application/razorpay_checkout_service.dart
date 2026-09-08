@@ -26,13 +26,16 @@ class RazorpayCheckoutService {
     required PaymentGatewayOrder order,
     String? userContact,
     String? userEmail,
-    required void Function(String gatewayPaymentId, String gatewayOrderId, String gatewaySignature) onSuccess,
+    required void Function(String gatewayPaymentId, String gatewayOrderId,
+            String gatewaySignature)
+        onSuccess,
     required void Function(String message) onError,
   }) {
     final razorpay = Razorpay();
     _razorpay = razorpay;
 
-    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
+    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS,
+        (PaymentSuccessResponse response) {
       onSuccess(
         response.paymentId ?? '',
         response.orderId ?? order.gatewayOrderId,
@@ -41,12 +44,14 @@ class RazorpayCheckoutService {
       dispose();
     });
 
-    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
+    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR,
+        (PaymentFailureResponse response) {
       onError(response.message ?? 'Payment failed or was cancelled.');
       dispose();
     });
 
-    razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, (ExternalWalletResponse response) {
+    razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET,
+        (ExternalWalletResponse response) {
       // Informational only (e.g. Paytm selected as an external wallet) —
       // Razorpay's own checkout flow handles the wallet interaction;
       // nothing for this app to do here.

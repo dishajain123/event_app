@@ -389,13 +389,15 @@ class _NetworkingDiscoveryPanelState extends State<NetworkingDiscoveryPanel> {
                   await ProviderScope.containerOf(context, listen: false)
                       .read(networkingRepositoryProvider)
                       .connect(widget.eventId, profile.userId);
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Request sent')));
+                  }
                 } catch (error) {
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Unable to connect: $error')));
+                  }
                 }
               },
             ),
@@ -407,13 +409,15 @@ class _NetworkingDiscoveryPanelState extends State<NetworkingDiscoveryPanel> {
                   await ProviderScope.containerOf(context, listen: false)
                       .read(networkingRepositoryProvider)
                       .dismiss(widget.eventId, profile.userId);
-                  if (mounted)
+                  if (mounted) {
                     setState(() => _items
                         .removeWhere((item) => item.userId == profile.userId));
+                  }
                 } catch (error) {
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Unable to dismiss: $error')));
+                  }
                 }
               },
             ),
@@ -451,13 +455,15 @@ class _NetworkingDiscoveryPanelState extends State<NetworkingDiscoveryPanel> {
       await ProviderScope.containerOf(context, listen: false)
           .read(networkingRepositoryProvider)
           .report(widget.eventId, profile.userId, reason.trim());
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Report submitted')));
+      }
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Unable to report: $error')));
+      }
     }
   }
 }

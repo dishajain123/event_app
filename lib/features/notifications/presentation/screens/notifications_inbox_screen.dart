@@ -44,7 +44,7 @@ class NotificationsInboxScreen extends ConsumerWidget {
                     icon: Icons.notifications_none_rounded,
                     title: 'No notifications yet',
                     description:
-                        "Updates about your registrations and events will show up here.",
+                        'Updates about your registrations and events will show up here.',
                   ),
                 ],
               );
@@ -96,8 +96,8 @@ class _NotificationTile extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: notification.isUnread
-              ? Colors.white.withOpacity(0.85)
-              : Colors.white.withOpacity(0.5),
+              ? Colors.white.withValues(alpha: 0.85)
+              : Colors.white.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(

@@ -24,7 +24,7 @@ class AppSettingsScreen extends ConsumerWidget {
           data: (value) => ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              Text('Notifications', style: AppTypography.title),
+              const Text('Notifications', style: AppTypography.title),
               const SizedBox(height: AppSpacing.sm),
               _PreferenceTile(
                   title: 'Event reminders',
@@ -57,12 +57,12 @@ class AppSettingsScreen extends ConsumerWidget {
                   field: 'marketing_notifications',
                   ref: ref),
               const SizedBox(height: AppSpacing.xl),
-              Text('About', style: AppTypography.title),
+              const Text('About', style: AppTypography.title),
               const SizedBox(height: AppSpacing.sm),
               const _InfoRow(label: 'Version', value: '0.1.0'),
-              _InfoRow(
+              const _InfoRow(
                 label: 'Environment',
-                value: const String.fromEnvironment('ENVIRONMENT_NAME',
+                value: String.fromEnvironment('ENVIRONMENT_NAME',
                     defaultValue: 'development'),
               ),
             ],

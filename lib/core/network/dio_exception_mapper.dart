@@ -54,9 +54,11 @@ AppException _mapBadResponse(DioException error) {
 
   switch (statusCode) {
     case 401:
-      return UnauthorizedException(backendMessage ?? 'Your session has ended. Please log in again.');
+      return UnauthorizedException(
+          backendMessage ?? 'Your session has ended. Please log in again.');
     case 403:
-      return ForbiddenException(backendMessage ?? "You don't have access to this.");
+      return ForbiddenException(
+          backendMessage ?? "You don't have access to this.");
     case 404:
       return NotFoundException(backendMessage ?? "We couldn't find that.");
     case 409:

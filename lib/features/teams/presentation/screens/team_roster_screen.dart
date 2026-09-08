@@ -74,7 +74,7 @@ class TeamRosterScreen extends ConsumerWidget {
                           AppTypography.body.copyWith(color: AppColors.danger)),
                 ],
                 const SizedBox(height: AppSpacing.xl),
-                Text('Members', style: AppTypography.title),
+                const Text('Members', style: AppTypography.title),
                 const SizedBox(height: AppSpacing.md),
                 membersAsync.when(
                   loading: () => const AppSkeleton.cardList(count: 2),
@@ -155,7 +155,7 @@ class TeamRosterScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Invite a member', style: AppTypography.headline),
+              const Text('Invite a member', style: AppTypography.headline),
               const SizedBox(height: AppSpacing.lg),
               AppTextField(
                 controller: controller,

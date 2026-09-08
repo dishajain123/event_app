@@ -11,11 +11,14 @@ class StaffAssignmentsApi {
 
   Future<List<StaffAssignment>> listMine() async {
     final response = await _dio.get<List<dynamic>>('/staff/assignments/mine');
-    return response.data!.map((item) => StaffAssignment.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => StaffAssignment.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<StaffAssignment> accept(String assignmentId) async {
-    final response = await _dio.post<Map<String, dynamic>>('/staff/assignments/$assignmentId/accept');
+    final response = await _dio
+        .post<Map<String, dynamic>>('/staff/assignments/$assignmentId/accept');
     return StaffAssignment.fromJson(response.data!);
   }
 
@@ -27,7 +30,8 @@ class StaffAssignmentsApi {
       '/events/$eventId/staff/assignments/$assignmentId/history',
     );
     return response.data!
-        .map((item) => StaffAssignmentHistoryEntry.fromJson(item as Map<String, dynamic>))
+        .map((item) =>
+            StaffAssignmentHistoryEntry.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 }

@@ -18,27 +18,33 @@ typedef EventsQuery = ({String? mainCategoryId, String? subCategoryId});
 
 const noEventsFilter = (mainCategoryId: null, subCategoryId: null);
 
-final eventsListProvider = FutureProvider.family<List<AppEvent>, EventsQuery>((ref, query) async {
+final eventsListProvider =
+    FutureProvider.family<List<AppEvent>, EventsQuery>((ref, query) async {
   final repository = ref.watch(eventsRepositoryProvider);
-  return repository.listEvents(mainCategoryId: query.mainCategoryId, subCategoryId: query.subCategoryId);
+  return repository.listEvents(
+      mainCategoryId: query.mainCategoryId, subCategoryId: query.subCategoryId);
 });
 
-final eventDetailProvider = FutureProvider.family<AppEvent, String>((ref, eventId) async {
+final eventDetailProvider =
+    FutureProvider.family<AppEvent, String>((ref, eventId) async {
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getEvent(eventId);
 });
 
-final eventVenuesProvider = FutureProvider.family<List<Venue>, String>((ref, eventId) async {
+final eventVenuesProvider =
+    FutureProvider.family<List<Venue>, String>((ref, eventId) async {
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.listVenues(eventId);
 });
 
-final eventScheduleProvider = FutureProvider.family<List<ScheduleItem>, String>((ref, eventId) async {
+final eventScheduleProvider =
+    FutureProvider.family<List<ScheduleItem>, String>((ref, eventId) async {
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getSchedule(eventId);
 });
 
-final eventSponsorsProvider = FutureProvider.family<List<Sponsor>, String>((ref, eventId) async {
+final eventSponsorsProvider =
+    FutureProvider.family<List<Sponsor>, String>((ref, eventId) async {
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.listSponsors(eventId);
 });

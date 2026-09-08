@@ -3,7 +3,8 @@ class OtpRequestResult {
   final String message;
   final int resendAvailableInSeconds;
 
-  const OtpRequestResult({required this.message, required this.resendAvailableInSeconds});
+  const OtpRequestResult(
+      {required this.message, required this.resendAvailableInSeconds});
 
   factory OtpRequestResult.fromJson(Map<String, dynamic> json) {
     return OtpRequestResult(

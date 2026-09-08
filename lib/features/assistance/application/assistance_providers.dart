@@ -9,7 +9,8 @@ final assistanceRepositoryProvider = Provider<AssistanceRepository>((ref) {
   return AssistanceRepository(AssistanceApi(dio));
 });
 
-final myAssistanceRequestsProvider = FutureProvider<List<AssistanceRequest>>((ref) async {
+final myAssistanceRequestsProvider =
+    FutureProvider<List<AssistanceRequest>>((ref) async {
   final repository = ref.watch(assistanceRepositoryProvider);
   return repository.listMine();
 });

@@ -18,7 +18,8 @@ enum RoleName {
   static RoleName fromWire(String value) {
     return RoleName.values.firstWhere(
       (r) => r.wireValue == value,
-      orElse: () => throw FormatException('Unknown role_name from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown role_name from backend: $value'),
     );
   }
 }

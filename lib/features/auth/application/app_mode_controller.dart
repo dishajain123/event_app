@@ -42,7 +42,8 @@ class AppModeController extends StateNotifier<AppMode> {
   Future<void> switchTo(AppMode mode) async {
     state = mode;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_appModePrefsKey, mode == AppMode.staff ? 'staff' : 'public');
+    await prefs.setString(
+        _appModePrefsKey, mode == AppMode.staff ? 'staff' : 'public');
   }
 
   Future<void> switchToPublicMode() => switchTo(AppMode.public);
@@ -57,6 +58,7 @@ class AppModeController extends StateNotifier<AppMode> {
   }
 }
 
-final appModeProvider = StateNotifierProvider<AppModeController, AppMode>((ref) {
+final appModeProvider =
+    StateNotifierProvider<AppModeController, AppMode>((ref) {
   return AppModeController();
 });

@@ -38,7 +38,8 @@ enum VerificationStatus {
   static VerificationStatus fromWire(String value) {
     return VerificationStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown verification status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown verification status from backend: $value'),
     );
   }
 
@@ -67,7 +68,8 @@ class IdentityDocument {
     return IdentityDocument(
       id: json['id'] as String,
       documentType: DocumentType.fromWire(json['document_type'] as String),
-      verificationStatus: VerificationStatus.fromWire(json['verification_status'] as String),
+      verificationStatus:
+          VerificationStatus.fromWire(json['verification_status'] as String),
     );
   }
 }

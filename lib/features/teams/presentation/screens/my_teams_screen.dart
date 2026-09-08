@@ -92,8 +92,9 @@ class MyTeamsScreen extends ConsumerWidget {
                       : UnknownException(error.toString()),
                   onRetry: () => ref.invalidate(myTeamsProvider)),
               data: (items) {
-                if (items.isEmpty)
+                if (items.isEmpty) {
                   return const Text('You are not part of a team yet.');
+                }
                 return Column(
                   children: [
                     for (final team in items)

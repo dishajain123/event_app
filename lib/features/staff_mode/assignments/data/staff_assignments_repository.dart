@@ -27,7 +27,8 @@ class StaffAssignmentsRepository {
     required String assignmentId,
   }) async {
     try {
-      return await _api.getHistory(eventId: eventId, assignmentId: assignmentId);
+      return await _api.getHistory(
+          eventId: eventId, assignmentId: assignmentId);
     } catch (e) {
       throw mapDioException(e);
     }

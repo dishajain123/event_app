@@ -4,7 +4,12 @@ import '../../core/theme/app_colors.dart';
 import '../router/route_paths.dart';
 
 const _tabs = [
-  (path: RoutePaths.home, icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Home'),
+  (
+    path: RoutePaths.home,
+    icon: Icons.explore_outlined,
+    activeIcon: Icons.explore_rounded,
+    label: 'Home'
+  ),
   (
     path: RoutePaths.myRegistrations,
     icon: Icons.assignment_outlined,
@@ -17,7 +22,12 @@ const _tabs = [
     activeIcon: Icons.confirmation_number_rounded,
     label: 'Tickets',
   ),
-  (path: RoutePaths.profile, icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
+  (
+    path: RoutePaths.profile,
+    icon: Icons.person_outline_rounded,
+    activeIcon: Icons.person_rounded,
+    label: 'Profile'
+  ),
 ];
 
 /// The default shell for every authenticated account, regardless of role

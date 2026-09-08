@@ -9,12 +9,14 @@ final teamsRepositoryProvider = Provider<TeamsRepository>((ref) {
   return TeamsRepository(TeamsApi(dio));
 });
 
-final teamDetailProvider = FutureProvider.family<AppTeam, String>((ref, teamId) async {
+final teamDetailProvider =
+    FutureProvider.family<AppTeam, String>((ref, teamId) async {
   final repository = ref.watch(teamsRepositoryProvider);
   return repository.getTeam(teamId);
 });
 
-final teamMembersProvider = FutureProvider.family<List<TeamMember>, String>((ref, teamId) async {
+final teamMembersProvider =
+    FutureProvider.family<List<TeamMember>, String>((ref, teamId) async {
   final repository = ref.watch(teamsRepositoryProvider);
   return repository.listMembers(teamId);
 });

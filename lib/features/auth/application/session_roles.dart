@@ -23,7 +23,8 @@ class SessionRoles {
   /// One person can hold different scoped roles for different events.
   final Map<String, Set<RoleName>> scopedRolesByEvent;
 
-  const SessionRoles({required this.globalRoles, required this.scopedRolesByEvent});
+  const SessionRoles(
+      {required this.globalRoles, required this.scopedRolesByEvent});
 
   factory SessionRoles.fromAssignments(List<RoleAssignment> assignments) {
     final global = <RoleName>[];
@@ -41,7 +42,8 @@ class SessionRoles {
     return SessionRoles(globalRoles: global, scopedRolesByEvent: scoped);
   }
 
-  factory SessionRoles.empty() => const SessionRoles(globalRoles: [], scopedRolesByEvent: {});
+  factory SessionRoles.empty() =>
+      const SessionRoles(globalRoles: [], scopedRolesByEvent: {});
 
   /// Every event_id this account holds ANY of the four Staff-Mode-capable
   /// roles for (Section 2.3) — event_manager, event_coordinator,
@@ -62,7 +64,8 @@ class SessionRoles {
   /// True specifically for event_manager — the one role with both a
   /// console login and mobile Staff Mode (Section 6.2).
   bool isEventManagerFor(String eventId) {
-    return scopedRolesByEvent[eventId]?.contains(RoleName.eventManager) ?? false;
+    return scopedRolesByEvent[eventId]?.contains(RoleName.eventManager) ??
+        false;
   }
 
   bool hasScopedRole(String eventId, RoleName role) {

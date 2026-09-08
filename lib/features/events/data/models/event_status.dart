@@ -15,7 +15,8 @@ enum EventStatus {
   static EventStatus fromWire(String value) {
     return EventStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown event status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown event status from backend: $value'),
     );
   }
 

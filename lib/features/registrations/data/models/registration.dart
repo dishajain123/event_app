@@ -25,7 +25,9 @@ class RegistrationParticipant {
       registrationId: json['registration_id'] as String,
       userId: json['user_id'] as String?,
       fullName: json['full_name'] as String,
-      dateOfBirth: json['date_of_birth'] != null ? DateTime.parse(json['date_of_birth'] as String) : null,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.parse(json['date_of_birth'] as String)
+          : null,
       isCaptain: json['is_captain'] as bool,
     );
   }
@@ -94,19 +96,27 @@ class AppRegistration {
       teamId: json['team_id'] as String?,
       participationType: json['participation_type'] as String,
       status: RegistrationStatus.fromWire(json['status'] as String),
-      submittedAt: json['submitted_at'] != null ? DateTime.parse(json['submitted_at'] as String) : null,
+      submittedAt: json['submitted_at'] != null
+          ? DateTime.parse(json['submitted_at'] as String)
+          : null,
       approvedBy: json['approved_by'] as String?,
       rejectedBy: json['rejected_by'] as String?,
       rejectionReason: json['rejection_reason'] as String?,
-      checkedInAt: json['checked_in_at'] != null ? DateTime.parse(json['checked_in_at'] as String) : null,
-      completedAt: json['completed_at'] != null ? DateTime.parse(json['completed_at'] as String) : null,
+      checkedInAt: json['checked_in_at'] != null
+          ? DateTime.parse(json['checked_in_at'] as String)
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'] as String)
+          : null,
       cancellationDeadlineAt: json['cancellation_deadline_at'] != null
           ? DateTime.parse(json['cancellation_deadline_at'] as String)
           : null,
       cancellationRequestedAt: json['cancellation_requested_at'] != null
           ? DateTime.parse(json['cancellation_requested_at'] as String)
           : null,
-      cancelledAt: json['cancelled_at'] != null ? DateTime.parse(json['cancelled_at'] as String) : null,
+      cancelledAt: json['cancelled_at'] != null
+          ? DateTime.parse(json['cancelled_at'] as String)
+          : null,
       cancelledBy: json['cancelled_by'] as String?,
       cancellationReason: json['cancellation_reason'] as String?,
       paymentStatus: json['payment_status'] as String?,
@@ -114,7 +124,8 @@ class AppRegistration {
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       participants: rawParticipants
-          .map((p) => RegistrationParticipant.fromJson(p as Map<String, dynamic>))
+          .map((p) =>
+              RegistrationParticipant.fromJson(p as Map<String, dynamic>))
           .toList(),
     );
   }

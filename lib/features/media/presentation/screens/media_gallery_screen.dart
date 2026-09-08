@@ -22,7 +22,9 @@ class MediaGalleryScreen extends ConsumerWidget {
       body: mediaAsync.when(
         loading: () => const AppSkeleton.cardList(),
         error: (error, stackTrace) => AppErrorState(
-          error: error is AppException ? error : UnknownException(error.toString()),
+          error: error is AppException
+              ? error
+              : UnknownException(error.toString()),
           onRetry: () => ref.invalidate(eventMediaProvider(eventId)),
         ),
         data: (items) {
@@ -30,7 +32,8 @@ class MediaGalleryScreen extends ConsumerWidget {
             return const AppEmptyState(
               icon: Icons.photo_library_outlined,
               title: 'No media yet',
-              description: 'Photos and videos from this event will appear here once published.',
+              description:
+                  'Photos and videos from this event will appear here once published.',
             );
           }
           return GridView.builder(
@@ -62,7 +65,8 @@ class _MediaTile extends StatelessWidget {
           child: InteractiveViewer(
             child: Image.network(
               item.publicUrl,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image_outlined),
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.broken_image_outlined),
             ),
           ),
         ),
@@ -77,7 +81,8 @@ class _MediaTile extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: AppColors.backgroundAlt,
-                child: const Icon(Icons.image_not_supported_outlined, color: AppColors.inkSubtle),
+                child: const Icon(Icons.image_not_supported_outlined,
+                    color: AppColors.inkSubtle),
               ),
             ),
             if (item.isHighlight)

@@ -6,9 +6,11 @@ class PaymentsRepository {
   final PaymentsApi _api;
   const PaymentsRepository(this._api);
 
-  Future<PaymentGatewayOrder> initiatePayment({required String registrationId, String? discountCode}) async {
+  Future<PaymentGatewayOrder> initiatePayment(
+      {required String registrationId, String? discountCode}) async {
     try {
-      return await _api.initiatePayment(registrationId: registrationId, discountCode: discountCode);
+      return await _api.initiatePayment(
+          registrationId: registrationId, discountCode: discountCode);
     } catch (e) {
       throw mapDioException(e);
     }

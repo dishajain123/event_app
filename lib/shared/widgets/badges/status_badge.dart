@@ -15,10 +15,14 @@ class StatusBadge extends StatelessWidget {
   final String label;
   final StatusTone tone;
 
-  const StatusBadge({super.key, required this.label, this.tone = StatusTone.neutral});
+  const StatusBadge(
+      {super.key, required this.label, this.tone = StatusTone.neutral});
 
   (Color, Color) get _colors => switch (tone) {
-        StatusTone.neutral => (const Color(0xFFF1F5F9), const Color(0xFF475569)),
+        StatusTone.neutral => (
+            const Color(0xFFF1F5F9),
+            const Color(0xFF475569)
+          ),
         StatusTone.accent => (AppColors.accentSoft, AppColors.accentStrong),
         StatusTone.success => (AppColors.successSoft, AppColors.success),
         StatusTone.warning => (AppColors.warningSoft, AppColors.warning),
@@ -31,10 +35,12 @@ class StatusBadge extends StatelessWidget {
     final (background, foreground) = _colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+          color: background, borderRadius: BorderRadius.circular(999)),
       child: Text(
         label,
-        style: AppTypography.caption.copyWith(color: foreground, fontWeight: FontWeight.w600),
+        style: AppTypography.caption
+            .copyWith(color: foreground, fontWeight: FontWeight.w600),
       ),
     );
   }

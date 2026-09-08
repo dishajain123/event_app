@@ -10,7 +10,8 @@ class ResendTimer extends StatefulWidget {
   final int initialSeconds;
   final VoidCallback onResend;
 
-  const ResendTimer({super.key, required this.initialSeconds, required this.onResend});
+  const ResendTimer(
+      {super.key, required this.initialSeconds, required this.onResend});
 
   @override
   State<ResendTimer> createState() => _ResendTimerState();
@@ -59,7 +60,8 @@ class _ResendTimerState extends State<ResendTimer> {
   @override
   Widget build(BuildContext context) {
     if (_remaining > 0) {
-      return Text('Resend code in ${_remaining}s', style: AppTypography.caption);
+      return Text('Resend code in ${_remaining}s',
+          style: AppTypography.caption);
     }
     return GestureDetector(
       onTap: widget.onResend,

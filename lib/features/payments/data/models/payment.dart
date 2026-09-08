@@ -14,7 +14,8 @@ enum PaymentStatus {
   static PaymentStatus fromWire(String value) {
     return PaymentStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown payment status from backend: $value'),
+      orElse: () =>
+          throw FormatException('Unknown payment status from backend: $value'),
     );
   }
 
@@ -108,10 +109,15 @@ class AppPayment {
       gatewayProvider: json['gateway_provider'] as String,
       gatewayOrderId: json['gateway_order_id'] as String?,
       gatewayPaymentId: json['gateway_payment_id'] as String?,
-      verifiedAt: json['verified_at'] != null ? DateTime.parse(json['verified_at'] as String) : null,
-      capturedAt: json['captured_at'] != null ? DateTime.parse(json['captured_at'] as String) : null,
+      verifiedAt: json['verified_at'] != null
+          ? DateTime.parse(json['verified_at'] as String)
+          : null,
+      capturedAt: json['captured_at'] != null
+          ? DateTime.parse(json['captured_at'] as String)
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
-      reconciliationStatus: json['reconciliation_status'] as String? ?? 'not_required',
+      reconciliationStatus:
+          json['reconciliation_status'] as String? ?? 'not_required',
       reconciliationError: json['reconciliation_error'] as String?,
     );
   }

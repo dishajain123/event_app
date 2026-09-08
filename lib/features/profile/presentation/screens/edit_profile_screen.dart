@@ -43,8 +43,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     });
     try {
       await ref.read(authStateProvider.notifier).updateProfile(
-            name: _nameController.text.trim().isEmpty ? null : _nameController.text.trim(),
-            email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+            name: _nameController.text.trim().isEmpty
+                ? null
+                : _nameController.text.trim(),
+            email: _emailController.text.trim().isEmpty
+                ? null
+                : _emailController.text.trim(),
           );
       if (mounted) {
         context.pop();
@@ -67,7 +71,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            AppTextField(controller: _nameController, label: 'Name', autofocus: true),
+            AppTextField(
+                controller: _nameController, label: 'Name', autofocus: true),
             const SizedBox(height: AppSpacing.lg),
             AppTextField(
               controller: _emailController,
@@ -79,7 +84,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Text(_error!, style: const TextStyle(color: Colors.red)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            AppButton(label: 'Save', fullWidth: true, loading: _submitting, onPressed: _submit),
+            AppButton(
+                label: 'Save',
+                fullWidth: true,
+                loading: _submitting,
+                onPressed: _submit),
           ],
         ),
       ),

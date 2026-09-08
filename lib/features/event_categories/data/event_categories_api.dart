@@ -12,6 +12,8 @@ class EventCategoriesApi {
   /// [MainCategory]'s doc comment.
   Future<List<MainCategory>> listMainCategories() async {
     final response = await _dio.get<List<dynamic>>('/event-categories/main');
-    return response.data!.map((item) => MainCategory.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => MainCategory.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

@@ -36,7 +36,9 @@ class MyChildrenScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myChildrenProvider),
               ),
             ],
@@ -49,7 +51,8 @@ class MyChildrenScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.child_care_rounded,
                     title: 'No children added yet',
-                    description: "Add a child's profile to register them for an event.",
+                    description:
+                        "Add a child's profile to register them for an event.",
                     actionLabel: 'Add child',
                     onAction: () => context.push(RoutePaths.addChild),
                   ),
@@ -59,13 +62,14 @@ class MyChildrenScreen extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: children.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final child = children[index];
                 return Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -73,16 +77,21 @@ class MyChildrenScreen extends ConsumerWidget {
                       Container(
                         width: 44,
                         height: 44,
-                        decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
-                        child: const Icon(Icons.child_care_rounded, color: AppColors.accentStrong),
+                        decoration: const BoxDecoration(
+                            color: AppColors.accentSoft,
+                            shape: BoxShape.circle),
+                        child: const Icon(Icons.child_care_rounded,
+                            color: AppColors.accentStrong),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(child.fullName, style: AppTypography.bodyStrong),
-                            Text('${child.ageInYears} years old', style: AppTypography.caption),
+                            Text(child.fullName,
+                                style: AppTypography.bodyStrong),
+                            Text('${child.ageInYears} years old',
+                                style: AppTypography.caption),
                           ],
                         ),
                       ),

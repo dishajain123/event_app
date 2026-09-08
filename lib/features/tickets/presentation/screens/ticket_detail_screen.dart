@@ -54,7 +54,7 @@ class TicketDetailScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 24,
                           offset: const Offset(0, 8)),
                     ],
@@ -123,20 +123,24 @@ class TicketDetailScreen extends ConsumerWidget {
                     );
                     if (recipient == null ||
                         recipient.isEmpty ||
-                        !context.mounted) return;
+                        !context.mounted) {
+                      return;
+                    }
                     try {
                       await ref
                           .read(ticketsRepositoryProvider)
                           .transfer(ticket.id, recipient);
                       ref.invalidate(ticketDetailProvider(ticketId));
-                      if (context.mounted)
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Transfer request sent.')));
+                      }
                     } catch (error) {
-                      if (context.mounted)
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(error.toString())));
+                      }
                     }
                   },
                 ),

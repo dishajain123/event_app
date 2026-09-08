@@ -50,7 +50,8 @@ class RegistrationsRepository {
     }
   }
 
-  Future<List<AppRegistration>> listRegistrationsForEvent(String eventId) async {
+  Future<List<AppRegistration>> listRegistrationsForEvent(
+      String eventId) async {
     try {
       return await _api.listRegistrationsForEvent(eventId);
     } catch (e) {
@@ -66,7 +67,8 @@ class RegistrationsRepository {
     }
   }
 
-  Future<AppRegistration> rejectRegistration(String registrationId, String reason) async {
+  Future<AppRegistration> rejectRegistration(
+      String registrationId, String reason) async {
     try {
       return await _api.rejectRegistration(registrationId, reason);
     } catch (e) {
@@ -74,7 +76,8 @@ class RegistrationsRepository {
     }
   }
 
-  Future<AppRegistration> cancelRegistration(String registrationId, {String? reason}) async {
+  Future<AppRegistration> cancelRegistration(String registrationId,
+      {String? reason}) async {
     try {
       return await _api.cancelRegistration(registrationId, reason: reason);
     } catch (e) {

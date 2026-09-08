@@ -14,7 +14,8 @@ enum ReferralRewardStatus {
   static ReferralRewardStatus fromWire(String value) {
     return ReferralRewardStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown referral reward status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown referral reward status from backend: $value'),
     );
   }
 
@@ -91,8 +92,12 @@ class ReferralReward {
       registrationId: json['registration_id'] as String?,
       rewardValue: parseFlexibleDecimal(json['reward_value']) ?? 0,
       status: ReferralRewardStatus.fromWire(json['status'] as String),
-      qualifiedAt: json['qualified_at'] != null ? DateTime.parse(json['qualified_at'] as String) : null,
-      issuedAt: json['issued_at'] != null ? DateTime.parse(json['issued_at'] as String) : null,
+      qualifiedAt: json['qualified_at'] != null
+          ? DateTime.parse(json['qualified_at'] as String)
+          : null,
+      issuedAt: json['issued_at'] != null
+          ? DateTime.parse(json['issued_at'] as String)
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -108,8 +113,11 @@ class MyReferral {
   factory MyReferral.fromJson(Map<String, dynamic> json) {
     final rawRewards = json['rewards'] as List<dynamic>? ?? [];
     return MyReferral(
-      profile: ReferralProfile.fromJson(json['profile'] as Map<String, dynamic>),
-      rewards: rawRewards.map((r) => ReferralReward.fromJson(r as Map<String, dynamic>)).toList(),
+      profile:
+          ReferralProfile.fromJson(json['profile'] as Map<String, dynamic>),
+      rewards: rawRewards
+          .map((r) => ReferralReward.fromJson(r as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

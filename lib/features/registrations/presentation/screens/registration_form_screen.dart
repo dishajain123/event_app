@@ -23,13 +23,16 @@ class RegistrationFormScreen extends ConsumerStatefulWidget {
   final String eventId;
   final String participationType;
 
-  const RegistrationFormScreen({super.key, required this.eventId, required this.participationType});
+  const RegistrationFormScreen(
+      {super.key, required this.eventId, required this.participationType});
 
   @override
-  ConsumerState<RegistrationFormScreen> createState() => _RegistrationFormScreenState();
+  ConsumerState<RegistrationFormScreen> createState() =>
+      _RegistrationFormScreenState();
 }
 
-class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen> {
+class _RegistrationFormScreenState
+    extends ConsumerState<RegistrationFormScreen> {
   final Map<String, dynamic> _answers = {};
   final Set<String> _confirmedDocuments = {};
   String? _dateOfBirthIso;
@@ -74,7 +77,8 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
       if (mounted) setState(() => _lastValidation = result);
     } on AppException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _validating = false);
@@ -85,7 +89,8 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
     await showConfirmActionSheet(
       context,
       title: 'Submit this registration?',
-      description: "You'll be able to track its status from My Registrations afterward.",
+      description:
+          "You'll be able to track its status from My Registrations afterward.",
       confirmLabel: 'Submit',
       onConfirm: (reason) async {
         final repository = ref.read(registrationsRepositoryProvider);
@@ -117,7 +122,9 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
           } else {
             context.go(RoutePaths.myRegistrations);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Registration ${registration.status.label.toLowerCase()}.')),
+              SnackBar(
+                  content: Text(
+                      'Registration ${registration.status.label.toLowerCase()}.')),
             );
           }
         }
@@ -128,7 +135,10 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
   @override
   Widget build(BuildContext context) {
     final fieldSchemaAsync = ref.watch(
-      eventFieldSchemaProvider((eventId: widget.eventId, participationType: widget.participationType)),
+      eventFieldSchemaProvider((
+        eventId: widget.eventId,
+        participationType: widget.participationType
+      )),
     );
     final configAsync = ref.watch(eventConfigurationProvider(widget.eventId));
     final childrenAsync = ref.watch(myChildrenProvider);
@@ -139,9 +149,14 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
         child: fieldSchemaAsync.when(
           loading: () => const AppSkeleton.form(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
             onRetry: () => ref.invalidate(
-              eventFieldSchemaProvider((eventId: widget.eventId, participationType: widget.participationType)),
+              eventFieldSchemaProvider((
+                eventId: widget.eventId,
+                participationType: widget.participationType
+              )),
             ),
           ),
           data: (schema) {
@@ -157,10 +172,12 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
                   data: (children) => children.isEmpty
                       ? const SizedBox.shrink()
                       : DropdownButtonFormField<String>(
-                          value: _childId ?? '',
-                          decoration: const InputDecoration(labelText: 'Registering for', hintText: 'Myself'),
+                          initialValue: _childId ?? '',
+                          decoration: const InputDecoration(
+                              labelText: 'Registering for', hintText: 'Myself'),
                           items: [
-                            const DropdownMenuItem<String>(value: '', child: Text('Myself')),
+                            const DropdownMenuItem<String>(
+                                value: '', child: Text('Myself')),
                             ...children.map(
                               (child) => DropdownMenuItem<String>(
                                 value: child.id,
@@ -171,10 +188,15 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
                           onChanged: (value) {
                             final child = value == null || value.isEmpty
                                 ? null
-                                : children.firstWhere((candidate) => candidate.id == value);
+                                : children.firstWhere(
+                                    (candidate) => candidate.id == value);
                             setState(() {
-                              _childId = value == null || value.isEmpty ? null : value;
-                              _dateOfBirthIso = child?.dateOfBirth.toIso8601String().split('T').first;
+                              _childId =
+                                  value == null || value.isEmpty ? null : value;
+                              _dateOfBirthIso = child?.dateOfBirth
+                                  .toIso8601String()
+                                  .split('T')
+                                  .first;
                             });
                           },
                         ),
@@ -186,14 +208,16 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
                   hint: 'Leave blank to register yourself',
                 ),
                 const SizedBox(height: AppSpacing.md),
-                if (config != null && config.hasAgeRule) _DateOfBirthField(
-                  value: _dateOfBirthIso,
-                  onTap: _pickDateOfBirth,
-                ),
-                if (config != null && config.hasAgeRule) const SizedBox(height: AppSpacing.lg),
-
+                if (config != null && config.hasAgeRule)
+                  _DateOfBirthField(
+                    value: _dateOfBirthIso,
+                    onTap: _pickDateOfBirth,
+                  ),
+                if (config != null && config.hasAgeRule)
+                  const SizedBox(height: AppSpacing.lg),
                 if (config != null && config.requiredDocuments.isNotEmpty) ...[
-                  Text('Required documents', style: AppTypography.bodyStrong),
+                  const Text('Required documents',
+                      style: AppTypography.bodyStrong),
                   const SizedBox(height: AppSpacing.sm),
                   for (final doc in config.requiredDocuments)
                     CheckboxListTile(
@@ -213,19 +237,17 @@ class _RegistrationFormScreenState extends ConsumerState<RegistrationFormScreen>
                     ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
-
                 if (fields.isNotEmpty)
                   DynamicFieldRenderer(
                     fields: fields,
                     answers: _answers,
-                    onFieldChanged: (key, value) => setState(() => _answers[key] = value),
+                    onFieldChanged: (key, value) =>
+                        setState(() => _answers[key] = value),
                   ),
-
                 const SizedBox(height: AppSpacing.md),
-
-                if (_lastValidation != null) _ValidationBanner(result: _lastValidation!),
+                if (_lastValidation != null)
+                  _ValidationBanner(result: _lastValidation!),
                 const SizedBox(height: AppSpacing.lg),
-
                 AppButton(
                   label: 'Check eligibility',
                   variant: AppButtonVariant.secondary,
@@ -264,8 +286,10 @@ class _DateOfBirthField extends StatelessWidget {
         InkWell(
           onTap: onTap,
           child: InputDecorator(
-            decoration: const InputDecoration(hintText: 'Select your date of birth'),
-            child: Text(value ?? 'Select your date of birth', style: AppTypography.body),
+            decoration:
+                const InputDecoration(hintText: 'Select your date of birth'),
+            child: Text(value ?? 'Select your date of birth',
+                style: AppTypography.body),
           ),
         ),
       ],
@@ -297,8 +321,11 @@ class _ValidationBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              isEligible ? 'You meet the requirements for this event.' : result.combinedMessage,
-              style: AppTypography.body.copyWith(color: isEligible ? AppColors.success : AppColors.danger),
+              isEligible
+                  ? 'You meet the requirements for this event.'
+                  : result.combinedMessage,
+              style: AppTypography.body.copyWith(
+                  color: isEligible ? AppColors.success : AppColors.danger),
             ),
           ),
         ],

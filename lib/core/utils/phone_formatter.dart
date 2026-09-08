@@ -31,14 +31,16 @@ String normalizeMobileNumber(String value) {
   final hasPlus = cleaned.startsWith('+');
   final digits = cleaned.replaceAll(RegExp(r'\D'), '');
   if (digits.isEmpty) {
-    throw const InvalidMobileNumberException('mobile_number must contain digits');
+    throw const InvalidMobileNumberException(
+        'mobile_number must contain digits');
   }
 
   if (hasPlus) {
     if (digits.length == 12 && digits.startsWith(_defaultCountryCode)) {
       return '+$digits';
     }
-    throw const InvalidMobileNumberException('Enter a valid Indian mobile number.');
+    throw const InvalidMobileNumberException(
+        'Enter a valid Indian mobile number.');
   }
 
   if (digits.length == 10) {
@@ -53,7 +55,8 @@ String normalizeMobileNumber(String value) {
     return '+$digits';
   }
 
-  throw const InvalidMobileNumberException('Enter a valid Indian mobile number.');
+  throw const InvalidMobileNumberException(
+      'Enter a valid Indian mobile number.');
 }
 
 /// Non-throwing variant for live validation as the user types (e.g.

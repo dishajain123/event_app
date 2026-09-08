@@ -36,7 +36,8 @@ class AuthInterceptor extends Interceptor {
   Future<String?>? _pendingRefresh;
 
   @override
-  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  Future<void> onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
     final token = await tokenStorage.getAccessToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -45,9 +46,11 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+      DioException err, ErrorInterceptorHandler handler) async {
     final isUnauthorized = err.response?.statusCode == 401;
-    final alreadyRetried = err.requestOptions.extra['_retriedAfterRefresh'] == true;
+    final alreadyRetried =
+        err.requestOptions.extra['_retriedAfterRefresh'] == true;
 
     // Never attempt to refresh the refresh call itself, or anything already retried once.
     final isAuthEndpoint = err.requestOptions.path.contains('/auth/');

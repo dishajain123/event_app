@@ -21,7 +21,8 @@ enum RegistrationStatus {
   static RegistrationStatus fromWire(String value) {
     return RegistrationStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown registration status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown registration status from backend: $value'),
     );
   }
 
@@ -42,5 +43,7 @@ enum RegistrationStatus {
         RegistrationStatus.cancelled => 'Cancelled',
       };
 
-  bool get isActive => this != RegistrationStatus.rejected && this != RegistrationStatus.cancelled;
+  bool get isActive =>
+      this != RegistrationStatus.rejected &&
+      this != RegistrationStatus.cancelled;
 }

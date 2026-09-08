@@ -10,6 +10,8 @@ class MediaApi {
 
   Future<List<EventMedia>> listEventMedia(String eventId) async {
     final response = await _dio.get<List<dynamic>>('/events/$eventId/media');
-    return response.data!.map((item) => EventMedia.fromJson(item as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((item) => EventMedia.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

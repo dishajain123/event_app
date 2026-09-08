@@ -94,7 +94,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Text('How was your experience?', style: AppTypography.title),
+        const Text('How was your experience?', style: AppTypography.title),
         const SizedBox(height: AppSpacing.lg),
         DropdownButtonFormField<String>(
           initialValue: selectedCode,
@@ -106,7 +106,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           onChanged: (value) => setState(() => _categoryCode = value),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Rating', style: AppTypography.bodyStrong),
+        const Text('Rating', style: AppTypography.bodyStrong),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: List.generate(5, (index) {
@@ -134,10 +134,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
             loading: _submitting,
             fullWidth: true),
         const SizedBox(height: AppSpacing.xxl),
-        Text('Your previous feedback', style: AppTypography.title),
+        const Text('Your previous feedback', style: AppTypography.title),
         const SizedBox(height: AppSpacing.md),
         if (feedback.isEmpty)
-          Text('You have not submitted feedback for this event yet.',
+          const Text('You have not submitted feedback for this event yet.',
               style: AppTypography.bodyMuted)
         else
           ...feedback.map((item) => _FeedbackCard(feedback: item)),

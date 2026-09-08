@@ -4,7 +4,8 @@ import '../data/event_categories_api.dart';
 import '../data/event_categories_repository.dart';
 import '../data/models/category_models.dart';
 
-final eventCategoriesRepositoryProvider = Provider<EventCategoriesRepository>((ref) {
+final eventCategoriesRepositoryProvider =
+    Provider<EventCategoriesRepository>((ref) {
   final dio = ref.watch(apiClientProvider);
   return EventCategoriesRepository(EventCategoriesApi(dio));
 });

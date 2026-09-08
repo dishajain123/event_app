@@ -34,7 +34,9 @@ class MyAssistanceRequestsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.xxxl),
               AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(myAssistanceRequestsProvider),
               ),
             ],
@@ -47,7 +49,8 @@ class MyAssistanceRequestsScreen extends ConsumerWidget {
                   AppEmptyState(
                     icon: Icons.volunteer_activism_outlined,
                     title: 'No assistance requests',
-                    description: 'A fee-waiver request you submit shows up here with its status.',
+                    description:
+                        'A fee-waiver request you submit shows up here with its status.',
                   ),
                 ],
               );
@@ -55,13 +58,14 @@ class MyAssistanceRequestsScreen extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: requests.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final request = requests[index];
                 return Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
@@ -79,13 +83,15 @@ class MyAssistanceRequestsScreen extends ConsumerWidget {
                           ),
                           StatusBadge(
                             label: request.status.label,
-                            tone: _statusTones[request.status] ?? StatusTone.neutral,
+                            tone: _statusTones[request.status] ??
+                                StatusTone.neutral,
                           ),
                         ],
                       ),
                       if (request.decisionReason != null) ...[
                         const SizedBox(height: AppSpacing.sm),
-                        Text(request.decisionReason!, style: AppTypography.caption),
+                        Text(request.decisionReason!,
+                            style: AppTypography.caption),
                       ],
                     ],
                   ),

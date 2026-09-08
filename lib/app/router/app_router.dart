@@ -437,7 +437,9 @@ bool _isGuestAccessibleRoute(String location) {
   if (location == RoutePaths.home ||
       location == RoutePaths.search ||
       location == RoutePaths.sponsorship ||
-      location == RoutePaths.volunteers) return true;
+      location == RoutePaths.volunteers) {
+    return true;
+  }
   if (location.startsWith('/events/')) {
     return !location.contains('/register') &&
         !location.contains('/waitlist') &&

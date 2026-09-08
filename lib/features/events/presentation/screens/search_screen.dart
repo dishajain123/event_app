@@ -14,7 +14,8 @@ class SearchScreen extends ConsumerStatefulWidget {
   final String? initialMainCategoryId;
   final String? initialMainCategoryName;
 
-  const SearchScreen({super.key, this.initialMainCategoryId, this.initialMainCategoryName});
+  const SearchScreen(
+      {super.key, this.initialMainCategoryId, this.initialMainCategoryName});
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -54,7 +55,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     // returns, the same pattern the web console uses for its own list
     // screens without a backend search endpoint.
     final eventsAsync = ref.watch(
-      eventsListProvider((mainCategoryId: _mainCategoryId, subCategoryId: null)),
+      eventsListProvider(
+          (mainCategoryId: _mainCategoryId, subCategoryId: null)),
     );
 
     return Scaffold(
@@ -66,14 +68,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             hintText: 'Search events…',
             border: InputBorder.none,
           ),
-          onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
+          onChanged: (value) =>
+              setState(() => _query = value.trim().toLowerCase()),
         ),
       ),
       body: Column(
         children: [
           if (_mainCategoryName != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: InputChip(
@@ -86,15 +90,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: eventsAsync.when(
               loading: () => const AppSkeleton.cardList(),
               error: (error, stackTrace) => AppErrorState(
-                error: error is AppException ? error : UnknownException(error.toString()),
+                error: error is AppException
+                    ? error
+                    : UnknownException(error.toString()),
                 onRetry: () => ref.invalidate(
-                  eventsListProvider((mainCategoryId: _mainCategoryId, subCategoryId: null)),
+                  eventsListProvider(
+                      (mainCategoryId: _mainCategoryId, subCategoryId: null)),
                 ),
               ),
               data: (events) {
                 final filtered = _query.isEmpty
                     ? events
-                    : events.where((e) => e.name.toLowerCase().contains(_query)).toList();
+                    : events
+                        .where((e) => e.name.toLowerCase().contains(_query))
+                        .toList();
 
                 if (filtered.isEmpty) {
                   return AppEmptyState(
@@ -109,12 +118,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 return ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   itemCount: filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) {
                     final event = filtered[index];
                     return CompactEventCard(
                       event: event,
-                      onTap: () => context.push(RoutePaths.eventDetailPath(event.id)),
+                      onTap: () =>
+                          context.push(RoutePaths.eventDetailPath(event.id)),
                     );
                   },
                 );

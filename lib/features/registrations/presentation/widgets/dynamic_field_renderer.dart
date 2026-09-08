@@ -57,9 +57,14 @@ class _FieldWidget extends StatelessWidget {
   final String? error;
   final ValueChanged<dynamic> onChanged;
 
-  const _FieldWidget({required this.field, required this.value, required this.error, required this.onChanged});
+  const _FieldWidget(
+      {required this.field,
+      required this.value,
+      required this.error,
+      required this.onChanged});
 
-  String get _labelWithRequiredMark => field.required ? '${field.label} *' : field.label;
+  String get _labelWithRequiredMark =>
+      field.required ? '${field.label} *' : field.label;
 
   @override
   Widget build(BuildContext context) {
@@ -71,17 +76,27 @@ class _FieldWidget extends StatelessWidget {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           errorText: error,
-          onChanged: (text) => onChanged(text.isEmpty ? null : int.tryParse(text)),
+          onChanged: (text) =>
+              onChanged(text.isEmpty ? null : int.tryParse(text)),
         );
 
       case 'select':
-        return _SelectField(field: field, value: value as String?, error: error, onChanged: onChanged);
+        return _SelectField(
+            field: field,
+            value: value as String?,
+            error: error,
+            onChanged: onChanged);
 
       case 'date':
-        return _DateField(field: field, value: value as String?, error: error, onChanged: onChanged);
+        return _DateField(
+            field: field,
+            value: value as String?,
+            error: error,
+            onChanged: onChanged);
 
       case 'boolean':
-        return _BooleanField(field: field, value: value as bool? ?? false, onChanged: onChanged);
+        return _BooleanField(
+            field: field, value: value as bool? ?? false, onChanged: onChanged);
 
       case 'text':
       default:
@@ -103,7 +118,11 @@ class _SelectField extends StatelessWidget {
   final String? error;
   final ValueChanged<dynamic> onChanged;
 
-  const _SelectField({required this.field, required this.value, required this.error, required this.onChanged});
+  const _SelectField(
+      {required this.field,
+      required this.value,
+      required this.error,
+      required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -111,12 +130,14 @@ class _SelectField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(field.required ? '${field.label} *' : field.label, style: AppTypography.bodyStrong),
+        Text(field.required ? '${field.label} *' : field.label,
+            style: AppTypography.bodyStrong),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           items: [
-            for (final option in options) DropdownMenuItem(value: option, child: Text(option)),
+            for (final option in options)
+              DropdownMenuItem(value: option, child: Text(option)),
           ],
           onChanged: onChanged,
           decoration: InputDecoration(errorText: error, hintText: 'Select…'),
@@ -132,7 +153,11 @@ class _DateField extends StatelessWidget {
   final String? error;
   final ValueChanged<dynamic> onChanged;
 
-  const _DateField({required this.field, required this.value, required this.error, required this.onChanged});
+  const _DateField(
+      {required this.field,
+      required this.value,
+      required this.error,
+      required this.onChanged});
 
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
@@ -155,12 +180,14 @@ class _DateField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(field.required ? '${field.label} *' : field.label, style: AppTypography.bodyStrong),
+        Text(field.required ? '${field.label} *' : field.label,
+            style: AppTypography.bodyStrong),
         const SizedBox(height: 6),
         InkWell(
           onTap: () => _pickDate(context),
           child: InputDecorator(
-            decoration: InputDecoration(errorText: error, hintText: 'Select a date'),
+            decoration:
+                InputDecoration(errorText: error, hintText: 'Select a date'),
             child: Text(value ?? 'Select a date', style: AppTypography.body),
           ),
         ),
@@ -174,14 +201,18 @@ class _BooleanField extends StatelessWidget {
   final bool value;
   final ValueChanged<dynamic> onChanged;
 
-  const _BooleanField({required this.field, required this.value, required this.onChanged});
+  const _BooleanField(
+      {required this.field, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(child: Text(field.label, style: AppTypography.body)),
-        Switch(value: value, onChanged: onChanged, activeColor: AppColors.accent),
+        Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.accent),
       ],
     );
   }

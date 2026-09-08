@@ -11,13 +11,16 @@ class RequestAssistanceScreen extends ConsumerStatefulWidget {
   final String eventId;
   final String registrationId;
 
-  const RequestAssistanceScreen({super.key, required this.eventId, required this.registrationId});
+  const RequestAssistanceScreen(
+      {super.key, required this.eventId, required this.registrationId});
 
   @override
-  ConsumerState<RequestAssistanceScreen> createState() => _RequestAssistanceScreenState();
+  ConsumerState<RequestAssistanceScreen> createState() =>
+      _RequestAssistanceScreenState();
 }
 
-class _RequestAssistanceScreenState extends ConsumerState<RequestAssistanceScreen> {
+class _RequestAssistanceScreenState
+    extends ConsumerState<RequestAssistanceScreen> {
   final _reasonController = TextEditingController();
   final _amountController = TextEditingController();
   bool _submitting = false;
@@ -46,8 +49,9 @@ class _RequestAssistanceScreenState extends ConsumerState<RequestAssistanceScree
         eventId: widget.eventId,
         registrationId: widget.registrationId,
         reason: reason,
-        requestedFeeWaiverAmount:
-            _amountController.text.trim().isEmpty ? null : double.tryParse(_amountController.text.trim()),
+        requestedFeeWaiverAmount: _amountController.text.trim().isEmpty
+            ? null
+            : double.tryParse(_amountController.text.trim()),
       );
       ref.invalidate(myAssistanceRequestsProvider);
       if (mounted) {
@@ -89,7 +93,11 @@ class _RequestAssistanceScreenState extends ConsumerState<RequestAssistanceScree
               Text(_error!, style: const TextStyle(color: Colors.red)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            AppButton(label: 'Submit request', fullWidth: true, loading: _submitting, onPressed: _submit),
+            AppButton(
+                label: 'Submit request',
+                fullWidth: true,
+                loading: _submitting,
+                onPressed: _submit),
           ],
         ),
       ),

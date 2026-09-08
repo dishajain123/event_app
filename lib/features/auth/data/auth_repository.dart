@@ -29,10 +29,13 @@ class AuthRepository {
   /// access token — the caller (AuthStateNotifier) is responsible for the
   /// subsequent role-assignments bootstrap, not this method, so this stays
   /// a single-purpose call matching a single backend endpoint.
-  Future<String> verifyOtp({required String mobileNumber, required String otp}) async {
+  Future<String> verifyOtp(
+      {required String mobileNumber, required String otp}) async {
     try {
-      final TokenPair tokens = await _api.verifyOtp(mobileNumber: mobileNumber, otp: otp);
-      await _tokenStorage.saveTokens(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken);
+      final TokenPair tokens =
+          await _api.verifyOtp(mobileNumber: mobileNumber, otp: otp);
+      await _tokenStorage.saveTokens(
+          accessToken: tokens.accessToken, refreshToken: tokens.refreshToken);
       return tokens.accessToken;
     } catch (e) {
       throw mapDioException(e);

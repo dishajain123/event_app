@@ -8,7 +8,8 @@ import '../storage/secure_token_storage.dart';
 /// Read once at startup (see main_development.dart etc.) and overridden
 /// into the ProviderScope — nothing computes its own AppConfig.
 final appConfigProvider = Provider<AppConfig>((ref) {
-  throw UnimplementedError('appConfigProvider must be overridden in main.dart before runApp.');
+  throw UnimplementedError(
+      'appConfigProvider must be overridden in main.dart before runApp.');
 });
 
 final secureTokenStorageProvider = Provider<SecureTokenStorage>((ref) {
@@ -26,7 +27,9 @@ final secureTokenStorageProvider = Provider<SecureTokenStorage>((ref) {
 /// makes that structurally impossible rather than something to remember.
 final _refreshOnlyDioProvider = Provider<Dio>((ref) {
   final config = ref.watch(appConfigProvider);
-  return Dio(BaseOptions(baseUrl: config.apiBaseUrl, headers: {'Content-Type': 'application/json'}));
+  return Dio(BaseOptions(
+      baseUrl: config.apiBaseUrl,
+      headers: {'Content-Type': 'application/json'}));
 });
 
 /// Set by the auth feature once it's initialized (see

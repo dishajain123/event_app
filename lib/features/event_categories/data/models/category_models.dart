@@ -52,7 +52,9 @@ class MainCategory {
       name: json['name'] as String,
       description: json['description'] as String?,
       isActive: json['is_active'] as bool,
-      subCategories: rawSubCategories.map((s) => SubCategory.fromJson(s as Map<String, dynamic>)).toList(),
+      subCategories: rawSubCategories
+          .map((s) => SubCategory.fromJson(s as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -66,7 +68,8 @@ class MainCategorySummary {
   const MainCategorySummary({required this.id, required this.name});
 
   factory MainCategorySummary.fromJson(Map<String, dynamic> json) {
-    return MainCategorySummary(id: json['id'] as String, name: json['name'] as String);
+    return MainCategorySummary(
+        id: json['id'] as String, name: json['name'] as String);
   }
 }
 
@@ -75,7 +78,8 @@ class SubCategorySummary {
   final String id;
   final String mainCategoryId;
   final String name;
-  const SubCategorySummary({required this.id, required this.mainCategoryId, required this.name});
+  const SubCategorySummary(
+      {required this.id, required this.mainCategoryId, required this.name});
 
   factory SubCategorySummary.fromJson(Map<String, dynamic> json) {
     return SubCategorySummary(

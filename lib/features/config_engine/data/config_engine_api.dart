@@ -17,7 +17,8 @@ class ConfigEngineApi {
     return EventConfiguration.fromJson(response.data!);
   }
 
-  Future<EventFieldSchema?> getFieldSchema(String eventId, String participationType) async {
+  Future<EventFieldSchema?> getFieldSchema(
+      String eventId, String participationType) async {
     final response = await _dio.get<Map<String, dynamic>?>(
       '/events/$eventId/field-schema/$participationType',
     );

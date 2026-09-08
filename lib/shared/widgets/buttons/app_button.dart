@@ -4,6 +4,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 
 enum AppButtonVariant { primary, secondary, ghost, danger }
+
 enum AppButtonSize { medium, large }
 
 /// The one button widget every screen uses (Section 3.10, 5.4) — no screen
@@ -42,7 +43,8 @@ class AppButton extends StatelessWidget {
               key: ValueKey('loading'),
               height: 18,
               width: 18,
-              child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2.2, color: Colors.white),
             )
           : Row(
               key: const ValueKey('label'),
@@ -59,17 +61,20 @@ class AppButton extends StatelessWidget {
 
     final button = _buildForVariant(context, isDisabled, height, child);
 
-    return fullWidth ? SizedBox(width: double.infinity, height: height, child: button) : button;
+    return fullWidth
+        ? SizedBox(width: double.infinity, height: height, child: button)
+        : button;
   }
 
-  Widget _buildForVariant(BuildContext context, bool isDisabled, double height, Widget child) {
+  Widget _buildForVariant(
+      BuildContext context, bool isDisabled, double height, Widget child) {
     switch (variant) {
       case AppButtonVariant.primary:
         return ElevatedButton(
           onPressed: isDisabled ? null : onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accent,
-            disabledBackgroundColor: AppColors.accent.withOpacity(0.4),
+            disabledBackgroundColor: AppColors.accent.withValues(alpha: 0.4),
             foregroundColor: Colors.white,
             minimumSize: Size(0, height),
           ),
@@ -80,7 +85,7 @@ class AppButton extends StatelessWidget {
           onPressed: isDisabled ? null : onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.danger,
-            disabledBackgroundColor: AppColors.danger.withOpacity(0.4),
+            disabledBackgroundColor: AppColors.danger.withValues(alpha: 0.4),
             foregroundColor: Colors.white,
             minimumSize: Size(0, height),
           ),

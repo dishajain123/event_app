@@ -40,16 +40,23 @@ class AppErrorState extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(color: AppColors.dangerSoft, shape: BoxShape.circle),
-              child: const Icon(Icons.error_outline_rounded, size: 28, color: AppColors.danger),
+              decoration: const BoxDecoration(
+                  color: AppColors.dangerSoft, shape: BoxShape.circle),
+              child: const Icon(Icons.error_outline_rounded,
+                  size: 28, color: AppColors.danger),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(title, style: AppTypography.title, textAlign: TextAlign.center),
+            Text(title,
+                style: AppTypography.title, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.sm),
-            Text(error.message, style: AppTypography.bodyMuted, textAlign: TextAlign.center),
+            Text(error.message,
+                style: AppTypography.bodyMuted, textAlign: TextAlign.center),
             if (showRetry && onRetry != null) ...[
               const SizedBox(height: AppSpacing.lg),
-              AppButton(label: 'Try again', onPressed: onRetry, variant: AppButtonVariant.secondary),
+              AppButton(
+                  label: 'Try again',
+                  onPressed: onRetry,
+                  variant: AppButtonVariant.secondary),
             ],
           ],
         ),

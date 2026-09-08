@@ -10,14 +10,17 @@ final configEngineRepositoryProvider = Provider<ConfigEngineRepository>((ref) {
   return ConfigEngineRepository(ConfigEngineApi(dio));
 });
 
-final eventConfigurationProvider = FutureProvider.family<EventConfiguration?, String>((ref, eventId) async {
+final eventConfigurationProvider =
+    FutureProvider.family<EventConfiguration?, String>((ref, eventId) async {
   final repository = ref.watch(configEngineRepositoryProvider);
   return repository.getConfiguration(eventId);
 });
 
 typedef FieldSchemaQuery = ({String eventId, String participationType});
 
-final eventFieldSchemaProvider = FutureProvider.family<EventFieldSchema?, FieldSchemaQuery>((ref, query) async {
+final eventFieldSchemaProvider =
+    FutureProvider.family<EventFieldSchema?, FieldSchemaQuery>(
+        (ref, query) async {
   final repository = ref.watch(configEngineRepositoryProvider);
   return repository.getFieldSchema(query.eventId, query.participationType);
 });

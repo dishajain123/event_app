@@ -14,7 +14,8 @@ enum AssistanceRequestStatus {
   static AssistanceRequestStatus fromWire(String value) {
     return AssistanceRequestStatus.values.firstWhere(
       (s) => s.wireValue == value,
-      orElse: () => throw FormatException('Unknown assistance request status from backend: $value'),
+      orElse: () => throw FormatException(
+          'Unknown assistance request status from backend: $value'),
     );
   }
 
@@ -66,9 +67,12 @@ class AssistanceRequest {
       reviewerUserId: json['reviewer_user_id'] as String?,
       status: AssistanceRequestStatus.fromWire(json['status'] as String),
       reason: json['reason'] as String,
-      requestedFeeWaiverAmount: parseFlexibleDecimal(json['requested_fee_waiver_amount']),
+      requestedFeeWaiverAmount:
+          parseFlexibleDecimal(json['requested_fee_waiver_amount']),
       decisionReason: json['decision_reason'] as String?,
-      decidedAt: json['decided_at'] != null ? DateTime.parse(json['decided_at'] as String) : null,
+      decidedAt: json['decided_at'] != null
+          ? DateTime.parse(json['decided_at'] as String)
+          : null,
       appliedDiscountCode: json['applied_discount_code'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );

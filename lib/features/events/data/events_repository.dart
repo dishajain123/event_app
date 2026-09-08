@@ -7,9 +7,11 @@ class EventsRepository {
   final EventsApi _api;
   const EventsRepository(this._api);
 
-  Future<List<AppEvent>> listEvents({String? mainCategoryId, String? subCategoryId}) async {
+  Future<List<AppEvent>> listEvents(
+      {String? mainCategoryId, String? subCategoryId}) async {
     try {
-      return await _api.listEvents(mainCategoryId: mainCategoryId, subCategoryId: subCategoryId);
+      return await _api.listEvents(
+          mainCategoryId: mainCategoryId, subCategoryId: subCategoryId);
     } catch (e) {
       throw mapDioException(e);
     }

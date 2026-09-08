@@ -39,7 +39,8 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
     });
     try {
       final repository = ref.read(teamsRepositoryProvider);
-      final team = await repository.createTeam(eventId: widget.eventId, name: name);
+      final team =
+          await repository.createTeam(eventId: widget.eventId, name: name);
       if (mounted) context.pushReplacement(RoutePaths.teamRosterPath(team.id));
     } on AppException catch (e) {
       setState(() => _error = e.message);
@@ -56,13 +57,20 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            AppTextField(controller: _nameController, label: 'Team name', autofocus: true),
+            AppTextField(
+                controller: _nameController,
+                label: 'Team name',
+                autofocus: true),
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
               Text(_error!, style: const TextStyle(color: Colors.red)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            AppButton(label: 'Create team', fullWidth: true, loading: _submitting, onPressed: _submit),
+            AppButton(
+                label: 'Create team',
+                fullWidth: true,
+                loading: _submitting,
+                onPressed: _submit),
           ],
         ),
       ),

@@ -56,13 +56,14 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   Future<void> _refreshQueuedCount() async {
     final repository = ref.read(checkInRepositoryProvider);
     final queued = await repository.listQueued();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _queuedCount =
             queued.where((item) => item.syncStatus == 'pending').length;
         _attentionCount =
             queued.where((item) => item.syncStatus == 'failed').length;
       });
+    }
   }
 
   Future<void> _syncQueue() async {
@@ -244,7 +245,8 @@ class _ScannerOverlay extends StatelessWidget {
           width: 240,
           height: 240,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white.withOpacity(0.8), width: 3),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.8), width: 3),
             borderRadius: BorderRadius.circular(24),
           ),
         ),
@@ -321,9 +323,9 @@ class _ManualEntrySheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Enter ticket code', style: AppTypography.title),
+          const Text('Enter ticket code', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
-          Text('For a damaged or unreadable barcode.',
+          const Text('For a damaged or unreadable barcode.',
               style: AppTypography.caption),
           const SizedBox(height: AppSpacing.md),
           AppTextField(

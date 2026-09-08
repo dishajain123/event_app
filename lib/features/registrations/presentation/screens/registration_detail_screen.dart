@@ -21,7 +21,8 @@ class RegistrationDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final registrationAsync = ref.watch(registrationDetailProvider(registrationId));
+    final registrationAsync =
+        ref.watch(registrationDetailProvider(registrationId));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Registration')),
@@ -29,8 +30,11 @@ class RegistrationDetailScreen extends ConsumerWidget {
         child: registrationAsync.when(
           loading: () => const AppSkeleton.detailPage(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
-            onRetry: () => ref.invalidate(registrationDetailProvider(registrationId)),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
+            onRetry: () =>
+                ref.invalidate(registrationDetailProvider(registrationId)),
           ),
           data: (registration) => ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -38,7 +42,8 @@ class RegistrationDetailScreen extends ConsumerWidget {
               Row(
                 children: [
                   Text(
-                    registration.participationType[0].toUpperCase() + registration.participationType.substring(1),
+                    registration.participationType[0].toUpperCase() +
+                        registration.participationType.substring(1),
                     style: AppTypography.headline,
                   ),
                   const Spacer(),
@@ -53,24 +58,28 @@ class RegistrationDetailScreen extends ConsumerWidget {
                     color: const Color(0xFFFEF2F2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(registration.rejectionReason!, style: AppTypography.body),
+                  child: Text(registration.rejectionReason!,
+                      style: AppTypography.body),
                 ),
               const SizedBox(height: AppSpacing.lg),
               if (registration.participants.isNotEmpty) ...[
-                Text('Participants', style: AppTypography.title),
+                const Text('Participants', style: AppTypography.title),
                 const SizedBox(height: AppSpacing.md),
                 for (final participant in registration.participants)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: Text(
-                      participant.isCaptain ? '${participant.fullName} (Captain)' : participant.fullName,
+                      participant.isCaptain
+                          ? '${participant.fullName} (Captain)'
+                          : participant.fullName,
                       style: AppTypography.body,
                     ),
                   ),
               ],
               if (registration.submittedAt != null) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text('Submitted ${registration.submittedAt}', style: AppTypography.caption),
+                Text('Submitted ${registration.submittedAt}',
+                    style: AppTypography.caption),
               ],
               if (registration.status == RegistrationStatus.pendingPayment) ...[
                 const SizedBox(height: AppSpacing.xl),
@@ -78,7 +87,8 @@ class RegistrationDetailScreen extends ConsumerWidget {
                   label: 'Pay now',
                   fullWidth: true,
                   size: AppButtonSize.large,
-                  onPressed: () => context.push(RoutePaths.paymentCheckoutPath(registration.id)),
+                  onPressed: () => context
+                      .push(RoutePaths.paymentCheckoutPath(registration.id)),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
@@ -86,13 +96,15 @@ class RegistrationDetailScreen extends ConsumerWidget {
                   variant: AppButtonVariant.ghost,
                   fullWidth: true,
                   onPressed: () => context.push(
-                    RoutePaths.requestAssistancePath(registration.eventId, registration.id),
+                    RoutePaths.requestAssistancePath(
+                        registration.eventId, registration.id),
                   ),
                 ),
               ],
               if (registration.cancellationReason != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text('Cancellation note: ${registration.cancellationReason}', style: AppTypography.bodyMuted),
+                Text('Cancellation note: ${registration.cancellationReason}',
+                    style: AppTypography.bodyMuted),
               ],
               if (registration.paymentStatus != null) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -139,17 +151,20 @@ class RegistrationDetailScreen extends ConsumerWidget {
     return deadline == null || DateTime.now().isBefore(deadline);
   }
 
-  Future<void> _cancel(BuildContext context, WidgetRef ref, String registrationId) async {
+  Future<void> _cancel(
+      BuildContext context, WidgetRef ref, String registrationId) async {
     final confirmed = await showConfirmActionSheet(
       context,
       title: 'Cancel this registration?',
-      description: 'Paid registrations enter refund review. Your ticket is cancelled only after a full refund succeeds.',
+      description:
+          'Paid registrations enter refund review. Your ticket is cancelled only after a full refund succeeds.',
       confirmLabel: 'Cancel registration',
       danger: true,
       requireReason: true,
       reasonLabel: 'Reason for cancellation',
       onConfirm: (reason) async {
-        await ref.read(cancelRegistrationProvider)(registrationId, reason: reason);
+        await ref.read(cancelRegistrationProvider)(registrationId,
+            reason: reason);
         ref.invalidate(registrationDetailProvider(registrationId));
         ref.invalidate(myRegistrationsProvider);
         ref.invalidate(myTicketsProvider);

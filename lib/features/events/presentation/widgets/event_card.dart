@@ -6,10 +6,22 @@ import '../../../../core/theme/app_typography.dart';
 import '../../data/models/app_event.dart';
 
 const _monthAbbreviations = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
-String _formatDate(DateTime d) => '${_monthAbbreviations[d.month - 1]} ${d.day}';
+String _formatDate(DateTime d) =>
+    '${_monthAbbreviations[d.month - 1]} ${d.day}';
 
 String _formatDateRange(DateTime start, DateTime end, bool sameDay) {
   if (sameDay) return _formatDate(start);
@@ -46,7 +58,8 @@ class _CoverImage extends StatelessWidget {
       placeholder: (context, url) => Container(color: AppColors.backgroundAlt),
       errorWidget: (context, url, error) => Container(
         color: AppColors.backgroundAlt,
-        child: const Icon(Icons.image_not_supported_outlined, color: AppColors.inkSubtle),
+        child: const Icon(Icons.image_not_supported_outlined,
+            color: AppColors.inkSubtle),
       ),
     );
   }
@@ -58,7 +71,11 @@ class FeaturedEventCard extends StatelessWidget {
   final String? coverImageUrl;
   final VoidCallback onTap;
 
-  const FeaturedEventCard({super.key, required this.event, this.coverImageUrl, required this.onTap});
+  const FeaturedEventCard(
+      {super.key,
+      required this.event,
+      this.coverImageUrl,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +94,10 @@ class FeaturedEventCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.75)
+                    ],
                     stops: const [0.4, 1.0],
                   ),
                 ),
@@ -92,14 +112,16 @@ class FeaturedEventCard extends StatelessWidget {
                     if (event.displayCategory != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           event.displayCategory!,
-                          style: AppTypography.caption.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                          style: AppTypography.caption.copyWith(
+                              color: Colors.white, fontWeight: FontWeight.w600),
                         ),
                       ),
                     Text(
@@ -110,8 +132,10 @@ class FeaturedEventCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatDateRange(event.startDate, event.endDate, event.isSameDayEvent),
-                      style: AppTypography.caption.copyWith(color: Colors.white.withOpacity(0.85)),
+                      _formatDateRange(
+                          event.startDate, event.endDate, event.isSameDayEvent),
+                      style: AppTypography.caption.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85)),
                     ),
                   ],
                 ),
@@ -131,7 +155,11 @@ class CompactEventCard extends StatelessWidget {
   final String? coverImageUrl;
   final VoidCallback onTap;
 
-  const CompactEventCard({super.key, required this.event, this.coverImageUrl, required this.onTap});
+  const CompactEventCard(
+      {super.key,
+      required this.event,
+      this.coverImageUrl,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +168,7 @@ class CompactEventCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(AppSpacing.lg),
         ),
         child: Row(
@@ -158,15 +186,20 @@ class CompactEventCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.name, style: AppTypography.bodyStrong, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(event.name,
+                      style: AppTypography.bodyStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Text(
-                    _formatDateRange(event.startDate, event.endDate, event.isSameDayEvent),
+                    _formatDateRange(
+                        event.startDate, event.endDate, event.isSameDayEvent),
                     style: AppTypography.caption,
                   ),
                   if (event.displayCategory != null) ...[
                     const SizedBox(height: 4),
-                    Text(event.displayCategory!, style: AppTypography.captionSubtle),
+                    Text(event.displayCategory!,
+                        style: AppTypography.captionSubtle),
                   ],
                 ],
               ),

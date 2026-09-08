@@ -54,7 +54,9 @@ class EventFieldSchema {
       id: json['id'] as String,
       eventId: json['event_id'] as String,
       participationType: json['participation_type'] as String,
-      fields: rawFields.map((f) => ConfigurableField.fromJson(f as Map<String, dynamic>)).toList(),
+      fields: rawFields
+          .map((f) => ConfigurableField.fromJson(f as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -69,7 +71,8 @@ class ValidationErrorItem {
   const ValidationErrorItem({required this.field, required this.message});
 
   factory ValidationErrorItem.fromJson(Map<String, dynamic> json) {
-    return ValidationErrorItem(field: json['field'] as String, message: json['message'] as String);
+    return ValidationErrorItem(
+        field: json['field'] as String, message: json['message'] as String);
   }
 }
 
@@ -82,7 +85,9 @@ class ValidationResult {
     final rawErrors = json['errors'] as List<dynamic>? ?? [];
     return ValidationResult(
       isEligible: json['is_eligible'] as bool,
-      errors: rawErrors.map((e) => ValidationErrorItem.fromJson(e as Map<String, dynamic>)).toList(),
+      errors: rawErrors
+          .map((e) => ValidationErrorItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 

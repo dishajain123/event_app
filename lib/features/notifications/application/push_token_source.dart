@@ -19,7 +19,8 @@ class PushTokenSource {
   Future<String?> getToken() async {
     try {
       await Firebase.initializeApp();
-      await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
+      await FirebaseMessaging.instance
+          .requestPermission(alert: true, badge: true, sound: true);
       return await FirebaseMessaging.instance.getToken();
     } catch (_) {
       // A missing native Firebase configuration must not block authentication.
@@ -30,11 +31,13 @@ class PushTokenSource {
 
   Stream<String> get tokenChanges => FirebaseMessaging.instance.onTokenRefresh;
 
-  Future<void> initializeMessageHandlers({required void Function(Map<String, dynamic>) onOpened}) async {
+  Future<void> initializeMessageHandlers(
+      {required void Function(Map<String, dynamic>) onOpened}) async {
     try {
       FirebaseMessaging.onBackgroundMessage(_handleBackgroundMessage);
       FirebaseMessaging.onMessage.listen((message) => onOpened(message.data));
-      FirebaseMessaging.onMessageOpenedApp.listen((message) => onOpened(message.data));
+      FirebaseMessaging.onMessageOpenedApp
+          .listen((message) => onOpened(message.data));
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial != null) onOpened(initial.data);
     } catch (_) {

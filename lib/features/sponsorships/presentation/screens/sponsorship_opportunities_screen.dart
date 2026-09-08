@@ -18,12 +18,12 @@ class SponsorshipOpportunitiesScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text('Support meaningful events', style: AppTypography.display),
+          const Text('Support meaningful events', style: AppTypography.display),
           const SizedBox(height: AppSpacing.sm),
           const Text(
               'Connect your brand with communities, participants, and memorable experiences.'),
           const SizedBox(height: AppSpacing.xl),
-          Text('Sponsorship categories', style: AppTypography.title),
+          const Text('Sponsorship categories', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
           categories.when(
             loading: () => const LinearProgressIndicator(),
@@ -37,7 +37,7 @@ class SponsorshipOpportunitiesScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Available packages', style: AppTypography.title),
+          const Text('Available packages', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
           packages.when(
             loading: () => const LinearProgressIndicator(),

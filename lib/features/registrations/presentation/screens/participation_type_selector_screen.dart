@@ -30,14 +30,19 @@ class ParticipationTypeSelectorScreen extends ConsumerWidget {
         child: eventAsync.when(
           loading: () => const AppSkeleton.form(),
           error: (error, stackTrace) => AppErrorState(
-            error: error is AppException ? error : UnknownException(error.toString()),
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
             onRetry: () => ref.invalidate(eventDetailProvider(eventId)),
           ),
           data: (event) => configAsync.when(
             loading: () => const AppSkeleton.form(),
             error: (error, stackTrace) => AppErrorState(
-              error: error is AppException ? error : UnknownException(error.toString()),
-              onRetry: () => ref.invalidate(eventConfigurationProvider(eventId)),
+              error: error is AppException
+                  ? error
+                  : UnknownException(error.toString()),
+              onRetry: () =>
+                  ref.invalidate(eventConfigurationProvider(eventId)),
             ),
             data: (config) {
               final types = config?.participationTypes ?? [];
@@ -58,7 +63,8 @@ class ParticipationTypeSelectorScreen extends ConsumerWidget {
                 children: [
                   Text(event.name, style: AppTypography.title),
                   const SizedBox(height: AppSpacing.sm),
-                  const Text('How would you like to register?', style: AppTypography.bodyMuted),
+                  const Text('How would you like to register?',
+                      style: AppTypography.bodyMuted),
                   const SizedBox(height: AppSpacing.xl),
                   for (final type in types)
                     Padding(
@@ -69,7 +75,8 @@ class ParticipationTypeSelectorScreen extends ConsumerWidget {
                           if (type == 'team') {
                             context.push(RoutePaths.createTeamPath(eventId));
                           } else {
-                            context.push(RoutePaths.registrationFormPath(eventId, type));
+                            context.push(
+                                RoutePaths.registrationFormPath(eventId, type));
                           }
                         },
                       ),
@@ -109,7 +116,7 @@ class _TypeOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -117,7 +124,8 @@ class _TypeOption extends StatelessWidget {
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                  color: AppColors.accentSoft, shape: BoxShape.circle),
               child: Icon(_icon, color: AppColors.accentStrong, size: 22),
             ),
             const SizedBox(width: AppSpacing.md),

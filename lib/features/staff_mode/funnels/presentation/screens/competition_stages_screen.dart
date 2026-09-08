@@ -59,7 +59,7 @@ class _CompetitionCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -94,7 +94,7 @@ class _CompetitionCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Fixtures', style: AppTypography.bodyStrong),
+                      const Text('Fixtures', style: AppTypography.bodyStrong),
                       ...rows.take(5).map((row) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Text(
@@ -184,7 +184,7 @@ class _LegacyStages extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

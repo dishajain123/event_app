@@ -52,16 +52,21 @@ class _SplashMark extends StatelessWidget {
             color: AppColors.accent,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: AppColors.accent.withOpacity(0.35), blurRadius: 24, offset: const Offset(0, 12)),
+              BoxShadow(
+                  color: AppColors.accent.withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12)),
             ],
           ),
-          child: const Icon(Icons.event_available_rounded, color: Colors.white, size: 36),
+          child: const Icon(Icons.event_available_rounded,
+              color: Colors.white, size: 36),
         ),
         const SizedBox(height: 24),
         const SizedBox(
           width: 22,
           height: 22,
-          child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.accentStrong),
+          child: CircularProgressIndicator(
+              strokeWidth: 2.4, color: AppColors.accentStrong),
         ),
       ],
     );

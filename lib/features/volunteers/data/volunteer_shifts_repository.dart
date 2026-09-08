@@ -1,7 +1,9 @@
 import 'models/volunteer_shift.dart';
 import 'volunteer_shifts_api.dart';
+
 class VolunteerShiftsRepository {
-  final VolunteerShiftsApi api; const VolunteerShiftsRepository(this.api);
+  final VolunteerShiftsApi api;
+  const VolunteerShiftsRepository(this.api);
   Future<List<VolunteerShift>> available() => api.available();
   Future<List<VolunteerShiftAssignment>> mine() => api.mine();
   Future<VolunteerShiftAssignment> request(String id) => api.request(id);

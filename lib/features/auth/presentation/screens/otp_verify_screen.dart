@@ -104,10 +104,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.arrow_back_rounded),
                   style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.6)),
+                      backgroundColor: Colors.white.withValues(alpha: 0.6)),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text('Enter the code', style: AppTypography.display),
+                const Text('Enter the code', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Sent to ${formatMobileNumberForDisplay(widget.mobileNumber)}',

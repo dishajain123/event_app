@@ -42,12 +42,12 @@ class ProfileScreen extends ConsumerWidget {
             // event (Section 3.3, 6.5). A plain participant account never
             // sees this section at all, not even disabled.
             if (roles.hasStaffModeAccess) ...[
-              _SectionLabel('Staff access'),
+              const _SectionLabel('Staff access'),
               _StaffModeSwitchTile(eventCount: roles.staffModeEventIds.length),
               const SizedBox(height: AppSpacing.xl),
             ],
 
-            _SectionLabel('Account'),
+            const _SectionLabel('Account'),
             _ProfileMenuTile(
               icon: Icons.child_care_rounded,
               label: 'My Children',
@@ -71,13 +71,13 @@ class ProfileScreen extends ConsumerWidget {
             _ProfileMenuTile(
               icon: Icons.queue_outlined,
               label: 'My Waitlists',
-                onTap: () => context.push(RoutePaths.myWaitlists),
-              ),
-              ListTile(
-                leading: const Icon(Icons.work_history_outlined),
-                title: const Text('Volunteer shifts'),
-                onTap: () => context.push(RoutePaths.myVolunteerShifts),
-              ),
+              onTap: () => context.push(RoutePaths.myWaitlists),
+            ),
+            ListTile(
+              leading: const Icon(Icons.work_history_outlined),
+              title: const Text('Volunteer shifts'),
+              onTap: () => context.push(RoutePaths.myVolunteerShifts),
+            ),
             _ProfileMenuTile(
               icon: Icons.rate_review_outlined,
               label: 'My Feedback',
@@ -208,8 +208,8 @@ class _StaffModeSwitchTile extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.staffModeAccentSoft,
           borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: AppColors.staffModeAccent.withOpacity(0.25)),
+          border: Border.all(
+              color: AppColors.staffModeAccent.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [

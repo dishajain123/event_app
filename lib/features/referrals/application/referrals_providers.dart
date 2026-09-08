@@ -9,7 +9,8 @@ final referralsRepositoryProvider = Provider<ReferralsRepository>((ref) {
   return ReferralsRepository(ReferralsApi(dio));
 });
 
-final myReferralProvider = FutureProvider.family<MyReferral, String>((ref, eventId) async {
+final myReferralProvider =
+    FutureProvider.family<MyReferral, String>((ref, eventId) async {
   final repository = ref.watch(referralsRepositoryProvider);
   return repository.getMine(eventId);
 });

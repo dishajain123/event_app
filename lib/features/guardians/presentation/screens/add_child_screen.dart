@@ -54,7 +54,9 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
     });
     try {
       final repository = ref.read(guardiansRepositoryProvider);
-      await repository.createChild(fullName: _nameController.text.trim(), dateOfBirthIso: _dateOfBirthIso!);
+      await repository.createChild(
+          fullName: _nameController.text.trim(),
+          dateOfBirthIso: _dateOfBirthIso!);
       ref.invalidate(myChildrenProvider);
       if (mounted) context.pop();
     } on AppException catch (e) {
@@ -72,23 +74,31 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            AppTextField(controller: _nameController, label: "Child's full name"),
+            AppTextField(
+                controller: _nameController, label: "Child's full name"),
             const SizedBox(height: AppSpacing.lg),
             const Text('Date of birth', style: AppTypography.bodyStrong),
             const SizedBox(height: 6),
             InkWell(
               onTap: _pickDate,
               child: InputDecorator(
-                decoration: const InputDecoration(hintText: 'Select date of birth'),
-                child: Text(_dateOfBirthIso ?? 'Select date of birth', style: AppTypography.body),
+                decoration:
+                    const InputDecoration(hintText: 'Select date of birth'),
+                child: Text(_dateOfBirthIso ?? 'Select date of birth',
+                    style: AppTypography.body),
               ),
             ),
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
-              Text(_error!, style: AppTypography.body.copyWith(color: Colors.red)),
+              Text(_error!,
+                  style: AppTypography.body.copyWith(color: Colors.red)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            AppButton(label: 'Add child', fullWidth: true, loading: _submitting, onPressed: _submit),
+            AppButton(
+                label: 'Add child',
+                fullWidth: true,
+                loading: _submitting,
+                onPressed: _submit),
           ],
         ),
       ),

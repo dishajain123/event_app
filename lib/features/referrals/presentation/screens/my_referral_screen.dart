@@ -61,8 +61,8 @@ class MyReferralScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Your referral code',
-                      style: AppTypography.caption
-                          .copyWith(color: Colors.white.withOpacity(0.85)),
+                      style: AppTypography.caption.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85)),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
@@ -96,7 +96,7 @@ class MyReferralScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               if (referral.rewards.isEmpty)
-                Text(
+                const Text(
                     'No referrals tracked yet — share your code to get started.',
                     style: AppTypography.bodyMuted)
               else
@@ -105,7 +105,7 @@ class MyReferralScreen extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(

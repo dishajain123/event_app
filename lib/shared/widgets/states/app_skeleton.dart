@@ -7,19 +7,22 @@ class _ShimmerBox extends StatefulWidget {
   final double height;
   final BorderRadius borderRadius;
 
-  const _ShimmerBox({this.width, required this.height, required this.borderRadius});
+  const _ShimmerBox(
+      {this.width, required this.height, required this.borderRadius});
 
   @override
   State<_ShimmerBox> createState() => _ShimmerBoxState();
 }
 
-class _ShimmerBoxState extends State<_ShimmerBox> with SingleTickerProviderStateMixin {
+class _ShimmerBoxState extends State<_ShimmerBox>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1400))
       ..repeat();
   }
 
@@ -43,7 +46,11 @@ class _ShimmerBoxState extends State<_ShimmerBox> with SingleTickerProviderState
             gradient: LinearGradient(
               begin: Alignment(-1.0 + 2 * t, 0),
               end: Alignment(1.0 + 2 * t, 0),
-              colors: const [Color(0x11000000), Color(0x22000000), Color(0x11000000)],
+              colors: const [
+                Color(0x11000000),
+                Color(0x22000000),
+                Color(0x11000000)
+              ],
             ),
           ),
         );
@@ -63,14 +70,16 @@ class AppSkeleton extends StatelessWidget {
 
   /// A vertical list of card-shaped placeholders — e.g. the event feed,
   /// My Registrations, My Tickets.
-  const AppSkeleton.cardList({int count = 4}) : this._(_SkeletonShape.cardList, count);
+  const AppSkeleton.cardList({int count = 4})
+      : this._(_SkeletonShape.cardList, count);
 
   /// A single detail-page shaped placeholder — cover image block, title,
   /// a few text lines.
   const AppSkeleton.detailPage() : this._(_SkeletonShape.detailPage, 0);
 
   /// A form-shaped placeholder — a handful of label+field pairs.
-  const AppSkeleton.form({int fieldCount = 4}) : this._(_SkeletonShape.form, fieldCount);
+  const AppSkeleton.form({int fieldCount = 4})
+      : this._(_SkeletonShape.form, fieldCount);
 
   @override
   Widget build(BuildContext context) {
@@ -113,13 +122,21 @@ class _DetailPageSkeleton extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: const [
-        _ShimmerBox(height: 220, borderRadius: BorderRadius.all(Radius.circular(20))),
+        _ShimmerBox(
+            height: 220, borderRadius: BorderRadius.all(Radius.circular(20))),
         SizedBox(height: 20),
-        _ShimmerBox(height: 24, width: 220, borderRadius: BorderRadius.all(Radius.circular(8))),
+        _ShimmerBox(
+            height: 24,
+            width: 220,
+            borderRadius: BorderRadius.all(Radius.circular(8))),
         SizedBox(height: 12),
-        _ShimmerBox(height: 16, borderRadius: BorderRadius.all(Radius.circular(6))),
+        _ShimmerBox(
+            height: 16, borderRadius: BorderRadius.all(Radius.circular(6))),
         SizedBox(height: 8),
-        _ShimmerBox(height: 16, width: 260, borderRadius: BorderRadius.all(Radius.circular(6))),
+        _ShimmerBox(
+            height: 16,
+            width: 260,
+            borderRadius: BorderRadius.all(Radius.circular(6))),
       ],
     );
   }
@@ -138,9 +155,13 @@ class _FormSkeleton extends StatelessWidget {
       itemBuilder: (context, index) => const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ShimmerBox(height: 14, width: 100, borderRadius: BorderRadius.all(Radius.circular(6))),
+          _ShimmerBox(
+              height: 14,
+              width: 100,
+              borderRadius: BorderRadius.all(Radius.circular(6))),
           SizedBox(height: 8),
-          _ShimmerBox(height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
+          _ShimmerBox(
+              height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
         ],
       ),
     );
