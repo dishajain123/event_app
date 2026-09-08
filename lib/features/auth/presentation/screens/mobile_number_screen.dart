@@ -11,6 +11,11 @@ import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../application/auth_state_provider.dart';
 import '../../../../app/router/route_paths.dart';
 
+/// Login/sign-in entry point. All state fields, [_submit], and
+/// [_recoverPassword] are unchanged from before — same mobile+OTP and
+/// email+password flows, calling the exact same [authStateProvider]
+/// methods with the exact same arguments. Only [build] (the visual layer)
+/// is refreshed.
 class MobileNumberScreen extends ConsumerStatefulWidget {
   final String? returnTo;
 
@@ -132,53 +137,58 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: DecoratedBox(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.lg),
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.accent, AppColors.accentViolet],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.32),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: const Icon(Icons.event_available_rounded,
-                      color: Colors.white, size: 28),
+                      color: Colors.white, size: 30),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                const Text('Welcome', style: AppTypography.display),
+                const Text('Welcome back', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
                 const Text(
-                  'Sign in to continue. You can use your mobile OTP or email password.',
+                  'Sign in to continue with your mobile OTP or email and password.',
                   style: AppTypography.bodyMuted,
                 ),
                 const SizedBox(height: AppSpacing.xxl),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('Mobile + OTP')),
-                    ButtonSegment(value: true, label: Text('Email + password')),
-                  ],
-                  selected: {_emailMode},
-                  onSelectionChanged: (value) => setState(() { _emailMode = value.first; _errorText = null; }),
+                _ModeToggle(
+                  emailMode: _emailMode,
+                  onChanged: (value) =>
+                      setState(() { _emailMode = value; _errorText = null; }),
                 ),
                 if (_emailMode) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: true, label: Text('Log in')),
-                      ButtonSegment(value: false, label: Text('Sign up')),
-                    ],
-                    selected: {_loginMode},
-                    onSelectionChanged: (value) => setState(() => _loginMode = value.first),
+                  const SizedBox(height: AppSpacing.md),
+                  _LoginSignupToggle(
+                    loginMode: _loginMode,
+                    onChanged: (value) => setState(() => _loginMode = value),
                   ),
                 ],
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.xl),
                 AppTextField(
                   controller: _controller,
                   label: _emailMode ? 'Email address' : 'Mobile number',
@@ -205,7 +215,12 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                     errorText: null,
                   ),
                   if (_loginMode)
-                    Align(alignment: Alignment.centerRight, child: TextButton(onPressed: _recoverPassword, child: const Text('Forgot password?'))),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                          onPressed: _recoverPassword,
+                          child: const Text('Forgot password?')),
+                    ),
                 ],
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
@@ -215,17 +230,112 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                   fullWidth: true,
                   size: AppButtonSize.large,
                 ),
-                const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: AppSpacing.lg),
-                  child: Text(
-                    'Only accounts you sign in to here are ever created — there is no separate sign-up.',
-                    style: AppTypography.captionSubtle,
-                    textAlign: TextAlign.center,
-                  ),
+                const SizedBox(height: AppSpacing.xxl),
+                const Text(
+                  'Only accounts you sign in to here are ever created — there is no separate sign-up.',
+                  style: AppTypography.captionSubtle,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Presentation-only replacement for the old [SegmentedButton]: a pill
+/// track with an animated sliding indicator, driven by the exact same
+/// boolean the screen already held ([_emailMode]).
+class _ModeToggle extends StatelessWidget {
+  final bool emailMode;
+  final ValueChanged<bool> onChanged;
+  const _ModeToggle({required this.emailMode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _PillToggle(
+      selectedRight: emailMode,
+      leftLabel: 'Mobile + OTP',
+      rightLabel: 'Email + password',
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _LoginSignupToggle extends StatelessWidget {
+  final bool loginMode;
+  final ValueChanged<bool> onChanged;
+  const _LoginSignupToggle({required this.loginMode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _PillToggle(
+      selectedRight: !loginMode,
+      leftLabel: 'Log in',
+      rightLabel: 'Sign up',
+      onChanged: (rightSelected) => onChanged(!rightSelected),
+    );
+  }
+}
+
+class _PillToggle extends StatelessWidget {
+  final bool selectedRight;
+  final String leftLabel;
+  final String rightLabel;
+  final ValueChanged<bool> onChanged;
+
+  const _PillToggle({
+    required this.selectedRight,
+    required this.leftLabel,
+    required this.rightLabel,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _segment(leftLabel, !selectedRight, () => onChanged(false))),
+          Expanded(child: _segment(rightLabel, selectedRight, () => onChanged(true))),
+        ],
+      ),
+    );
+  }
+
+  Widget _segment(String label, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          boxShadow: selected
+              ? [
+                  const BoxShadow(
+                    color: AppColors.shadowColor,
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ]
+              : const [],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: selected ? AppColors.accentStrong : AppColors.inkMuted,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

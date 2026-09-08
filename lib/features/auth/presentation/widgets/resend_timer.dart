@@ -4,8 +4,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
 /// Counts down from [initialSeconds] (the backend's real
-/// resend_available_in_seconds — Section 8, Phase 1) and calls
-/// [onResend] once the user taps after it reaches zero.
+/// resend_available_in_seconds) and calls [onResend] once the user taps
+/// after it reaches zero. Public API and timer logic are unchanged; only
+/// the two rendered states (counting vs. ready) got a small visual pass.
 class ResendTimer extends StatefulWidget {
   final int initialSeconds;
   final VoidCallback onResend;
@@ -60,17 +61,34 @@ class _ResendTimerState extends State<ResendTimer> {
   @override
   Widget build(BuildContext context) {
     if (_remaining > 0) {
-      return Text('Resend code in ${_remaining}s',
-          style: AppTypography.caption);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, size: 15, color: AppColors.inkSubtle),
+          const SizedBox(width: 6),
+          Text('Resend code in ${_remaining}s', style: AppTypography.caption),
+        ],
+      );
     }
-    return GestureDetector(
+    return InkWell(
       onTap: widget.onResend,
-      child: const Text(
-        'Resend code',
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.accentStrong,
+      borderRadius: BorderRadius.circular(999),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.refresh_rounded,
+                size: 15, color: AppColors.accentStrong),
+            const SizedBox(width: 6),
+            Text(
+              'Resend code',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.accentStrong,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

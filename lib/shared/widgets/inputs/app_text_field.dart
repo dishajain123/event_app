@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 
-/// The one text field widget every form uses (Section 5.4) — including,
-/// from Phase 3 onward, being the base for the dynamic registration field
-/// renderer's text-type fields.
-class AppTextField extends StatelessWidget {
+/// The one text field widget every form uses. Public API is unchanged —
+/// every named parameter is identical to before — so nothing that already
+/// constructs an [AppTextField] needs to change. Internally it now tracks
+/// focus to animate its own label color/weight and border glow, instead of
+/// relying only on the global [InputDecorationTheme].
+class AppTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? label;
   final String? hint;
@@ -38,29 +42,87 @@ class AppTextField extends StatelessWidget {
   });
 
   @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  late final FocusNode _focusNode;
+  bool _ownsFocusNode = false;
+  bool _focused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focusNode != null) {
+      _focusNode = widget.focusNode!;
+    } else {
+      _focusNode = FocusNode();
+      _ownsFocusNode = true;
+    }
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (mounted) setState(() => _focused = _focusNode.hasFocus);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
+    if (_ownsFocusNode) _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) ...[
-          Text(label!, style: AppTypography.bodyStrong),
+        if (widget.label != null) ...[
+          AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 150),
+            style: AppTypography.bodyStrong.copyWith(
+              color: hasError
+                  ? AppColors.danger
+                  : (_focused ? AppColors.accentStrong : AppColors.ink),
+            ),
+            child: Text(widget.label!),
+          ),
           const SizedBox(height: 6),
         ],
-        TextField(
-          controller: controller,
-          focusNode: focusNode,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          maxLines: maxLines,
-          autofocus: autofocus,
-          onChanged: onChanged,
-          onEditingComplete: onEditingComplete,
-          inputFormatters: inputFormatters,
-          style: AppTypography.body,
-          decoration: InputDecoration(
-            hintText: hint,
-            errorText: errorText,
-            prefixIcon: prefixIcon,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.input),
+            boxShadow: _focused && !hasError
+                ? [
+                    BoxShadow(
+                      color: AppColors.accent.withValues(alpha: 0.14),
+                      blurRadius: 12,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : const [],
+          ),
+          child: TextField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            keyboardType: widget.keyboardType,
+            obscureText: widget.obscureText,
+            maxLines: widget.maxLines,
+            autofocus: widget.autofocus,
+            onChanged: widget.onChanged,
+            onEditingComplete: widget.onEditingComplete,
+            inputFormatters: widget.inputFormatters,
+            style: AppTypography.body,
+            cursorColor: AppColors.accent,
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              errorText: widget.errorText,
+              prefixIcon: widget.prefixIcon,
+            ),
           ),
         ),
       ],

@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
 import '../../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../../shared/widgets/cards/app_card.dart';
+import '../../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../../../../shared/widgets/states/app_empty_state.dart';
 import '../../../../../shared/widgets/states/app_error_state.dart';
@@ -12,6 +14,8 @@ import '../../../../../shared/widgets/states/app_skeleton.dart';
 import '../../application/funnels_providers.dart';
 import '../../data/models/funnel_entry.dart';
 
+/// Provider watched and [_EntryCard._vote]'s `vote()` repository call are
+/// unchanged from before.
 class VotingScreen extends ConsumerWidget {
   final String stageId;
   const VotingScreen({super.key, required this.stageId});
@@ -22,31 +26,33 @@ class VotingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Vote')),
-      body: entriesAsync.when(
-        loading: () => const AppSkeleton.cardList(),
-        error: (error, stackTrace) => AppErrorState(
-          error: error is AppException
-              ? error
-              : UnknownException(error.toString()),
-          onRetry: () => ref.invalidate(publicVoteEntriesProvider(stageId)),
-        ),
-        data: (entries) {
-          if (entries.isEmpty) {
-            return const AppEmptyState(
-              icon: Icons.how_to_vote_outlined,
-              title: 'No entries yet',
-              description:
-                  'Check back once entries have been submitted for this stage.',
+      body: AppBackground(
+        child: entriesAsync.when(
+          loading: () => const AppSkeleton.cardList(),
+          error: (error, stackTrace) => AppErrorState(
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
+            onRetry: () => ref.invalidate(publicVoteEntriesProvider(stageId)),
+          ),
+          data: (entries) {
+            if (entries.isEmpty) {
+              return const AppEmptyState(
+                icon: Icons.how_to_vote_outlined,
+                title: 'No entries yet',
+                description:
+                    'Check back once entries have been submitted for this stage.',
+              );
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: entries.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) =>
+                  _EntryCard(stageId: stageId, entry: entries[index]),
             );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            itemCount: entries.length,
-            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) =>
-                _EntryCard(stageId: stageId, entry: entries[index]),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -73,12 +79,7 @@ class _EntryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
-      ),
+    return AppCard(
       child: Row(
         children: [
           Container(
@@ -96,7 +97,15 @@ class _EntryCard extends ConsumerWidget {
               children: [
                 Text('Entry #${entry.id.substring(0, 8)}',
                     style: AppTypography.bodyStrong),
-                Text('${entry.voteCount} votes', style: AppTypography.caption),
+                Row(
+                  children: [
+                    const Icon(Icons.how_to_vote_rounded,
+                        size: 13, color: AppColors.inkSubtle),
+                    const SizedBox(width: 4),
+                    Text('${entry.voteCount} votes',
+                        style: AppTypography.caption),
+                  ],
+                ),
               ],
             ),
           ),

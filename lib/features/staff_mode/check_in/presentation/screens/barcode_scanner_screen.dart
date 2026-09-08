@@ -11,6 +11,12 @@ import '../../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../application/check_in_providers.dart';
 import '../../data/check_in_repository.dart';
 
+/// All state (`_queuedCount`/`_attentionCount`/`_syncing`), the
+/// connectivity-triggered auto-sync, [_handleDetect]/[_submitManualEntry]/
+/// [_handleResult]/[_syncQueue]'s repository calls, and the
+/// Code-128-payload-split logic are unchanged from before. Only the
+/// presentation was refreshed — scanner reticle corners, staff-accent
+/// badge tint, rounder feedback banners.
 class BarcodeScannerScreen extends ConsumerStatefulWidget {
   const BarcodeScannerScreen({super.key});
 
@@ -171,6 +177,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           if (_queuedCount > 0)
             IconButton(
               icon: Badge(
+                backgroundColor: AppColors.staffModeAccent,
                 label: Text('$_queuedCount'),
                 child: _syncing
                     ? const SizedBox(
@@ -198,7 +205,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       body: Stack(
         children: [
           MobileScanner(controller: _controller, onDetect: _handleDetect),
-          _ScannerOverlay(),
+          const _ScannerOverlay(),
           if (_feedbackKind != null)
             _FeedbackBanner(
                 kind: _feedbackKind!, message: _feedbackMessage ?? ''),
@@ -220,13 +227,22 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               bottom: AppSpacing.lg,
               child: Material(
                 color: AppColors.danger,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Text(
-                      '$_attentionCount check-in operation${_attentionCount == 1 ? '' : 's'} require attention.',
-                      style: AppTypography.bodyStrong
-                          .copyWith(color: Colors.white)),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                            '$_attentionCount check-in operation${_attentionCount == 1 ? '' : 's'} require attention.',
+                            style: AppTypography.bodyStrong
+                                .copyWith(color: Colors.white)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -237,22 +253,53 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 }
 
 class _ScannerOverlay extends StatelessWidget {
+  const _ScannerOverlay();
+
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: Center(
-        child: Container(
-          width: 240,
-          height: 240,
-          decoration: BoxDecoration(
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.8), width: 3),
-            borderRadius: BorderRadius.circular(24),
-          ),
+        child: SizedBox(
+          width: 260,
+          height: 260,
+          child: CustomPaint(painter: _ReticlePainter()),
         ),
       ),
     );
   }
+}
+
+/// Four bracket corners rather than a plain full rectangle — reads closer
+/// to a native camera/scan UI than a solid outlined square.
+class _ReticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.9)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    const len = 32.0;
+    const r = 20.0;
+
+    void corner(Offset origin, double dx, double dy) {
+      final path = Path()
+        ..moveTo(origin.dx, origin.dy + dy * len)
+        ..lineTo(origin.dx, origin.dy + dy * r)
+        ..arcToPoint(Offset(origin.dx + dx * r, origin.dy),
+            radius: const Radius.circular(r))
+        ..lineTo(origin.dx + dx * len, origin.dy);
+      canvas.drawPath(path, paint);
+    }
+
+    corner(const Offset(0, 0), 1, 1);
+    corner(Offset(size.width, 0), -1, 1);
+    corner(Offset(0, size.height), 1, -1);
+    corner(Offset(size.width, size.height), -1, -1);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _FeedbackBanner extends StatelessWidget {
@@ -280,7 +327,16 @@ class _FeedbackBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-            color: color, borderRadius: BorderRadius.circular(16)),
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Row(
           children: [
             Icon(icon, color: Colors.white),
@@ -317,12 +373,23 @@ class _ManualEntrySheet extends StatelessWidget {
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.inkSubtle.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
           const Text('Enter ticket code', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
           const Text('For a damaged or unreadable barcode.',
@@ -336,6 +403,7 @@ class _ManualEntrySheet extends StatelessWidget {
           AppButton(
               label: 'Check in',
               fullWidth: true,
+              size: AppButtonSize.large,
               loading: loading,
               onPressed: onSubmit),
         ],

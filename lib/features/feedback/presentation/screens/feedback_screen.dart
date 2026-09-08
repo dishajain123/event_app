@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/app_exception.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
 import '../../application/feedback_providers.dart';
 import '../../data/models/feedback.dart';
 
+/// Providers watched and [_submit]'s `feedbackRepositoryProvider.submit`
+/// call are unchanged from before — only the presentation was refreshed.
 class FeedbackScreen extends ConsumerStatefulWidget {
   final String eventId;
   const FeedbackScreen({super.key, required this.eventId});
@@ -61,23 +66,25 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     final categoriesAsync = ref.watch(feedbackCategoriesProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Give Feedback')),
-      body: feedbackAsync.when(
-        loading: () => const AppSkeleton.cardList(),
-        error: (error, _) => AppErrorState(
-          error: error is AppException
-              ? error
-              : UnknownException(error.toString()),
-          onRetry: () => ref.invalidate(eventFeedbackProvider(widget.eventId)),
-        ),
-        data: (feedback) => categoriesAsync.when(
+      body: AppBackground(
+        child: feedbackAsync.when(
           loading: () => const AppSkeleton.cardList(),
           error: (error, _) => AppErrorState(
             error: error is AppException
                 ? error
                 : UnknownException(error.toString()),
-            onRetry: () => ref.invalidate(feedbackCategoriesProvider),
+            onRetry: () => ref.invalidate(eventFeedbackProvider(widget.eventId)),
           ),
-          data: (categories) => _buildForm(feedback, categories),
+          data: (feedback) => categoriesAsync.when(
+            loading: () => const AppSkeleton.cardList(),
+            error: (error, _) => AppErrorState(
+              error: error is AppException
+                  ? error
+                  : UnknownException(error.toString()),
+              onRetry: () => ref.invalidate(feedbackCategoriesProvider),
+            ),
+            data: (categories) => _buildForm(feedback, categories),
+          ),
         ),
       ),
     );
@@ -87,7 +94,8 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       List<EventFeedback> feedback, List<FeedbackCategoryOption> categories) {
     if (categories.isEmpty) {
       return const Center(
-          child: Text('Feedback categories are not configured.'));
+          child: Text('Feedback categories are not configured.',
+              style: AppTypography.bodyMuted));
     }
     final selectedCode = _categoryCode ?? categories.first.code;
     _categoryCode ??= selectedCode;
@@ -96,43 +104,58 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       children: [
         const Text('How was your experience?', style: AppTypography.title),
         const SizedBox(height: AppSpacing.lg),
-        DropdownButtonFormField<String>(
-          initialValue: selectedCode,
-          decoration: const InputDecoration(labelText: 'Category'),
-          items: categories
-              .map((category) => DropdownMenuItem(
-                  value: category.code, child: Text(category.label)))
-              .toList(),
-          onChanged: (value) => setState(() => _categoryCode = value),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: selectedCode,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: categories
+                    .map((category) => DropdownMenuItem(
+                        value: category.code, child: Text(category.label)))
+                    .toList(),
+                onChanged: (value) => setState(() => _categoryCode = value),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const Text('Rating', style: AppTypography.bodyStrong),
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: List.generate(5, (index) {
+                  final value = index + 1;
+                  return IconButton(
+                    tooltip: '$value star${value == 1 ? '' : 's'}',
+                    onPressed: () => setState(() => _rating = value),
+                    icon: Icon(
+                      value <= _rating
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      size: 32,
+                      color: value <= _rating
+                          ? const Color(0xFFF59E0B)
+                          : AppColors.inkSubtle,
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _commentController,
+                maxLines: 4,
+                maxLength: 2000,
+                decoration: const InputDecoration(
+                    labelText: 'Comment (optional)', alignLabelWithHint: true),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        const Text('Rating', style: AppTypography.bodyStrong),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: List.generate(5, (index) {
-            final value = index + 1;
-            return IconButton(
-              tooltip: '$value star${value == 1 ? '' : 's'}',
-              onPressed: () => setState(() => _rating = value),
-              icon: Icon(value <= _rating ? Icons.star : Icons.star_border,
-                  size: 32),
-            );
-          }),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        TextField(
-          controller: _commentController,
-          maxLines: 4,
-          maxLength: 2000,
-          decoration: const InputDecoration(
-              labelText: 'Comment (optional)', alignLabelWithHint: true),
-        ),
-        const SizedBox(height: AppSpacing.md),
         AppButton(
             label: 'Save feedback',
             onPressed: _submit,
             loading: _submitting,
-            fullWidth: true),
+            fullWidth: true,
+            size: AppButtonSize.large),
         const SizedBox(height: AppSpacing.xxl),
         const Text('Your previous feedback', style: AppTypography.title),
         const SizedBox(height: AppSpacing.md),
@@ -140,7 +163,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           const Text('You have not submitted feedback for this event yet.',
               style: AppTypography.bodyMuted)
         else
-          ...feedback.map((item) => _FeedbackCard(feedback: item)),
+          for (final item in feedback)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: _FeedbackCard(feedback: item),
+            ),
       ],
     );
   }
@@ -152,17 +179,36 @@ class _FeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(feedback.categoryLabel, style: AppTypography.bodyStrong),
-          Text('${feedback.rating}/5', style: AppTypography.caption),
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                  child: Text(feedback.categoryLabel,
+                      style: AppTypography.bodyStrong)),
+              Row(
+                children: List.generate(
+                  5,
+                  (index) => Icon(
+                    index < feedback.rating
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    size: 14,
+                    color: index < feedback.rating
+                        ? const Color(0xFFF59E0B)
+                        : AppColors.inkSubtle,
+                  ),
+                ),
+              ),
+            ],
+          ),
           if (feedback.comment?.isNotEmpty == true) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(feedback.comment!, style: AppTypography.body),
           ],
-        ]),
+        ],
       ),
     );
   }

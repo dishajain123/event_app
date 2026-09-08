@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/network/app_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -6,25 +7,14 @@ import '../../../core/theme/app_typography.dart';
 import '../buttons/app_button.dart';
 import '../inputs/app_text_field.dart';
 
-/// Shows a confirmation bottom sheet and calls [onConfirm]. Used for every
-/// consequential action across the app (submit a registration, initiate
-/// payment, accept a staff invitation, check in a ticket manually, reject
-/// a registration with a reason from Phase 6 onward) for the same reason
-/// the web console centralized its ConfirmActionDialog: one place that
-/// guarantees BOTH a confirmation step AND error feedback if the action
-/// fails, rather than each call site remembering to add both separately.
-///
-/// This lesson was learned the hard way on the console project — three of
-/// its call sites were found, late, to be failing completely silently on a
-/// backend error because error handling had been left to each caller
-/// individually. Built centralized here from the start rather than
-/// retrofitted after the same mistake repeats.
-///
-/// [requireReason] mirrors the console's ConfirmActionDialog exactly: when
-/// true, shows a required text field and blocks confirmation until it's
-/// non-empty, passing the trimmed value to [onConfirm]. [onConfirm] always
-/// receives the reason argument (null when [requireReason] is false) so
-/// every call site has one consistent callback shape to implement.
+/// Shows a confirmation bottom sheet and calls [onConfirm]. Function
+/// signature is unchanged — [title], [description], [confirmLabel],
+/// [danger], [requireReason], [reasonLabel], [onConfirm] are the exact same
+/// parameters as before, so every call site (registration submit, payment
+/// initiation, staff invitation accept, manual check-in, registration
+/// rejection with reason) keeps working unmodified. Visually the sheet now
+/// blurs the content behind it and uses the same rounded-sheet + grabber
+/// treatment as the rest of the refresh.
 Future<bool> showConfirmActionSheet(
   BuildContext context, {
   required String title,
@@ -39,14 +29,18 @@ Future<bool> showConfirmActionSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _ConfirmActionSheetContent(
-      title: title,
-      description: description,
-      confirmLabel: confirmLabel,
-      danger: danger,
-      requireReason: requireReason,
-      reasonLabel: reasonLabel,
-      onConfirm: onConfirm,
+    barrierColor: Colors.black.withValues(alpha: 0.35),
+    builder: (context) => BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+      child: _ConfirmActionSheetContent(
+        title: title,
+        description: description,
+        confirmLabel: confirmLabel,
+        danger: danger,
+        requireReason: requireReason,
+        reasonLabel: reasonLabel,
+        onConfirm: onConfirm,
+      ),
     ),
   );
   return result ?? false;
@@ -122,10 +116,18 @@ class _ConfirmActionSheetContentState
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.all(AppSpacing.md),
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl, AppSpacing.md, AppSpacing.xl, AppSpacing.xl),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColorStrong,
+              blurRadius: 40,
+              offset: Offset(0, 16),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -142,11 +144,43 @@ class _ConfirmActionSheetContentState
                 ),
               ),
             ),
-            Text(widget.title, style: AppTypography.headline),
-            if (widget.description != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(widget.description!, style: AppTypography.bodyMuted),
-            ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.danger
+                        ? AppColors.dangerSoft
+                        : AppColors.accentSoft,
+                  ),
+                  child: Icon(
+                    widget.danger
+                        ? Icons.warning_amber_rounded
+                        : Icons.check_circle_outline_rounded,
+                    color: widget.danger
+                        ? AppColors.danger
+                        : AppColors.accentStrong,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(widget.title, style: AppTypography.headline),
+                      if (widget.description != null) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(widget.description!,
+                            style: AppTypography.bodyMuted),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (widget.requireReason) ...[
               const SizedBox(height: AppSpacing.lg),
               AppTextField(

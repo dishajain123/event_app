@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Base shimmer block — every skeleton shape below is built from this
-/// rather than each screen hand-rolling its own placeholder box.
+/// rather than each screen hand-rolling its own placeholder box. Sweep is
+/// now eased (not linear) and slightly wider, reading closer to native
+/// iOS/Android shimmer than a mechanical linear sweep.
 class _ShimmerBox extends StatefulWidget {
   final double? width;
   final double height;
@@ -17,13 +19,15 @@ class _ShimmerBox extends StatefulWidget {
 class _ShimmerBoxState extends State<_ShimmerBox>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final Animation<double> _sweep;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1400))
+        vsync: this, duration: const Duration(milliseconds: 1500))
       ..repeat();
+    _sweep = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
 
   @override
@@ -35,21 +39,21 @@ class _ShimmerBoxState extends State<_ShimmerBox>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
+      animation: _sweep,
       builder: (context, child) {
-        final t = _controller.value;
+        final t = _sweep.value;
         return Container(
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius,
             gradient: LinearGradient(
-              begin: Alignment(-1.0 + 2 * t, 0),
-              end: Alignment(1.0 + 2 * t, 0),
+              begin: Alignment(-1.6 + 3.2 * t, 0),
+              end: Alignment(-0.6 + 3.2 * t, 0),
               colors: const [
-                Color(0x11000000),
-                Color(0x22000000),
-                Color(0x11000000)
+                Color(0x0F1B1D3D),
+                Color(0x241B1D3D),
+                Color(0x0F1B1D3D),
               ],
             ),
           ),
@@ -59,9 +63,10 @@ class _ShimmerBoxState extends State<_ShimmerBox>
   }
 }
 
-/// Shaped skeletons per content type (Section 3.7: "never a bare spinner on
-/// a content screen") — pick the constructor matching what's actually
-/// loading so the loading state previews the real layout.
+/// Shaped skeletons per content type — pick the constructor matching what's
+/// actually loading so the loading state previews the real layout. Public
+/// API is unchanged: [AppSkeleton.cardList], [AppSkeleton.detailPage],
+/// [AppSkeleton.form] take the same parameters as before.
 class AppSkeleton extends StatelessWidget {
   final _SkeletonShape _shape;
   final int _count;
@@ -107,8 +112,8 @@ class _CardListSkeleton extends StatelessWidget {
       itemCount: count,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) => const _ShimmerBox(
-        height: 160,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
+        height: 168,
+        borderRadius: BorderRadius.all(Radius.circular(22)),
       ),
     );
   }
@@ -123,7 +128,7 @@ class _DetailPageSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: const [
         _ShimmerBox(
-            height: 220, borderRadius: BorderRadius.all(Radius.circular(20))),
+            height: 220, borderRadius: BorderRadius.all(Radius.circular(22))),
         SizedBox(height: 20),
         _ShimmerBox(
             height: 24,
@@ -161,7 +166,7 @@ class _FormSkeleton extends StatelessWidget {
               borderRadius: BorderRadius.all(Radius.circular(6))),
           SizedBox(height: 8),
           _ShimmerBox(
-              height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
+              height: 46, borderRadius: BorderRadius.all(Radius.circular(14))),
         ],
       ),
     );

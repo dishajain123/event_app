@@ -7,6 +7,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
 import '../../../../../shared/widgets/badges/status_badge.dart';
+import '../../../../../shared/widgets/cards/app_card.dart';
+import '../../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../../shared/widgets/states/app_empty_state.dart';
 import '../../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../../shared/widgets/states/app_skeleton.dart';
@@ -14,6 +16,8 @@ import '../../application/funnels_providers.dart';
 import '../../data/models/funnel_entry.dart';
 import '../../data/models/competition.dart';
 
+/// Reached from the public event-detail screen even though this feature
+/// lives under staff_mode/funnels. Every provider watched is unchanged.
 class CompetitionStagesScreen extends ConsumerWidget {
   final String eventId;
   const CompetitionStagesScreen({super.key, required this.eventId});
@@ -25,24 +29,26 @@ class CompetitionStagesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Competition')),
-      body: competitionsAsync.when(
-        loading: () => const AppSkeleton.cardList(),
-        error: (error, stackTrace) => AppErrorState(
-          error: error is AppException
-              ? error
-              : UnknownException(error.toString()),
-          onRetry: () => ref.invalidate(eventCompetitionsProvider(eventId)),
+      body: AppBackground(
+        child: competitionsAsync.when(
+          loading: () => const AppSkeleton.cardList(),
+          error: (error, stackTrace) => AppErrorState(
+            error: error is AppException
+                ? error
+                : UnknownException(error.toString()),
+            onRetry: () => ref.invalidate(eventCompetitionsProvider(eventId)),
+          ),
+          data: (competitions) => competitions.isNotEmpty
+              ? ListView.separated(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  itemCount: competitions.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, index) =>
+                      _CompetitionCard(competition: competitions[index]),
+                )
+              : _LegacyStages(stagesAsync: stagesAsync, eventId: eventId),
         ),
-        data: (competitions) => competitions.isNotEmpty
-            ? ListView.separated(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: competitions.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) =>
-                    _CompetitionCard(competition: competitions[index]),
-              )
-            : _LegacyStages(stagesAsync: stagesAsync, eventId: eventId),
       ),
     );
   }
@@ -56,14 +62,17 @@ class _CompetitionCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final standings = ref.watch(competitionStandingsProvider(competition.id));
     final matches = ref.watch(competitionMatchesProvider(competition.id));
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(20)),
+    return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.emoji_events_outlined, color: AppColors.accent),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+                color: AppColors.accentSoft, shape: BoxShape.circle),
+            child: const Icon(Icons.emoji_events_rounded,
+                color: AppColors.accentStrong, size: 18),
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
               child: Text(competition.name, style: AppTypography.bodyStrong)),
@@ -77,28 +86,31 @@ class _CompetitionCard extends ConsumerWidget {
         ],
         const SizedBox(height: AppSpacing.md),
         Text('Mode: ${competition.participationMode}',
-            style: AppTypography.caption),
+            style: AppTypography.captionSubtle),
         matches.when(
           loading: () => const Padding(
               padding: EdgeInsets.only(top: AppSpacing.md),
               child: LinearProgressIndicator()),
           error: (_, __) => const Padding(
               padding: EdgeInsets.only(top: AppSpacing.md),
-              child: Text('Fixtures unavailable')),
+              child: Text('Fixtures unavailable', style: AppTypography.bodyMuted)),
           data: (rows) => rows.isEmpty
               ? const Padding(
                   padding: EdgeInsets.only(top: AppSpacing.md),
-                  child: Text('No fixtures scheduled yet.'))
+                  child: Text('No fixtures scheduled yet.',
+                      style: AppTypography.bodyMuted))
               : Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Fixtures', style: AppTypography.bodyStrong),
+                      const SizedBox(height: 4),
                       ...rows.take(5).map((row) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Text(
-                                'Round ${row.roundNumber}, match ${row.matchNumber} · ${row.status} · ${row.scoreA ?? '-'}:${row.scoreB ?? '-'}'),
+                                'Round ${row.roundNumber}, match ${row.matchNumber} · ${row.status} · ${row.scoreA ?? '-'}:${row.scoreB ?? '-'}',
+                                style: AppTypography.caption),
                           )),
                     ],
                   ),
@@ -110,12 +122,14 @@ class _CompetitionCard extends ConsumerWidget {
               child: LinearProgressIndicator()),
           error: (_, __) => const Padding(
               padding: EdgeInsets.only(top: AppSpacing.md),
-              child: Text('Standings unavailable')),
+              child:
+                  Text('Standings unavailable', style: AppTypography.bodyMuted)),
           data: (rows) => rows.isEmpty
               ? const Padding(
                   padding: EdgeInsets.only(top: AppSpacing.md),
-                  child:
-                      Text('Standings will appear after results are recorded.'))
+                  child: Text(
+                      'Standings will appear after results are recorded.',
+                      style: AppTypography.bodyMuted))
               : Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.md),
                   child: Column(
@@ -138,9 +152,28 @@ class _StandingRow extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(children: [
-          SizedBox(width: 28, child: Text('${row.position}')),
-          Expanded(child: Text(row.entryId, overflow: TextOverflow.ellipsis)),
-          Text('${row.points} pts'),
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: row.position <= 3
+                  ? const Color(0xFFF59E0B).withValues(alpha: 0.16)
+                  : AppColors.surfaceMuted,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text('${row.position}',
+                style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: row.position <= 3
+                        ? const Color(0xFFB45309)
+                        : AppColors.inkMuted)),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+              child: Text(row.entryId,
+                  overflow: TextOverflow.ellipsis, style: AppTypography.body)),
+          Text('${row.points} pts', style: AppTypography.bodyStrong),
         ]),
       );
 }
@@ -176,46 +209,38 @@ class _LegacyStages extends ConsumerWidget {
             itemBuilder: (context, index) {
               final stage = sorted[index];
               final isVotable = stage.stageType == StageType.publicVote;
-              return InkWell(
-                borderRadius: BorderRadius.circular(20),
+              return AppCard(
                 onTap: isVotable
                     ? () => context.push(RoutePaths.votingPath(stage.id))
                     : null,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                            color: AppColors.accentSoft,
-                            shape: BoxShape.circle),
-                        child: Center(
-                          child: Text('${stage.orderIndex}',
-                              style: AppTypography.bodyStrong),
-                        ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                          color: AppColors.accentSoft, shape: BoxShape.circle),
+                      child: Center(
+                        child: Text('${stage.orderIndex}',
+                            style: AppTypography.bodyStrong
+                                .copyWith(color: AppColors.accentStrong)),
                       ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(stage.name, style: AppTypography.bodyStrong),
-                            Text(stage.stageType.label,
-                                style: AppTypography.caption),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stage.name, style: AppTypography.bodyStrong),
+                          Text(stage.stageType.label,
+                              style: AppTypography.caption),
+                        ],
                       ),
-                      if (isVotable)
-                        const StatusBadge(
-                            label: 'Vote now', tone: StatusTone.success),
-                    ],
-                  ),
+                    ),
+                    if (isVotable)
+                      const StatusBadge(
+                          label: 'Vote now', tone: StatusTone.success),
+                  ],
                 ),
               );
             },

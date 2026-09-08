@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/app_exception.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../application/guardians_providers.dart';
 
+/// [_pickDate] and [_submit] are unchanged — same `createChild` repository
+/// call with the same arguments.
 class AddChildScreen extends ConsumerStatefulWidget {
   const AddChildScreen({super.key});
 
@@ -70,36 +74,52 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add Child')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            AppTextField(
-                controller: _nameController, label: "Child's full name"),
-            const SizedBox(height: AppSpacing.lg),
-            const Text('Date of birth', style: AppTypography.bodyStrong),
-            const SizedBox(height: 6),
-            InkWell(
-              onTap: _pickDate,
-              child: InputDecorator(
-                decoration:
-                    const InputDecoration(hintText: 'Select date of birth'),
-                child: Text(_dateOfBirthIso ?? 'Select date of birth',
-                    style: AppTypography.body),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              AppTextField(
+                  controller: _nameController,
+                  label: "Child's full name",
+                  autofocus: true),
+              const SizedBox(height: AppSpacing.lg),
+              const Text('Date of birth', style: AppTypography.bodyStrong),
+              const SizedBox(height: 6),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(14),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    hintText: 'Select date of birth',
+                    suffixIcon: Icon(Icons.calendar_today_rounded, size: 18),
+                  ),
+                  child: Text(_dateOfBirthIso ?? 'Select date of birth',
+                      style: AppTypography.body),
+                ),
               ),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(_error!,
-                  style: AppTypography.body.copyWith(color: Colors.red)),
+              if (_error != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.dangerSoft,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(_error!,
+                      style: AppTypography.body
+                          .copyWith(color: AppColors.danger)),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                  label: 'Add child',
+                  fullWidth: true,
+                  size: AppButtonSize.large,
+                  loading: _submitting,
+                  onPressed: _submit),
             ],
-            const SizedBox(height: AppSpacing.xl),
-            AppButton(
-                label: 'Add child',
-                fullWidth: true,
-                loading: _submitting,
-                onPressed: _submit),
-          ],
+          ),
         ),
       ),
     );

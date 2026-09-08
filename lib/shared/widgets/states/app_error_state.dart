@@ -6,13 +6,11 @@ import '../../../core/theme/app_typography.dart';
 import '../buttons/app_button.dart';
 
 /// Renders the correct message and retry-affordance for a given
-/// [AppException] per Section 3.7's exact state matrix:
-///  - NetworkException / ServerException → retry offered
-///  - ForbiddenException → no retry (retrying won't fix a permission issue)
-///  - everything else (ValidationException, NotFoundException, ...) → the
-///    backend's own real message is shown verbatim, never replaced with a
-///    generic one, per Section 3.7's rule about surfacing real rule-engine
-///    rejections rather than hiding them behind boilerplate text.
+/// [AppException]. Public API and the state matrix are unchanged from
+/// before: NetworkException / ServerException → retry offered;
+/// ForbiddenException → no retry; every other exception's real backend
+/// message is shown verbatim, never replaced with generic text. Only the
+/// presentation is refreshed (gradient icon blob, matching [AppEmptyState]).
 class AppErrorState extends StatelessWidget {
   final AppException error;
   final VoidCallback? onRetry;
@@ -38,24 +36,34 @@ class AppErrorState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                  color: AppColors.dangerSoft, shape: BoxShape.circle),
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.dangerSoft,
+                    AppColors.dangerSoft.withValues(alpha: 0.4),
+                  ],
+                ),
+              ),
               child: const Icon(Icons.error_outline_rounded,
-                  size: 28, color: AppColors.danger),
+                  size: 30, color: AppColors.danger),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
             Text(title,
                 style: AppTypography.title, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.sm),
             Text(error.message,
                 style: AppTypography.bodyMuted, textAlign: TextAlign.center),
             if (showRetry && onRetry != null) ...[
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.xl),
               AppButton(
                   label: 'Try again',
                   onPressed: onRetry,
+                  icon: Icons.refresh_rounded,
                   variant: AppButtonVariant.secondary),
             ],
           ],

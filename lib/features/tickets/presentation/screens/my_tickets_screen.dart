@@ -7,6 +7,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/badges/status_badge.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/states/app_empty_state.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
@@ -28,62 +30,64 @@ class MyTicketsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Tickets')),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(myTicketsProvider),
-        child: ticketsAsync.when(
-          loading: () => const AppSkeleton.cardList(),
-          error: (error, stackTrace) => ListView(
-            children: [
-              const SizedBox(height: AppSpacing.xxxl),
-              AppErrorState(
-                error: error is AppException
-                    ? error
-                    : UnknownException(error.toString()),
-                onRetry: () => ref.invalidate(myTicketsProvider),
-              ),
-            ],
-          ),
-          data: (tickets) {
-            if (tickets.isEmpty) {
-              return ListView(
-                children: const [
-                  SizedBox(height: AppSpacing.xxxl),
-                  AppEmptyState(
-                    icon: Icons.confirmation_number_outlined,
-                    title: 'No tickets yet',
-                    description:
-                        'Once a registration is confirmed, your ticket appears here.',
-                  ),
-                ],
-              );
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: tickets.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final ticket = tickets[index];
-                return InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () =>
-                      context.push(RoutePaths.ticketDetailPath(ticket.id)),
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(20),
+      body: AppBackground(
+        child: RefreshIndicator(
+          onRefresh: () async => ref.invalidate(myTicketsProvider),
+          child: ticketsAsync.when(
+            loading: () => const AppSkeleton.cardList(),
+            error: (error, stackTrace) => ListView(
+              children: [
+                const SizedBox(height: AppSpacing.xxxl),
+                AppErrorState(
+                  error: error is AppException
+                      ? error
+                      : UnknownException(error.toString()),
+                  onRetry: () => ref.invalidate(myTicketsProvider),
+                ),
+              ],
+            ),
+            data: (tickets) {
+              if (tickets.isEmpty) {
+                return ListView(
+                  children: const [
+                    SizedBox(height: AppSpacing.xxxl),
+                    AppEmptyState(
+                      icon: Icons.confirmation_number_outlined,
+                      title: 'No tickets yet',
+                      description:
+                          'Once a registration is confirmed, your ticket appears here.',
                     ),
+                  ],
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                itemCount: tickets.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final ticket = tickets[index];
+                  return AppCard(
+                    onTap: () =>
+                        context.push(RoutePaths.ticketDetailPath(ticket.id)),
                     child: Row(
                       children: [
                         Container(
                           width: 48,
                           height: 48,
                           decoration: const BoxDecoration(
-                              color: AppColors.accentSoft,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.accent,
+                                  AppColors.accentViolet
+                                ],
+                              ),
                               shape: BoxShape.circle),
-                          child: const Icon(Icons.confirmation_number_rounded,
-                              color: AppColors.accentStrong),
+                          child: const Icon(
+                              Icons.confirmation_number_rounded,
+                              color: Colors.white),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -108,11 +112,11 @@ class MyTicketsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/app_exception.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../application/assistance_providers.dart';
 
+/// [_submit]'s `createRequest(...)` call is unchanged — same arguments,
+/// same post-submit pop-and-snackbar.
 class RequestAssistanceScreen extends ConsumerStatefulWidget {
   final String eventId;
   final String registrationId;
@@ -71,34 +75,54 @@ class _RequestAssistanceScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Request Assistance')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            AppTextField(
-              controller: _reasonController,
-              label: 'Why do you need assistance?',
-              maxLines: 4,
-              hint: 'Briefly explain your situation',
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppTextField(
-              controller: _amountController,
-              label: 'Amount requested (optional)',
-              hint: 'Leave blank to let the reviewer decide',
-              keyboardType: TextInputType.number,
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                    color: AppColors.accentSoft, shape: BoxShape.circle),
+                child: const Icon(Icons.volunteer_activism_rounded,
+                    color: AppColors.accentStrong, size: 26),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                controller: _reasonController,
+                label: 'Why do you need assistance?',
+                maxLines: 4,
+                hint: 'Briefly explain your situation',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                controller: _amountController,
+                label: 'Amount requested (optional)',
+                hint: 'Leave blank to let the reviewer decide',
+                keyboardType: TextInputType.number,
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.dangerSoft,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(_error!,
+                      style: const TextStyle(color: AppColors.danger)),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                  label: 'Submit request',
+                  fullWidth: true,
+                  size: AppButtonSize.large,
+                  loading: _submitting,
+                  onPressed: _submit),
             ],
-            const SizedBox(height: AppSpacing.xl),
-            AppButton(
-                label: 'Submit request',
-                fullWidth: true,
-                loading: _submitting,
-                onPressed: _submit),
-          ],
+          ),
         ),
       ),
     );

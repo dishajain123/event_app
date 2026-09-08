@@ -28,27 +28,48 @@ String _formatDateRange(DateTime start, DateTime end, bool sameDay) {
   return '${_formatDate(start)} – ${_formatDate(end)}';
 }
 
-/// A cover image placeholder used whenever an event has no cover media yet
-/// (Phase 2 doesn't yet have a dedicated "cover image" field distinct from
-/// the media gallery — this is the graceful fallback rather than a broken
-/// image icon).
+/// The event model has no cover-image field of its own (only the media
+/// gallery, from Phase 3 onward, carries real photos) — [coverImageUrl] is
+/// left as an optional, caller-supplied override for whenever a screen
+/// does have one on hand (e.g. the first gallery image). With none
+/// supplied, the fallback is a deterministic gradient + icon derived from
+/// the event's own category, never a random/mocked photo, so it stays
+/// meaningfully tied to real backend data rather than decorative filler.
+const _fallbackGradients = [
+  AppColors.pillarCorporate,
+  AppColors.pillarCommunity,
+  AppColors.pillarContribute,
+  AppColors.pillarLive,
+];
+
+const _fallbackIcons = [
+  Icons.event_rounded,
+  Icons.groups_rounded,
+  Icons.emoji_events_rounded,
+  Icons.celebration_rounded,
+  Icons.mic_rounded,
+  Icons.sports_soccer_rounded,
+];
+
+int _seedFor(String value) => value.codeUnits.fold(0, (a, b) => a + b);
+
 class _CoverImage extends StatelessWidget {
   final String? imageUrl;
-  const _CoverImage({this.imageUrl});
+  final String seed;
+
+  const _CoverImage({this.imageUrl, required this.seed});
 
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
+      final s = _seedFor(seed);
       return Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.accent, AppColors.accentStrong],
-          ),
+        decoration: BoxDecoration(
+          gradient: _fallbackGradients[s % _fallbackGradients.length],
         ),
-        child: const Center(
-          child: Icon(Icons.event_rounded, color: Colors.white, size: 40),
+        child: Center(
+          child: Icon(_fallbackIcons[s % _fallbackIcons.length],
+              color: Colors.white.withValues(alpha: 0.92), size: 40),
         ),
       );
     }
@@ -65,7 +86,9 @@ class _CoverImage extends StatelessWidget {
   }
 }
 
-/// The large, cover-led card used in the Home carousel (Section 5.4).
+/// The large, cover-led card used in Home's "Upcoming" strip and the
+/// featured carousel. Public API is unchanged: [event], [coverImageUrl],
+/// [onTap].
 class FeaturedEventCard extends StatelessWidget {
   final AppEvent event;
   final String? coverImageUrl;
@@ -82,65 +105,86 @@ class FeaturedEventCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.xl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: AspectRatio(
-          aspectRatio: 4 / 3,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _CoverImage(imageUrl: coverImageUrl),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.75)
-                    ],
-                    stops: const [0.4, 1.0],
+          aspectRatio: 4 / 3.4,
+          child: Container(
+            decoration: const BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadowColor,
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _CoverImage(imageUrl: coverImageUrl, seed: event.id),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.78)
+                      ],
+                      stops: const [0.35, 1.0],
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                left: AppSpacing.lg,
-                right: AppSpacing.lg,
-                bottom: AppSpacing.lg,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (event.displayCategory != null)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(999),
+                Positioned(
+                  left: AppSpacing.lg,
+                  right: AppSpacing.lg,
+                  bottom: AppSpacing.lg,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (event.displayCategory != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            event.displayCategory!,
+                            style: AppTypography.caption.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700),
+                          ),
                         ),
-                        child: Text(
-                          event.displayCategory!,
-                          style: AppTypography.caption.copyWith(
-                              color: Colors.white, fontWeight: FontWeight.w600),
-                        ),
+                      Text(
+                        event.name,
+                        style:
+                            AppTypography.title.copyWith(color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    Text(
-                      event.name,
-                      style: AppTypography.title.copyWith(color: Colors.white),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatDateRange(
-                          event.startDate, event.endDate, event.isSameDayEvent),
-                      style: AppTypography.caption.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85)),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded,
+                              size: 12,
+                              color: Colors.white.withValues(alpha: 0.85)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDateRange(event.startDate, event.endDate,
+                                event.isSameDayEvent),
+                            style: AppTypography.caption.copyWith(
+                                color: Colors.white.withValues(alpha: 0.85)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -149,7 +193,8 @@ class FeaturedEventCard extends StatelessWidget {
 }
 
 /// The compact list-row card used in search results and any other flat
-/// list of events (Section 5.4).
+/// list of events. Public API is unchanged: [event], [coverImageUrl],
+/// [onTap].
 class CompactEventCard extends StatelessWidget {
   final AppEvent event;
   final String? coverImageUrl;
@@ -163,49 +208,71 @@ class CompactEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(AppSpacing.lg),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                width: 72,
-                height: 72,
-                child: _CoverImage(imageUrl: coverImageUrl),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowColor,
+                blurRadius: 14,
+                offset: Offset(0, 4),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(event.name,
-                      style: AppTypography.bodyStrong,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatDateRange(
-                        event.startDate, event.endDate, event.isSameDayEvent),
-                    style: AppTypography.caption,
-                  ),
-                  if (event.displayCategory != null) ...[
+            ],
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: _CoverImage(imageUrl: coverImageUrl, seed: event.id),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(event.name,
+                        style: AppTypography.bodyStrong,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text(event.displayCategory!,
-                        style: AppTypography.captionSubtle),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today_rounded,
+                            size: 12, color: AppColors.inkSubtle),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDateRange(event.startDate, event.endDate,
+                              event.isSameDayEvent),
+                          style: AppTypography.caption,
+                        ),
+                      ],
+                    ),
+                    if (event.displayCategory != null) ...[
+                      const SizedBox(height: 4),
+                      Text(event.displayCategory!,
+                          style: AppTypography.captionSubtle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.inkSubtle),
-          ],
+              const Icon(Icons.chevron_right_rounded,
+                  color: AppColors.inkSubtle),
+            ],
+          ),
         ),
       ),
     );

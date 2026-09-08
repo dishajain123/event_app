@@ -8,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/badges/status_badge.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
 import '../../../media/application/media_providers.dart';
@@ -16,6 +17,9 @@ import '../../data/models/app_event.dart';
 import '../../data/models/event_configuration_summary.dart';
 import '../../data/models/event_status.dart';
 
+/// Every provider watched, every route pushed, and every status/config
+/// branch below is unchanged from before — this file only restyles how
+/// that same data and those same actions are presented.
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
   const EventDetailScreen({super.key, required this.eventId});
@@ -25,6 +29,7 @@ class EventDetailScreen extends ConsumerWidget {
     final eventAsync = ref.watch(eventDetailProvider(eventId));
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: eventAsync.when(
         loading: () => const SafeArea(child: AppSkeleton.detailPage()),
         error: (error, stackTrace) => SafeArea(
@@ -45,23 +50,14 @@ class EventDetailScreen extends ConsumerWidget {
         data: (event) => CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 240,
+              expandedHeight: 260,
               pinned: true,
               backgroundColor: AppColors.background,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              iconTheme: const IconThemeData(color: Colors.white),
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.accent, AppColors.accentStrong],
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.event_rounded,
-                        color: Colors.white, size: 56),
-                  ),
-                ),
+                background: _HeroCover(event: event),
               ),
             ),
             SliverToBoxAdapter(
@@ -70,17 +66,17 @@ class EventDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
                       children: [
                         StatusBadge(
                             label: event.status.label,
                             tone: _statusTone(event.status)),
-                        if (event.displayCategory != null) ...[
-                          const SizedBox(width: AppSpacing.sm),
+                        if (event.displayCategory != null)
                           StatusBadge(
                               label: event.displayCategory!,
                               tone: StatusTone.accent),
-                        ],
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -88,10 +84,19 @@ class EventDetailScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.sm),
                     _DateRow(event: event),
                     if (event.organizer != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        'Organized by ${event.organizer!.name ?? event.organizer!.mobileNumber}',
-                        style: AppTypography.bodyMuted,
+                      const SizedBox(height: AppSpacing.xs),
+                      Row(
+                        children: [
+                          const Icon(Icons.person_outline_rounded,
+                              size: 16, color: AppColors.inkSubtle),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Organized by ${event.organizer!.name ?? event.organizer!.mobileNumber}',
+                              style: AppTypography.bodyMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     if (event.description != null) ...[
@@ -125,10 +130,11 @@ class EventDetailScreen extends ConsumerWidget {
                       )
                     else
                       Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.backgroundAlt,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(
                           _registrationClosedMessage(
@@ -224,6 +230,67 @@ class EventDetailScreen extends ConsumerWidget {
   }
 }
 
+/// Deterministic hero gradient + icon derived from the event's own id and
+/// category — the same "no field for a cover image yet" fallback strategy
+/// used in [FeaturedEventCard]/[CompactEventCard], kept consistent here so
+/// the same event reads the same way across Home, Events, and Detail.
+class _HeroCover extends StatelessWidget {
+  final AppEvent event;
+  const _HeroCover({required this.event});
+
+  static const _gradients = [
+    AppColors.pillarCorporate,
+    AppColors.pillarCommunity,
+    AppColors.pillarContribute,
+    AppColors.pillarLive,
+  ];
+  static const _icons = [
+    Icons.event_rounded,
+    Icons.groups_rounded,
+    Icons.emoji_events_rounded,
+    Icons.celebration_rounded,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final seed = event.id.codeUnits.fold(0, (a, b) => a + b);
+    return Container(
+      decoration: BoxDecoration(gradient: _gradients[seed % _gradients.length]),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            right: -30,
+            top: -30,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Center(
+            child: Icon(_icons[seed % _icons.length],
+                color: Colors.white.withValues(alpha: 0.9), size: 64),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0x59000000)],
+                stops: [0.5, 1.0],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RegistrationCapacitySummary extends StatelessWidget {
   final EventConfigurationSummary configuration;
 
@@ -234,10 +301,11 @@ class _RegistrationCapacitySummary extends StatelessWidget {
     final hasCapacity = configuration.capacity != null;
     final isLimited = configuration.registrationStatus == 'limited';
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: isLimited ? AppColors.warningSoft : AppColors.backgroundAlt,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,8 +327,16 @@ class _RegistrationCapacitySummary extends StatelessWidget {
           ],
           if (isLimited) ...[
             const SizedBox(height: AppSpacing.xs),
-            const Text('Limited seats available — Register now!',
-                style: TextStyle(fontWeight: FontWeight.w700)),
+            Row(
+              children: [
+                const Icon(Icons.bolt_rounded,
+                    size: 16, color: AppColors.warning),
+                const SizedBox(width: 4),
+                Text('Limited seats available — Register now!',
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.warning, fontWeight: FontWeight.w700)),
+              ],
+            ),
           ],
         ],
       ),
@@ -314,23 +390,42 @@ class _QuickActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Material(
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.accentStrong, size: 20),
-            const SizedBox(height: 4),
-            Text(label,
-                style: AppTypography.captionSubtle,
-                textAlign: TextAlign.center),
-          ],
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowColor,
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: AppColors.accentSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: AppColors.accentStrong, size: 16),
+              ),
+              const SizedBox(height: 6),
+              Text(label,
+                  style: AppTypography.captionSubtle,
+                  textAlign: TextAlign.center),
+            ],
+          ),
         ),
       ),
     );
@@ -421,6 +516,7 @@ class _VenuesSection extends ConsumerWidget {
         if (venues.isEmpty) return const SizedBox.shrink();
         return _Section(
           title: 'Venue',
+          icon: Icons.location_on_outlined,
           child: Column(
             children: [
               for (final venue in venues)
@@ -429,8 +525,8 @@ class _VenuesSection extends ConsumerWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 18, color: AppColors.inkSubtle),
+                      const Icon(Icons.place_rounded,
+                          size: 18, color: AppColors.accentStrong),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -470,6 +566,7 @@ class _ScheduleSection extends ConsumerWidget {
           ..sort((a, b) => a.startTime.compareTo(b.startTime));
         return _Section(
           title: 'Schedule',
+          icon: Icons.schedule_rounded,
           child: Column(
             children: [
               for (final item in sorted)
@@ -477,13 +574,22 @@ class _ScheduleSection extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 64,
+                      Container(
+                        width: 60,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentSoft,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
                         child: Text(
                           '${item.startTime.hour.toString().padLeft(2, '0')}:${item.startTime.minute.toString().padLeft(2, '0')}',
-                          style: AppTypography.caption,
+                          style: AppTypography.caption
+                              .copyWith(color: AppColors.accentStrong),
                         ),
                       ),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                           child: Text(item.title, style: AppTypography.body)),
                     ],
@@ -511,24 +617,46 @@ class _SponsorsSection extends ConsumerWidget {
         if (sponsors.isEmpty) return const SizedBox.shrink();
         return _Section(
           title: 'Sponsors',
-          child: Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
+          icon: Icons.handshake_outlined,
+          child: Column(
             children: [
               for (final sponsor in sponsors)
-                Card(
-                  child: ListTile(
-                    leading: sponsor.logoUrl == null
-                        ? const Icon(Icons.handshake_outlined)
-                        : Image.network(sponsor.logoUrl!,
-                            width: 44, height: 44, fit: BoxFit.contain),
-                    title: Text(sponsor.name),
-                    subtitle: Text(
-                      [
-                        sponsor.category,
-                        sponsor.description ?? sponsor.offerDetails
-                      ].whereType<String>().join(' · '),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: sponsor.logoUrl == null
+                            ? Container(
+                                width: 44,
+                                height: 44,
+                                color: AppColors.accentSoft,
+                                child: const Icon(Icons.handshake_outlined,
+                                    color: AppColors.accentStrong, size: 20),
+                              )
+                            : Image.network(sponsor.logoUrl!,
+                                width: 44, height: 44, fit: BoxFit.contain),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sponsor.name, style: AppTypography.bodyStrong),
+                            Text(
+                              [
+                                sponsor.category,
+                                sponsor.description ?? sponsor.offerDetails
+                              ].whereType<String>().join(' · '),
+                              style: AppTypography.captionSubtle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -553,6 +681,7 @@ class _MediaSection extends ConsumerWidget {
         if (mediaItems.isEmpty) return const SizedBox.shrink();
         return _Section(
           title: 'Gallery',
+          icon: Icons.photo_library_outlined,
           child: SizedBox(
             height: 96,
             child: ListView.separated(
@@ -588,18 +717,28 @@ class _MediaSection extends ConsumerWidget {
 
 class _Section extends StatelessWidget {
   final String title;
+  final IconData icon;
   final Widget child;
-  const _Section({required this.title, required this.child});
+  const _Section(
+      {required this.title, required this.icon, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: AppTypography.title),
-        const SizedBox(height: AppSpacing.md),
-        child,
-      ],
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: AppColors.accentStrong),
+              const SizedBox(width: 8),
+              Text(title, style: AppTypography.title),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          child,
+        ],
+      ),
     );
   }
 }

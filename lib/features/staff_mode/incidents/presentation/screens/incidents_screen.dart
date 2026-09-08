@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/incidents_providers.dart';
 import '../../../assignments/application/staff_assignments_providers.dart';
-import '../../../../../shared/widgets/buttons/app_button.dart';
-import '../../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_spacing.dart';
+import '../../../../../core/theme/app_typography.dart';
 import '../../../../../shared/widgets/badges/status_badge.dart';
+import '../../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../../shared/widgets/cards/app_card.dart';
+import '../../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../../shared/widgets/scaffolds/app_background.dart';
+import '../../../../../shared/widgets/states/app_empty_state.dart';
 
+/// [_openReport]'s event-picker logic and every provider/repository call
+/// are unchanged from before — this was previously a bare-spinner /
+/// `Text('Unable to load...: $error')` screen, now on the same
+/// loading/error/card standard as the rest of the app.
 class IncidentsScreen extends ConsumerWidget {
   const IncidentsScreen({super.key});
 
@@ -19,23 +29,37 @@ class IncidentsScreen extends ConsumerWidget {
     }
     await showModalBottomSheet<void>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const ListTile(title: Text('Choose event')),
-            for (final assignment in assignments)
-              ListTile(
-                leading: const Icon(Icons.event_outlined),
-                title: Text(assignment.eventId as String),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ReportIncidentScreen(
-                          eventId: assignment.eventId as String)));
-                },
+        child: Container(
+          margin: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                child: Text('Choose event', style: AppTypography.title),
               ),
-          ],
+              for (final assignment in assignments)
+                ListTile(
+                  leading: const Icon(Icons.event_outlined,
+                      color: AppColors.staffModeAccent),
+                  title: Text(assignment.eventId as String),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => ReportIncidentScreen(
+                            eventId: assignment.eventId as String)));
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -57,38 +81,61 @@ class IncidentsScreen extends ConsumerWidget {
         IconButton(
             onPressed:
                 !reportEventId ? null : () => _openReport(context, assignments),
-            icon: const Icon(Icons.add_alert_outlined))
+            icon: const Icon(Icons.add_alert_outlined)),
+        const SizedBox(width: AppSpacing.sm),
       ]),
-      body: incidents.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Unable to load incidents: $error')),
-        data: (page) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(incidentsProvider(null)),
-          child: page.items.isEmpty
-              ? ListView(children: const [
-                  SizedBox(height: 220),
-                  Center(child: Text('No incidents reported.'))
-                ])
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: page.items.length,
-                  itemBuilder: (_, index) {
-                    final item = page.items[index];
-                    return Card(
-                        child: ListTile(
-                            title: Text(item.title),
-                            subtitle:
-                                Text('${item.category} · ${item.status.name}'),
-                            trailing: StatusBadge(
+      body: AppBackground(
+        child: incidents.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+              child: Text('Unable to load incidents: $error',
+                  style: AppTypography.bodyMuted)),
+          data: (page) => RefreshIndicator(
+            onRefresh: () async => ref.invalidate(incidentsProvider(null)),
+            child: page.items.isEmpty
+                ? ListView(children: const [
+                    SizedBox(height: 220),
+                    AppEmptyState(
+                      icon: Icons.warning_amber_rounded,
+                      title: 'No incidents reported',
+                      description: 'Reported incidents will show up here.',
+                    ),
+                  ])
+                : ListView.separated(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    itemCount: page.items.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.md),
+                    itemBuilder: (_, index) {
+                      final item = page.items[index];
+                      return AppCard(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.title,
+                                      style: AppTypography.bodyStrong),
+                                  const SizedBox(height: 2),
+                                  Text('${item.category} · ${item.status.name}',
+                                      style: AppTypography.caption),
+                                ],
+                              ),
+                            ),
+                            StatusBadge(
                                 label: item.severity.name,
                                 tone: item.severity.name == 'critical'
                                     ? StatusTone.danger
                                     : item.severity.name == 'high'
                                         ? StatusTone.warning
-                                        : StatusTone.neutral)));
-                  },
-                ),
+                                        : StatusTone.neutral),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
         ),
       ),
     );
@@ -143,30 +190,39 @@ class _ReportIncidentScreenState extends ConsumerState<ReportIncidentScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('Report incident')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        AppTextField(
-            controller: _category,
-            label: 'Category',
-            hint: 'Medical, safety, venue...'),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-            initialValue: _severity,
-            decoration: const InputDecoration(labelText: 'Severity'),
-            items: const ['low', 'medium', 'high', 'critical']
-                .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-                .toList(),
-            onChanged: (v) => setState(() => _severity = v ?? 'medium')),
-        const SizedBox(height: 16),
-        AppTextField(controller: _title, label: 'Title'),
-        const SizedBox(height: 16),
-        AppTextField(
-            controller: _description, label: 'Description', maxLines: 5),
-        const SizedBox(height: 24),
-        AppButton(
-            label: 'Report incident',
-            loading: _saving,
-            fullWidth: true,
-            onPressed: _saving ? null : _submit)
-      ]));
+        appBar: AppBar(title: const Text('Report Incident')),
+        body: AppBackground(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              AppTextField(
+                  controller: _category,
+                  label: 'Category',
+                  hint: 'Medical, safety, venue...'),
+              const SizedBox(height: AppSpacing.md),
+              const Text('Severity', style: AppTypography.bodyStrong),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                  initialValue: _severity,
+                  decoration: const InputDecoration(hintText: 'Select…'),
+                  items: const ['low', 'medium', 'high', 'critical']
+                      .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _severity = v ?? 'medium')),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(controller: _title, label: 'Title'),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                  controller: _description, label: 'Description', maxLines: 5),
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                  label: 'Report incident',
+                  loading: _saving,
+                  fullWidth: true,
+                  size: AppButtonSize.large,
+                  onPressed: _saving ? null : _submit)
+            ],
+          ),
+        ),
+      );
 }

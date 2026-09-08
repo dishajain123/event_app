@@ -5,15 +5,19 @@ import '../../../../../app/router/route_paths.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
+import '../../../../../shared/widgets/cards/app_card.dart';
+import '../../../../../shared/widgets/misc/app_avatar.dart';
+import '../../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../../../auth/application/app_mode_controller.dart';
 import '../../../../auth/application/auth_state_provider.dart';
 
-/// The Staff Mode side of the switch. Confirms explicitly what was raised
-/// before this phase was built: switching to Staff Mode is never one-way —
-/// this screen's entire purpose is making sure the way back to the
-/// ordinary participant experience is exactly as easy to find as the way
-/// in was from ProfileScreen.
+/// The Staff Mode side of the switch. Confirms explicitly: switching to
+/// Staff Mode is never one-way — this screen's entire purpose is making
+/// sure the way back to the ordinary participant experience is exactly as
+/// easy to find as the way in was from ProfileScreen. The
+/// `switchToPublicMode()` → `context.go` sequence and [_handleLogout]'s
+/// confirm-sheet call are unchanged from before.
 class StaffProfileScreen extends ConsumerWidget {
   const StaffProfileScreen({super.key});
 
@@ -30,59 +34,78 @@ class StaffProfileScreen extends ConsumerWidget {
         title: const Text('Staff Profile'),
         backgroundColor: AppColors.staffModeAccentSoft,
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: const BoxDecoration(
-                      color: AppColors.staffModeAccentSoft,
-                      shape: BoxShape.circle),
-                  child: const Icon(Icons.shield_outlined,
-                      size: 28, color: AppColors.staffModeAccent),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              AppCard(
+                child: Row(
                   children: [
-                    Text(
-                        user.name?.isNotEmpty == true
-                            ? user.name!
-                            : 'Staff account',
-                        style: AppTypography.title),
-                    const SizedBox(height: 2),
-                    Text(user.mobileNumber, style: AppTypography.bodyMuted),
+                    AppAvatar(
+                      name: user.name?.isNotEmpty == true
+                          ? user.name!
+                          : user.mobileNumber,
+                      size: 56,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              user.name?.isNotEmpty == true
+                                  ? user.name!
+                                  : 'Staff account',
+                              style: AppTypography.title),
+                          const SizedBox(height: 2),
+                          Text(user.mobileNumber, style: AppTypography.bodyMuted),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.staffModeAccentSoft,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.shield_rounded,
+                                    size: 12, color: AppColors.staffModeAccent),
+                                const SizedBox(width: 4),
+                                Text('Staff Mode',
+                                    style: AppTypography.caption.copyWith(
+                                        color: AppColors.staffModeAccent,
+                                        fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () async {
-                await ref.read(appModeProvider.notifier).switchToPublicMode();
-                if (context.mounted) context.go(RoutePaths.home);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: AppColors.accentSoft,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.25)),
-                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              AppCard(
+                onTap: () async {
+                  await ref.read(appModeProvider.notifier).switchToPublicMode();
+                  if (context.mounted) context.go(RoutePaths.home);
+                },
                 child: Row(
                   children: [
                     Container(
                       width: 44,
                       height: 44,
                       decoration: const BoxDecoration(
-                          color: AppColors.accent, shape: BoxShape.circle),
-                      child: const Icon(Icons.explore_outlined,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.accent, AppColors.accentViolet],
+                          ),
+                          shape: BoxShape.circle),
+                      child: const Icon(Icons.explore_rounded,
                           color: Colors.white, size: 22),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -104,26 +127,20 @@ class StaffProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => _handleLogout(context, ref),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: Row(
+              const SizedBox(height: AppSpacing.xxl),
+              AppCard(
+                onTap: () => _handleLogout(context, ref),
+                child: const Row(
                   children: [
-                    Icon(Icons.logout_rounded,
-                        size: 22, color: AppColors.danger),
+                    Icon(Icons.logout_rounded, size: 22, color: AppColors.danger),
                     SizedBox(width: AppSpacing.md),
                     Text('Log out',
-                        style:
-                            TextStyle(fontSize: 15, color: AppColors.danger)),
+                        style: TextStyle(fontSize: 15, color: AppColors.danger)),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

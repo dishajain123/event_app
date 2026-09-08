@@ -4,13 +4,12 @@ import '../../../core/theme/app_typography.dart';
 
 enum StatusTone { neutral, accent, success, warning, danger, info }
 
-/// The one badge widget every status indicator in the app uses (Section
-/// 3.10, 5.4) — colored from the same tone palette the web console's
-/// badges use, so e.g. a "confirmed" registration reads as the same green
-/// on both surfaces. Each feature (registrations, teams, tickets, from
-/// Phase 3 onward) provides its own status-string → [StatusTone] mapping
-/// keyed off the real backend enum values; this widget only renders
-/// whatever tone and label it's given.
+/// The one badge widget every status indicator in the app uses. Public API
+/// is unchanged — [label] and [tone] are the exact same constructor
+/// parameters, keyed off each feature's own real backend enum values
+/// exactly as before. Visually it now renders a small tone-colored dot
+/// alongside the label rather than a flat pill, reading a little more like
+/// a live status indicator and a little less like a generic tag.
 class StatusBadge extends StatelessWidget {
   final String label;
   final StatusTone tone;
@@ -36,11 +35,24 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-          color: background, borderRadius: BorderRadius.circular(999)),
-      child: Text(
-        label,
-        style: AppTypography.caption
-            .copyWith(color: foreground, fontWeight: FontWeight.w600),
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: foreground, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTypography.caption
+                .copyWith(color: foreground, fontWeight: FontWeight.w700),
+          ),
+        ],
       ),
     );
   }

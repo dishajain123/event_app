@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../application/certificates_providers.dart';
 import '../../data/models/certificate.dart';
 
+/// Provider watched and the `launchUrl(...)` call are unchanged from
+/// before — only the presentation was refreshed.
 class CertificateDetailScreen extends ConsumerWidget {
   final AppCertificate certificate;
   const CertificateDetailScreen({super.key, required this.certificate});
@@ -13,11 +21,15 @@ class CertificateDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(certificateDetailProvider(certificate.id));
     return detail.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Certificate')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
       error: (error, _) => Scaffold(
           appBar: AppBar(title: const Text('Certificate detail')),
-          body: Center(child: Text('Unable to load certificate: $error'))),
+          body: Center(
+              child: Text('Unable to load certificate: $error',
+                  style: AppTypography.bodyMuted))),
       data: (item) => _content(context, ref, item),
     );
   }
@@ -28,41 +40,129 @@ class CertificateDetailScreen extends ConsumerWidget {
     final revoked = item.status.toLowerCase() == 'revoked';
     return Scaffold(
       appBar: AppBar(title: const Text('Certificate detail')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const Icon(Icons.workspace_premium, size: 64),
-          const SizedBox(height: 16),
-          Text(item.title ?? item.certificateNumber,
-              style: Theme.of(context).textTheme.titleLarge),
-          Text('Event: ${item.eventName ?? item.eventId}'),
-          Text('Certificate type: ${item.certificateType ?? item.templateId}'),
-          if (item.issuerName != null) Text('Issuer: ${item.issuerName}'),
-          if (item.criteria != null) Text('Criteria: ${item.criteria}'),
-          Text('Certificate number: ${item.certificateNumber}'),
-          Text('Issued: ${item.issuedAt.toLocal()}'),
-          Text('Status: ${item.status}'),
-          const SizedBox(height: 24),
-          if (revoked)
-            const Text(
-                'This certificate has been revoked and cannot be verified.'),
-          if (!revoked && item.artifactUrl == null)
-            const Text('The certificate artifact is currently unavailable.'),
-          if (!revoked && item.artifactUrl != null)
-            FilledButton.icon(
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('View certificate'),
-              onPressed: () async {
-                final opened = await launchUrl(Uri.parse(artifactUrl),
-                    mode: LaunchMode.externalApplication);
-                if (!opened && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Unable to open certificate artifact.')));
-                }
-              },
+      body: AppBackground(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFF59E0B), Color(0xFFB45309)],
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.workspace_premium_rounded,
+                      size: 56, color: Colors.white),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    item.title ?? item.certificateNumber,
+                    style:
+                        AppTypography.headline.copyWith(color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.eventName ?? item.eventId,
+                    style: AppTypography.body
+                        .copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          if (!revoked && item.artifactUrl != null)
-            SelectableText('Verification reference: $artifactUrl'),
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _DetailRow(
+                      label: 'Certificate type',
+                      value: item.certificateType ?? item.templateId),
+                  if (item.issuerName != null)
+                    _DetailRow(label: 'Issuer', value: item.issuerName!),
+                  if (item.criteria != null)
+                    _DetailRow(label: 'Criteria', value: '${item.criteria}'),
+                  _DetailRow(
+                      label: 'Certificate number',
+                      value: item.certificateNumber),
+                  _DetailRow(
+                      label: 'Issued', value: '${item.issuedAt.toLocal()}'),
+                  _DetailRow(label: 'Status', value: item.status, isLast: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            if (revoked)
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.dangerSoft,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Text(
+                    'This certificate has been revoked and cannot be verified.',
+                    style: TextStyle(color: AppColors.danger)),
+              ),
+            if (!revoked && item.artifactUrl == null)
+              const Text('The certificate artifact is currently unavailable.',
+                  style: AppTypography.bodyMuted),
+            if (!revoked && item.artifactUrl != null) ...[
+              AppButton(
+                label: 'View certificate',
+                icon: Icons.open_in_new_rounded,
+                fullWidth: true,
+                size: AppButtonSize.large,
+                onPressed: () async {
+                  final opened = await launchUrl(Uri.parse(artifactUrl),
+                      mode: LaunchMode.externalApplication);
+                  if (!opened && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Unable to open certificate artifact.')));
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SelectableText('Verification reference: $artifactUrl',
+                  style: AppTypography.captionSubtle),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLast;
+  const _DetailRow(
+      {required this.label, required this.value, this.isLast = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(label, style: AppTypography.captionSubtle),
+          ),
+          Expanded(child: Text(value, style: AppTypography.body)),
         ],
       ),
     );

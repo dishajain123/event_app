@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../application/volunteer_providers.dart';
 import '../../data/models/volunteer_application.dart';
 
+/// Form key, controllers, and [_submit]'s `create(...)` call are
+/// unchanged from before — same argument map keys and values.
+/// [TextFormField] is kept for [Form]/validator integration, as before.
 class VolunteerApplicationScreen extends ConsumerStatefulWidget {
   final String eventId;
   const VolunteerApplicationScreen({super.key, required this.eventId});
@@ -76,43 +81,48 @@ class _VolunteerApplicationScreenState
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Apply as Volunteer')),
-        body: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              DropdownButtonFormField<VolunteerApplicationType>(
-                initialValue: _applicationType,
-                decoration: const InputDecoration(labelText: 'Apply as'),
-                items: const [
-                  DropdownMenuItem(
-                      value: VolunteerApplicationType.volunteer,
-                      child: Text('Volunteer')),
-                  DropdownMenuItem(
-                      value: VolunteerApplicationType.eventManager,
-                      child: Text('Event Manager')),
-                ],
-                onChanged: (value) => setState(() => _applicationType =
-                    value ?? VolunteerApplicationType.volunteer),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              _field(_name, 'Name'),
-              _field(_phone, 'Phone number'),
-              _field(_email, 'Email', requiredField: false),
-              _field(_skills, 'Skills / experience',
-                  maxLines: 3, requiredField: false),
-              _field(_availability, 'Availability',
-                  maxLines: 2, requiredField: false),
-              _field(_responsibility, 'Preferred responsibility',
-                  requiredField: false),
-              _field(_message, 'Message / notes',
-                  maxLines: 3, requiredField: false),
-              const SizedBox(height: AppSpacing.lg),
-              FilledButton(
+        body: AppBackground(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: [
+                DropdownButtonFormField<VolunteerApplicationType>(
+                  initialValue: _applicationType,
+                  decoration: const InputDecoration(labelText: 'Apply as'),
+                  items: const [
+                    DropdownMenuItem(
+                        value: VolunteerApplicationType.volunteer,
+                        child: Text('Volunteer')),
+                    DropdownMenuItem(
+                        value: VolunteerApplicationType.eventManager,
+                        child: Text('Event Manager')),
+                  ],
+                  onChanged: (value) => setState(() => _applicationType =
+                      value ?? VolunteerApplicationType.volunteer),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _field(_name, 'Name'),
+                _field(_phone, 'Phone number'),
+                _field(_email, 'Email', requiredField: false),
+                _field(_skills, 'Skills / experience',
+                    maxLines: 3, requiredField: false),
+                _field(_availability, 'Availability',
+                    maxLines: 2, requiredField: false),
+                _field(_responsibility, 'Preferred responsibility',
+                    requiredField: false),
+                _field(_message, 'Message / notes',
+                    maxLines: 3, requiredField: false),
+                const SizedBox(height: AppSpacing.lg),
+                AppButton(
+                  label: _submitting ? 'Submitting…' : 'Submit application',
+                  fullWidth: true,
+                  size: AppButtonSize.large,
+                  loading: _submitting,
                   onPressed: _submitting ? null : _submit,
-                  child:
-                      Text(_submitting ? 'Submitting…' : 'Submit application')),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       );

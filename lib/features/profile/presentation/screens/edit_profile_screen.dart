@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/app_exception.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../auth/application/auth_state_provider.dart';
 
+/// State fields and [_submit] are unchanged — same
+/// `authStateProvider.notifier.updateProfile(...)` call with the same
+/// trimmed-or-null argument handling.
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -67,29 +72,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            AppTextField(
-                controller: _nameController, label: 'Name', autofocus: true),
-            const SizedBox(height: AppSpacing.lg),
-            AppTextField(
-              controller: _emailController,
-              label: 'Email',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              AppTextField(
+                  controller: _nameController, label: 'Name', autofocus: true),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                controller: _emailController,
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.dangerSoft,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(_error!,
+                      style: const TextStyle(color: AppColors.danger)),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                  label: 'Save',
+                  fullWidth: true,
+                  size: AppButtonSize.large,
+                  loading: _submitting,
+                  onPressed: _submit),
             ],
-            const SizedBox(height: AppSpacing.xl),
-            AppButton(
-                label: 'Save',
-                fullWidth: true,
-                loading: _submitting,
-                onPressed: _submit),
-          ],
+          ),
         ),
       ),
     );

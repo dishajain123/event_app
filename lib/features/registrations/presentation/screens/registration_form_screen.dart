@@ -8,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/sheets/confirm_action_sheet.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
@@ -19,6 +20,10 @@ import '../../data/models/registration.dart';
 import '../../data/models/registration_status.dart';
 import '../widgets/dynamic_field_renderer.dart';
 
+/// All state fields, [_pickDateOfBirth], [_checkEligibility], and
+/// [_submit] are unchanged from before — same repository calls, same
+/// arguments, same post-submit navigation (payment checkout vs. My
+/// Registrations). Only [build] is restyled.
 class RegistrationFormScreen extends ConsumerStatefulWidget {
   final String eventId;
   final String participationType;
@@ -145,126 +150,141 @@ class _RegistrationFormScreenState
 
     return Scaffold(
       appBar: AppBar(title: Text('Register — ${widget.participationType}')),
-      body: SafeArea(
-        child: fieldSchemaAsync.when(
-          loading: () => const AppSkeleton.form(),
-          error: (error, stackTrace) => AppErrorState(
-            error: error is AppException
-                ? error
-                : UnknownException(error.toString()),
-            onRetry: () => ref.invalidate(
-              eventFieldSchemaProvider((
-                eventId: widget.eventId,
-                participationType: widget.participationType
-              )),
+      body: AppBackground(
+        child: SafeArea(
+          child: fieldSchemaAsync.when(
+            loading: () => const AppSkeleton.form(),
+            error: (error, stackTrace) => AppErrorState(
+              error: error is AppException
+                  ? error
+                  : UnknownException(error.toString()),
+              onRetry: () => ref.invalidate(
+                eventFieldSchemaProvider((
+                  eventId: widget.eventId,
+                  participationType: widget.participationType
+                )),
+              ),
             ),
-          ),
-          data: (schema) {
-            final fields = schema?.fields ?? const <ConfigurableField>[];
-            final config = configAsync.valueOrNull;
+            data: (schema) {
+              final fields = schema?.fields ?? const <ConfigurableField>[];
+              final config = configAsync.valueOrNull;
 
-            return ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: [
-                childrenAsync.when(
-                  loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (children) => children.isEmpty
-                      ? const SizedBox.shrink()
-                      : DropdownButtonFormField<String>(
-                          initialValue: _childId ?? '',
-                          decoration: const InputDecoration(
-                              labelText: 'Registering for', hintText: 'Myself'),
-                          items: [
-                            const DropdownMenuItem<String>(
-                                value: '', child: Text('Myself')),
-                            ...children.map(
-                              (child) => DropdownMenuItem<String>(
-                                value: child.id,
-                                child: Text(child.fullName),
+              return ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                children: [
+                  childrenAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (children) => children.isEmpty
+                        ? const SizedBox.shrink()
+                        : DropdownButtonFormField<String>(
+                            initialValue: _childId ?? '',
+                            decoration: const InputDecoration(
+                                labelText: 'Registering for',
+                                hintText: 'Myself'),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                  value: '', child: Text('Myself')),
+                              ...children.map(
+                                (child) => DropdownMenuItem<String>(
+                                  value: child.id,
+                                  child: Text(child.fullName),
+                                ),
                               ),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            final child = value == null || value.isEmpty
-                                ? null
-                                : children.firstWhere(
-                                    (candidate) => candidate.id == value);
-                            setState(() {
-                              _childId =
-                                  value == null || value.isEmpty ? null : value;
-                              _dateOfBirthIso = child?.dateOfBirth
-                                  .toIso8601String()
-                                  .split('T')
-                                  .first;
-                            });
-                          },
-                        ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _participantNameController,
-                  label: 'Another participant (optional)',
-                  hint: 'Leave blank to register yourself',
-                ),
-                const SizedBox(height: AppSpacing.md),
-                if (config != null && config.hasAgeRule)
-                  _DateOfBirthField(
-                    value: _dateOfBirthIso,
-                    onTap: _pickDateOfBirth,
+                            ],
+                            onChanged: (value) {
+                              final child = value == null || value.isEmpty
+                                  ? null
+                                  : children.firstWhere(
+                                      (candidate) => candidate.id == value);
+                              setState(() {
+                                _childId = value == null || value.isEmpty
+                                    ? null
+                                    : value;
+                                _dateOfBirthIso = child?.dateOfBirth
+                                    .toIso8601String()
+                                    .split('T')
+                                    .first;
+                              });
+                            },
+                          ),
                   ),
-                if (config != null && config.hasAgeRule)
-                  const SizedBox(height: AppSpacing.lg),
-                if (config != null && config.requiredDocuments.isNotEmpty) ...[
-                  const Text('Required documents',
-                      style: AppTypography.bodyStrong),
-                  const SizedBox(height: AppSpacing.sm),
-                  for (final doc in config.requiredDocuments)
-                    CheckboxListTile(
-                      value: _confirmedDocuments.contains(doc),
-                      onChanged: (checked) {
-                        setState(() {
-                          if (checked == true) {
-                            _confirmedDocuments.add(doc);
-                          } else {
-                            _confirmedDocuments.remove(doc);
-                          }
-                        });
-                      },
-                      title: Text(doc),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    controller: _participantNameController,
+                    label: 'Another participant (optional)',
+                    hint: 'Leave blank to register yourself',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (config != null && config.hasAgeRule)
+                    _DateOfBirthField(
+                      value: _dateOfBirthIso,
+                      onTap: _pickDateOfBirth,
                     ),
+                  if (config != null && config.hasAgeRule)
+                    const SizedBox(height: AppSpacing.lg),
+                  if (config != null &&
+                      config.requiredDocuments.isNotEmpty) ...[
+                    const Text('Required documents',
+                        style: AppTypography.bodyStrong),
+                    const SizedBox(height: AppSpacing.sm),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceMuted,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        children: [
+                          for (final doc in config.requiredDocuments)
+                            CheckboxListTile(
+                              value: _confirmedDocuments.contains(doc),
+                              onChanged: (checked) {
+                                setState(() {
+                                  if (checked == true) {
+                                    _confirmedDocuments.add(doc);
+                                  } else {
+                                    _confirmedDocuments.remove(doc);
+                                  }
+                                });
+                              },
+                              title: Text(doc),
+                              controlAffinity: ListTileControlAffinity.leading,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  if (fields.isNotEmpty)
+                    DynamicFieldRenderer(
+                      fields: fields,
+                      answers: _answers,
+                      onFieldChanged: (key, value) =>
+                          setState(() => _answers[key] = value),
+                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_lastValidation != null)
+                    _ValidationBanner(result: _lastValidation!),
                   const SizedBox(height: AppSpacing.lg),
-                ],
-                if (fields.isNotEmpty)
-                  DynamicFieldRenderer(
-                    fields: fields,
-                    answers: _answers,
-                    onFieldChanged: (key, value) =>
-                        setState(() => _answers[key] = value),
+                  AppButton(
+                    label: 'Check eligibility',
+                    variant: AppButtonVariant.secondary,
+                    fullWidth: true,
+                    icon: Icons.fact_check_outlined,
+                    loading: _validating,
+                    onPressed: _checkEligibility,
                   ),
-                const SizedBox(height: AppSpacing.md),
-                if (_lastValidation != null)
-                  _ValidationBanner(result: _lastValidation!),
-                const SizedBox(height: AppSpacing.lg),
-                AppButton(
-                  label: 'Check eligibility',
-                  variant: AppButtonVariant.secondary,
-                  fullWidth: true,
-                  loading: _validating,
-                  onPressed: _checkEligibility,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton(
-                  label: 'Submit registration',
-                  fullWidth: true,
-                  size: AppButtonSize.large,
-                  onPressed: _submit,
-                ),
-              ],
-            );
-          },
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: 'Submit registration',
+                    fullWidth: true,
+                    size: AppButtonSize.large,
+                    onPressed: _submit,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -285,9 +305,12 @@ class _DateOfBirthField extends StatelessWidget {
         const SizedBox(height: 6),
         InkWell(
           onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
           child: InputDecorator(
-            decoration:
-                const InputDecoration(hintText: 'Select your date of birth'),
+            decoration: const InputDecoration(
+              hintText: 'Select your date of birth',
+              suffixIcon: Icon(Icons.calendar_today_rounded, size: 18),
+            ),
             child: Text(value ?? 'Select your date of birth',
                 style: AppTypography.body),
           ),
@@ -308,7 +331,7 @@ class _ValidationBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: isEligible ? AppColors.successSoft : AppColors.dangerSoft,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

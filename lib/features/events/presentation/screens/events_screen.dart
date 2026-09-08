@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/route_paths.dart';
 import '../../../../core/network/app_exception.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/chips/app_chip.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/states/app_empty_state.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
 import '../../../../shared/widgets/states/app_skeleton.dart';
@@ -13,9 +16,12 @@ import '../../../event_categories/data/models/category_models.dart';
 import '../../application/events_providers.dart';
 import '../widgets/event_card.dart';
 
-/// Event discovery keeps filtering server-side. The selected taxonomy IDs are
-/// sent unchanged to GET /events; Flutter never reconstructs relationships
-/// from names or filters an unbounded global dataset locally.
+/// Event discovery keeps filtering server-side. The selected taxonomy IDs
+/// are sent unchanged to GET /events; Flutter never reconstructs
+/// relationships from names or filters an unbounded global dataset
+/// locally. State fields ([_mainCategoryId], [_subCategoryId], [_query])
+/// and the provider calls built from them are unchanged — only the filter
+/// control is now a horizontal chip row instead of two dropdowns.
 class EventsScreen extends ConsumerStatefulWidget {
   final String? initialMainCategoryId;
   final String? initialSubCategoryId;
@@ -64,88 +70,94 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          taxonomy.when(
-            loading: () => const LinearProgressIndicator(),
-            error: (error, _) => const SizedBox.shrink(),
-            data: (categories) => _Filters(
-              categories: categories,
-              mainCategoryId: _mainCategoryId,
-              subCategoryId: _subCategoryId,
-              onMainChanged: (id) => setState(() {
-                _mainCategoryId = id;
-                _subCategoryId = null;
-              }),
-              onSubChanged: (id) => setState(() => _subCategoryId = id),
-              onClear: () => setState(() {
-                _mainCategoryId = null;
-                _subCategoryId = null;
-              }),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.xs,
-              AppSpacing.lg,
-              AppSpacing.sm,
-            ),
-            child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_rounded),
-                hintText: 'Search loaded events',
+      body: AppBackground(
+        child: Column(
+          children: [
+            taxonomy.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (error, _) => const SizedBox.shrink(),
+              data: (categories) => _Filters(
+                categories: categories,
+                mainCategoryId: _mainCategoryId,
+                subCategoryId: _subCategoryId,
+                onMainChanged: (id) => setState(() {
+                  _mainCategoryId = id;
+                  _subCategoryId = null;
+                }),
+                onSubChanged: (id) => setState(() => _subCategoryId = id),
               ),
-              onChanged: (value) =>
-                  setState(() => _query = value.trim().toLowerCase()),
             ),
-          ),
-          Expanded(
-            child: events.when(
-              loading: () => const AppSkeleton.cardList(),
-              error: (error, _) => AppErrorState(
-                error: error is AppException
-                    ? error
-                    : UnknownException(error.toString()),
-                onRetry: () => ref.invalidate(eventsListProvider((
-                  mainCategoryId: _mainCategoryId,
-                  subCategoryId: _subCategoryId,
-                ))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.sm,
               ),
-              data: (items) {
-                final visible = _query.isEmpty
-                    ? items
-                    : items
-                        .where(
-                            (item) => item.name.toLowerCase().contains(_query))
-                        .toList();
-                if (visible.isEmpty) {
-                  return AppEmptyState(
-                    icon: Icons.event_busy_rounded,
-                    title: 'No events found',
-                    description: _query.isEmpty
-                        ? 'Published events for this selection will appear here.'
-                        : 'Try a different event name.',
-                  );
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: visible.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.md),
-                  itemBuilder: (context, index) {
-                    final event = visible[index];
-                    return CompactEventCard(
-                      event: event,
-                      onTap: () =>
-                          context.push(RoutePaths.eventDetailPath(event.id)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                ),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search_rounded),
+                    hintText: 'Search loaded events',
+                    filled: false,
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (value) =>
+                      setState(() => _query = value.trim().toLowerCase()),
+                ),
+              ),
+            ),
+            Expanded(
+              child: events.when(
+                loading: () => const AppSkeleton.cardList(),
+                error: (error, _) => AppErrorState(
+                  error: error is AppException
+                      ? error
+                      : UnknownException(error.toString()),
+                  onRetry: () => ref.invalidate(eventsListProvider((
+                    mainCategoryId: _mainCategoryId,
+                    subCategoryId: _subCategoryId,
+                  ))),
+                ),
+                data: (items) {
+                  final visible = _query.isEmpty
+                      ? items
+                      : items
+                          .where((item) =>
+                              item.name.toLowerCase().contains(_query))
+                          .toList();
+                  if (visible.isEmpty) {
+                    return AppEmptyState(
+                      icon: Icons.event_busy_rounded,
+                      title: 'No events found',
+                      description: _query.isEmpty
+                          ? 'Published events for this selection will appear here.'
+                          : 'Try a different event name.',
                     );
-                  },
-                );
-              },
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    itemCount: visible.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.md),
+                    itemBuilder: (context, index) {
+                      final event = visible[index];
+                      return CompactEventCard(
+                        event: event,
+                        onTap: () => context
+                            .push(RoutePaths.eventDetailPath(event.id)),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -157,14 +169,12 @@ class _Filters extends StatelessWidget {
   final String? subCategoryId;
   final ValueChanged<String?> onMainChanged;
   final ValueChanged<String?> onSubChanged;
-  final VoidCallback onClear;
   const _Filters({
     required this.categories,
     required this.mainCategoryId,
     required this.subCategoryId,
     required this.onMainChanged,
     required this.onSubChanged,
-    required this.onClear,
   });
 
   @override
@@ -172,46 +182,60 @@ class _Filters extends StatelessWidget {
     final selected =
         categories.where((item) => item.id == mainCategoryId).firstOrNull;
     final subcategories = selected?.subCategories ?? const <SubCategory>[];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Row(
-        children: [
-          DropdownButton<String?>(
-            value: mainCategoryId,
-            hint: const Text('Main category'),
-            items: [
-              const DropdownMenuItem<String?>(
-                  value: null, child: Text('All categories')),
-              ...categories.map((item) => DropdownMenuItem<String?>(
-                    value: item.id,
-                    child: Text(item.name, overflow: TextOverflow.ellipsis),
-                  )),
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            children: [
+              AppChip(
+                label: 'All categories',
+                selected: mainCategoryId == null,
+                onTap: () => onMainChanged(null),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              for (final category in categories) ...[
+                AppChip(
+                  label: category.name,
+                  selected: category.id == mainCategoryId,
+                  onTap: () => onMainChanged(category.id),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
             ],
-            onChanged: onMainChanged,
           ),
-          const SizedBox(width: AppSpacing.md),
-          DropdownButton<String?>(
-            value: subcategories.any((item) => item.id == subCategoryId)
-                ? subCategoryId
-                : null,
-            hint: Text(mainCategoryId == null
-                ? 'Select main category'
-                : 'Subcategory'),
-            items: [
-              const DropdownMenuItem<String?>(
-                  value: null, child: Text('All subcategories')),
-              ...subcategories.map((item) => DropdownMenuItem<String?>(
-                    value: item.id,
-                    child: Text(item.name, overflow: TextOverflow.ellipsis),
-                  )),
-            ],
-            onChanged: mainCategoryId == null ? null : onSubChanged,
+        ),
+        if (mainCategoryId != null && subcategories.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              children: [
+                AppChip(
+                  label: 'All subcategories',
+                  selected: subCategoryId == null,
+                  onTap: () => onSubChanged(null),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                for (final sub in subcategories) ...[
+                  AppChip(
+                    label: sub.name,
+                    selected: sub.id == subCategoryId,
+                    onTap: () => onSubChanged(sub.id),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+              ],
+            ),
           ),
-          if (mainCategoryId != null || subCategoryId != null)
-            TextButton(onPressed: onClear, child: const Text('Clear')),
         ],
-      ),
+      ],
     );
   }
 }

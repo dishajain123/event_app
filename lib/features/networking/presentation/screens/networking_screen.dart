@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/badges/status_badge.dart';
+import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../auth/application/auth_state_provider.dart';
 import '../../application/networking_providers.dart';
 import '../../data/models/networking.dart';
 
+/// Every provider watched and every repository call
+/// ([networkingRepositoryProvider].update/connect/dismiss/report/
+/// connectionStatus/unblock/discover/activities) is unchanged from
+/// before, including the exact JSON keys sent to `update(...)` and the
+/// exact status-string branching in the connections list. Only the
+/// presentation was refreshed.
 class NetworkingScreen extends ConsumerWidget {
   final String eventId;
   const NetworkingScreen({super.key, required this.eventId});
@@ -16,19 +29,21 @@ class NetworkingScreen extends ConsumerWidget {
     final currentUserId = auth is AuthAuthenticated ? auth.user.id : null;
     return Scaffold(
       appBar: AppBar(title: const Text('Networking')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _profileSwitch(context, ref, profile),
-          const SizedBox(height: 16),
-          const Text('Recommended participants',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          NetworkingDiscoveryPanel(eventId: eventId),
-          const SizedBox(height: 24),
-          const Text('My connection requests',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          _connections(context, ref, connections, currentUserId),
-        ],
+      body: AppBackground(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            _profileSwitch(context, ref, profile),
+            const SizedBox(height: AppSpacing.xl),
+            const Text('Recommended participants', style: AppTypography.title),
+            const SizedBox(height: AppSpacing.md),
+            NetworkingDiscoveryPanel(eventId: eventId),
+            const SizedBox(height: AppSpacing.xl),
+            const Text('My connection requests', style: AppTypography.title),
+            const SizedBox(height: AppSpacing.md),
+            _connections(context, ref, connections, currentUserId),
+          ],
+        ),
       ),
     );
   }
@@ -36,38 +51,50 @@ class NetworkingScreen extends ConsumerWidget {
   Widget _profileSwitch(BuildContext context, WidgetRef ref,
           AsyncValue<NetworkingProfile> state) =>
       state.when(
-        loading: () => const CircularProgressIndicator(),
-        error: (error, _) => Text('Networking unavailable: $error'),
-        data: (profile) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SwitchListTile(
-              title: const Text('Appear in participant discovery'),
-              value: profile.visibility == 'visible',
-              onChanged: (value) async {
-                await ref.read(networkingRepositoryProvider).update(eventId, {
-                  'visibility': value ? 'visible' : 'hidden',
-                  'display_name': profile.displayName,
-                  'organization': profile.organization,
-                  'designation': profile.designation,
-                  'interests': profile.interests,
-                  'skills': profile.skills,
-                  'bio': profile.bio,
-                  'share_contact': false,
-                });
-                ref.invalidate(networkingProfileProvider(eventId));
-                ref.invalidate(networkingParticipantsProvider(eventId));
-              },
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => _editProfile(context, ref, profile),
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit networking profile'),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Text('Networking unavailable: $error',
+            style: AppTypography.bodyMuted),
+        data: (profile) => AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('Appear in participant discovery',
+                        style: AppTypography.bodyStrong),
+                  ),
+                  Switch(
+                    value: profile.visibility == 'visible',
+                    activeThumbColor: AppColors.accent,
+                    onChanged: (value) async {
+                      await ref.read(networkingRepositoryProvider).update(eventId, {
+                        'visibility': value ? 'visible' : 'hidden',
+                        'display_name': profile.displayName,
+                        'organization': profile.organization,
+                        'designation': profile.designation,
+                        'interests': profile.interests,
+                        'skills': profile.skills,
+                        'bio': profile.bio,
+                        'share_contact': false,
+                      });
+                      ref.invalidate(networkingProfileProvider(eventId));
+                      ref.invalidate(networkingParticipantsProvider(eventId));
+                    },
+                  ),
+                ],
               ),
-            ),
-          ],
+              Align(
+                alignment: Alignment.centerRight,
+                child: AppButton(
+                  label: 'Edit networking profile',
+                  icon: Icons.edit_outlined,
+                  variant: AppButtonVariant.ghost,
+                  onPressed: () => _editProfile(context, ref, profile),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
@@ -170,82 +197,107 @@ class NetworkingScreen extends ConsumerWidget {
           AsyncValue<List<NetworkingConnection>> state,
           String? currentUserId) =>
       state.when(
-        loading: () => const CircularProgressIndicator(),
-        error: (error, _) => Text('Unable to load connections: $error'),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Text('Unable to load connections: $error',
+            style: AppTypography.bodyMuted),
         data: (items) => items.isEmpty
-            ? const Text('No connection requests yet.')
+            ? const Text('No connection requests yet.', style: AppTypography.bodyMuted)
             : Column(
                 children: items
-                    .map((connection) => ListTile(
-                          title: Text(connection.status),
-                          subtitle: Text(connection.intent),
-                          trailing: connection.status == 'blocked'
-                              ? IconButton(
-                                  icon: const Icon(Icons.lock_open),
-                                  onPressed: () async {
-                                    final other = connection.participantLowId ==
-                                            currentUserId
-                                        ? connection.participantHighId
-                                        : connection.participantLowId;
-                                    await ref
-                                        .read(networkingRepositoryProvider)
-                                        .unblock(eventId, other);
-                                    ref.invalidate(
-                                        networkingConnectionsProvider(eventId));
-                                    ref.invalidate(
-                                        networkingParticipantsProvider(
-                                            eventId));
-                                  })
-                              : connection.status == 'pending'
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                          if (connection.requestedBy ==
-                                              currentUserId)
-                                            IconButton(
-                                                icon: const Icon(
-                                                    Icons.cancel_outlined),
-                                                onPressed: () async {
-                                                  await ref
-                                                      .read(
-                                                          networkingRepositoryProvider)
-                                                      .connectionStatus(
-                                                          connection.id,
-                                                          'cancelled');
-                                                  ref.invalidate(
-                                                      networkingConnectionsProvider(
-                                                          eventId));
-                                                })
-                                          else ...[
-                                            IconButton(
-                                                icon: const Icon(Icons.check),
-                                                onPressed: () async {
-                                                  await ref
-                                                      .read(
-                                                          networkingRepositoryProvider)
-                                                      .connectionStatus(
-                                                          connection.id,
-                                                          'accepted');
-                                                  ref.invalidate(
-                                                      networkingConnectionsProvider(
-                                                          eventId));
-                                                }),
-                                            IconButton(
-                                                icon: const Icon(Icons.close),
-                                                onPressed: () async {
-                                                  await ref
-                                                      .read(
-                                                          networkingRepositoryProvider)
-                                                      .connectionStatus(
-                                                          connection.id,
-                                                          'rejected');
-                                                  ref.invalidate(
-                                                      networkingConnectionsProvider(
-                                                          eventId));
-                                                }),
-                                          ],
-                                        ])
-                                  : null,
+                    .map((connection) => Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: AppCard(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      StatusBadge(label: connection.status),
+                                      const SizedBox(height: 4),
+                                      Text(connection.intent,
+                                          style: AppTypography.caption),
+                                    ],
+                                  ),
+                                ),
+                                if (connection.status == 'blocked')
+                                  IconButton(
+                                      icon: const Icon(Icons.lock_open_rounded),
+                                      onPressed: () async {
+                                        final other =
+                                            connection.participantLowId ==
+                                                    currentUserId
+                                                ? connection.participantHighId
+                                                : connection.participantLowId;
+                                        await ref
+                                            .read(networkingRepositoryProvider)
+                                            .unblock(eventId, other);
+                                        ref.invalidate(
+                                            networkingConnectionsProvider(
+                                                eventId));
+                                        ref.invalidate(
+                                            networkingParticipantsProvider(
+                                                eventId));
+                                      })
+                                else if (connection.status == 'pending')
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (connection.requestedBy ==
+                                          currentUserId)
+                                        IconButton(
+                                            icon: const Icon(
+                                                Icons.cancel_outlined),
+                                            onPressed: () async {
+                                              await ref
+                                                  .read(
+                                                      networkingRepositoryProvider)
+                                                  .connectionStatus(
+                                                      connection.id,
+                                                      'cancelled');
+                                              ref.invalidate(
+                                                  networkingConnectionsProvider(
+                                                      eventId));
+                                            })
+                                      else ...[
+                                        IconButton(
+                                            icon: const Icon(
+                                                Icons.check_circle_outline_rounded,
+                                                color: AppColors.success),
+                                            onPressed: () async {
+                                              await ref
+                                                  .read(
+                                                      networkingRepositoryProvider)
+                                                  .connectionStatus(
+                                                      connection.id,
+                                                      'accepted');
+                                              ref.invalidate(
+                                                  networkingConnectionsProvider(
+                                                      eventId));
+                                            }),
+                                        IconButton(
+                                            icon: const Icon(
+                                                Icons.close_rounded,
+                                                color: AppColors.danger),
+                                            onPressed: () async {
+                                              await ref
+                                                  .read(
+                                                      networkingRepositoryProvider)
+                                                  .connectionStatus(
+                                                      connection.id,
+                                                      'rejected');
+                                              ref.invalidate(
+                                                  networkingConnectionsProvider(
+                                                      eventId));
+                                            }),
+                                      ],
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
                         ))
                     .toList()),
       );
@@ -330,103 +382,195 @@ class _NetworkingDiscoveryPanelState extends State<NetworkingDiscoveryPanel> {
                 onSubmitted: (_) => _load(reset: true),
                 decoration: const InputDecoration(
                   labelText: 'Search participants',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Icon(Icons.search_rounded),
                 ),
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
             IconButton(
-                onPressed: () => _load(reset: true),
-                icon: const Icon(Icons.refresh)),
+              onPressed: () => _load(reset: true),
+              icon: const Icon(Icons.refresh_rounded),
+              style: IconButton.styleFrom(
+                  backgroundColor: AppColors.surface,
+                  shape: const CircleBorder()),
+            ),
           ]),
           if (_loading && _items.isEmpty)
             const Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(AppSpacing.xl),
                 child: Center(child: CircularProgressIndicator())),
-          if (_error != null) Text('Unable to load participants: $_error'),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Text('Unable to load participants: $_error',
+                  style: AppTypography.bodyMuted),
+            ),
           if (!_loading && _error == null && _items.isEmpty)
             const Padding(
-                padding: EdgeInsets.all(12),
-                child: Text('No opted-in participants yet.')),
-          ..._items.map(_tile),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              child: Text('No opted-in participants yet.',
+                  style: AppTypography.bodyMuted),
+            ),
+          for (final item in _items)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: _tile(item),
+            ),
           if (_activities.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('Event activities',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ..._activities.map((activity) => ListTile(
-                  leading: Icon(activity.activityType == 'competition'
-                      ? Icons.emoji_events_outlined
-                      : Icons.schedule),
-                  title: Text(activity.title),
-                  subtitle:
-                      Text('${activity.activityType} · ${activity.status}'),
-                )),
+            const SizedBox(height: AppSpacing.lg),
+            const Text('Event activities', style: AppTypography.title),
+            const SizedBox(height: AppSpacing.sm),
+            for (final activity in _activities)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: AppCard(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                            color: AppColors.accentSoft, shape: BoxShape.circle),
+                        child: Icon(
+                            activity.activityType == 'competition'
+                                ? Icons.emoji_events_rounded
+                                : Icons.schedule_rounded,
+                            color: AppColors.accentStrong,
+                            size: 18),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(activity.title,
+                                style: AppTypography.bodyStrong),
+                            Text('${activity.activityType} · ${activity.status}',
+                                style: AppTypography.caption),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
-          if (_items.length < _total)
-            OutlinedButton(
+          if (_items.length < _total) ...[
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: _loading ? 'Loading…' : 'Load more',
+              variant: AppButtonVariant.secondary,
+              fullWidth: true,
+              loading: _loading,
               onPressed: _loading
                   ? null
                   : () {
                       _page += 1;
                       _load(reset: false);
                     },
-              child: Text(_loading ? 'Loading...' : 'Load more'),
             ),
+          ],
         ],
       );
 
-  Widget _tile(NetworkingProfile profile) => Card(
-        child: ListTile(
-          title: Text(profile.displayName ?? 'Participant'),
-          subtitle: Text(
-              '${profile.organization ?? ''} ${profile.designation ?? ''}\n${profile.explanation.join(', ')}'),
-          isThreeLine: true,
-          trailing: Wrap(spacing: 4, children: [
-            IconButton(
-              tooltip: 'Connect',
-              icon: const Icon(Icons.person_add_alt_1),
-              onPressed: () async {
-                try {
-                  await ProviderScope.containerOf(context, listen: false)
-                      .read(networkingRepositoryProvider)
-                      .connect(widget.eventId, profile.userId);
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Request sent')));
-                  }
-                } catch (error) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Unable to connect: $error')));
-                  }
-                }
-              },
+  Widget _tile(NetworkingProfile profile) => AppCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                  color: AppColors.accentSoft, shape: BoxShape.circle),
+              child: const Icon(Icons.person_rounded,
+                  color: AppColors.accentStrong, size: 20),
             ),
-            IconButton(
-              tooltip: 'Dismiss',
-              icon: const Icon(Icons.close),
-              onPressed: () async {
-                try {
-                  await ProviderScope.containerOf(context, listen: false)
-                      .read(networkingRepositoryProvider)
-                      .dismiss(widget.eventId, profile.userId);
-                  if (mounted) {
-                    setState(() => _items
-                        .removeWhere((item) => item.userId == profile.userId));
-                  }
-                } catch (error) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Unable to dismiss: $error')));
-                  }
-                }
-              },
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(profile.displayName ?? 'Participant',
+                      style: AppTypography.bodyStrong),
+                  const SizedBox(height: 2),
+                  Text(
+                    [profile.organization, profile.designation]
+                        .whereType<String>()
+                        .where((s) => s.isNotEmpty)
+                        .join(' · '),
+                    style: AppTypography.caption,
+                  ),
+                  if (profile.explanation.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(profile.explanation.join(', '),
+                        style: AppTypography.captionSubtle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ],
+              ),
             ),
-            IconButton(
-              tooltip: 'Report',
-              icon: const Icon(Icons.report_outlined),
-              onPressed: () => _report(profile),
+            Column(
+              children: [
+                IconButton(
+                  tooltip: 'Connect',
+                  icon: const Icon(Icons.person_add_alt_1_rounded,
+                      color: AppColors.accentStrong),
+                  onPressed: () async {
+                    try {
+                      await ProviderScope.containerOf(context, listen: false)
+                          .read(networkingRepositoryProvider)
+                          .connect(widget.eventId, profile.userId);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Request sent')));
+                      }
+                    } catch (error) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Unable to connect: $error')));
+                      }
+                    }
+                  },
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Dismiss',
+                      icon: const Icon(Icons.close_rounded,
+                          color: AppColors.inkSubtle, size: 18),
+                      onPressed: () async {
+                        try {
+                          await ProviderScope.containerOf(context,
+                                  listen: false)
+                              .read(networkingRepositoryProvider)
+                              .dismiss(widget.eventId, profile.userId);
+                          if (mounted) {
+                            setState(() => _items.removeWhere(
+                                (item) => item.userId == profile.userId));
+                          }
+                        } catch (error) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text('Unable to dismiss: $error')));
+                          }
+                        }
+                      },
+                    ),
+                    IconButton(
+                      tooltip: 'Report',
+                      icon: const Icon(Icons.report_outlined,
+                          color: AppColors.inkSubtle, size: 18),
+                      onPressed: () => _report(profile),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ]),
+          ],
         ),
       );
 

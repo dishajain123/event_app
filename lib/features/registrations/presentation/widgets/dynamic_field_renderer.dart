@@ -6,18 +6,17 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../config_engine/data/models/configurable_field.dart';
 
-/// Renders a form from a backend-defined [ConfigurableField] list — the
-/// core piece of Phase 3 (Section 3.6, 5.4): one widget per KNOWN field
-/// type (text, number, select, date, boolean), and a plain text fallback
-/// for anything this app doesn't recognize yet, so a new field type the
-/// Console's Configuration Builder adds is never silently dropped from the
-/// form, even before this renderer has a dedicated widget for it.
+/// Renders a form from a backend-defined [ConfigurableField] list: one
+/// widget per KNOWN field type (text, number, select, date, boolean), and
+/// a plain text fallback for anything this app doesn't recognize yet, so a
+/// new field type the Console's Configuration Builder adds is never
+/// silently dropped from the form.
 ///
-/// Deliberately stateless and controlled by the parent screen — this
-/// widget owns no state of its own beyond what's needed to edit a text
-/// field locally; [answers] and [onFieldChanged] are the single source of
-/// truth, so the parent (RegistrationFormScreen) can run the real
-/// eligibility dry-run against the current answers at any time.
+/// Deliberately stateless and controlled by the parent screen — [answers]
+/// and [onFieldChanged] are the single source of truth, so the parent
+/// (RegistrationFormScreen) can run the real eligibility dry-run against
+/// the current answers at any time. Unchanged from before; only the
+/// select/date/boolean field presentation was refreshed.
 class DynamicFieldRenderer extends StatelessWidget {
   final List<ConfigurableField> fields;
   final Map<String, dynamic> answers;
@@ -140,7 +139,11 @@ class _SelectField extends StatelessWidget {
               DropdownMenuItem(value: option, child: Text(option)),
           ],
           onChanged: onChanged,
-          decoration: InputDecoration(errorText: error, hintText: 'Select…'),
+          decoration: InputDecoration(
+            errorText: error,
+            hintText: 'Select…',
+            suffixIcon: const Icon(Icons.expand_more_rounded, size: 20),
+          ),
         ),
       ],
     );
@@ -185,9 +188,14 @@ class _DateField extends StatelessWidget {
         const SizedBox(height: 6),
         InkWell(
           onTap: () => _pickDate(context),
+          borderRadius: BorderRadius.circular(14),
           child: InputDecorator(
-            decoration:
-                InputDecoration(errorText: error, hintText: 'Select a date'),
+            decoration: InputDecoration(
+              errorText: error,
+              hintText: 'Select a date',
+              suffixIcon:
+                  const Icon(Icons.calendar_today_rounded, size: 18),
+            ),
             child: Text(value ?? 'Select a date', style: AppTypography.body),
           ),
         ),
@@ -206,14 +214,22 @@ class _BooleanField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Text(field.label, style: AppTypography.body)),
-        Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.accent),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(field.label, style: AppTypography.body)),
+          Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.accent),
+        ],
+      ),
     );
   }
 }

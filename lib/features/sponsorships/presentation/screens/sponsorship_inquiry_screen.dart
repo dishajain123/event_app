@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/app_card.dart';
+import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../events/application/events_providers.dart';
 import '../../application/sponsorship_providers.dart';
 
+/// Form key, controllers, and [_submit]'s `createInquiry(...)` call are
+/// unchanged from before — same validation, same arguments. [TextFormField]
+/// is kept rather than swapped for [AppTextField] since the latter has no
+/// [Form]/validator integration; only decoration and layout are refreshed.
 class SponsorshipInquiryScreen extends ConsumerStatefulWidget {
   const SponsorshipInquiryScreen({super.key});
 
@@ -83,62 +91,83 @@ class _SponsorshipInquiryScreenState
         ref.watch(eventsListProvider(noEventsFilter)).valueOrNull ?? [];
     return Scaffold(
       appBar: AppBar(title: const Text('Sponsorship Inquiry')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            _field(_company, 'Company / person name'),
-            _field(_contact, 'Contact person'),
-            _field(_phone, 'Phone number', keyboardType: TextInputType.phone),
-            _field(_email, 'Email', keyboardType: TextInputType.emailAddress),
-            DropdownButtonFormField<String>(
-              initialValue: _categoryId,
-              decoration:
-                  const InputDecoration(labelText: 'Sponsorship category'),
-              items: [
-                for (final item in categories)
-                  DropdownMenuItem(value: item.id, child: Text(item.name))
-              ],
-              onChanged: (value) => setState(() => _categoryId = value),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            DropdownButtonFormField<String>(
-              initialValue: _packageId,
-              decoration:
-                  const InputDecoration(labelText: 'Interested package'),
-              items: [
-                for (final item in packages)
-                  DropdownMenuItem(value: item.id, child: Text(item.name))
-              ],
-              onChanged: (value) => setState(() => _packageId = value),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const Text('Interested events (optional)'),
-            for (final event in events)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(event.name),
-                value: _eventIds.contains(event.id),
-                onChanged: (selected) => setState(() {
-                  if (selected == true) {
-                    _eventIds.add(event.id);
-                  } else {
-                    _eventIds.remove(event.id);
-                  }
-                }),
+      body: AppBackground(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              _field(_company, 'Company / person name'),
+              _field(_contact, 'Contact person'),
+              _field(_phone, 'Phone number', keyboardType: TextInputType.phone),
+              _field(_email, 'Email', keyboardType: TextInputType.emailAddress),
+              DropdownButtonFormField<String>(
+                initialValue: _categoryId,
+                decoration:
+                    const InputDecoration(labelText: 'Sponsorship category'),
+                items: [
+                  for (final item in categories)
+                    DropdownMenuItem(value: item.id, child: Text(item.name))
+                ],
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
-            _field(_business, 'Business details',
-                maxLines: 3, requiredField: false),
-            _field(_offer, 'What you can offer / expected sponsorship',
-                maxLines: 3, requiredField: false),
-            _field(_message, 'Message or requirements',
-                maxLines: 4, requiredField: false),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton(
+              const SizedBox(height: AppSpacing.md),
+              DropdownButtonFormField<String>(
+                initialValue: _packageId,
+                decoration:
+                    const InputDecoration(labelText: 'Interested package'),
+                items: [
+                  for (final item in packages)
+                    DropdownMenuItem(value: item.id, child: Text(item.name))
+                ],
+                onChanged: (value) => setState(() => _packageId = value),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const Text('Interested events (optional)',
+                  style: AppTypography.bodyStrong),
+              const SizedBox(height: AppSpacing.xs),
+              if (events.isEmpty)
+                const Text('No events to select yet.',
+                    style: AppTypography.captionSubtle)
+              else
+                AppCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Column(
+                    children: [
+                      for (final event in events)
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(event.name),
+                          value: _eventIds.contains(event.id),
+                          onChanged: (selected) => setState(() {
+                            if (selected == true) {
+                              _eventIds.add(event.id);
+                            } else {
+                              _eventIds.remove(event.id);
+                            }
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.lg),
+              _field(_business, 'Business details',
+                  maxLines: 3, requiredField: false),
+              _field(_offer, 'What you can offer / expected sponsorship',
+                  maxLines: 3, requiredField: false),
+              _field(_message, 'Message or requirements',
+                  maxLines: 4, requiredField: false),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: _submitting ? 'Submitting…' : 'Submit inquiry',
+                fullWidth: true,
+                size: AppButtonSize.large,
+                loading: _submitting,
                 onPressed: _submitting ? null : _submit,
-                child: Text(_submitting ? 'Submitting…' : 'Submit inquiry')),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

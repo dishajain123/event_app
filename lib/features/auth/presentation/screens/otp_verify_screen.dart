@@ -11,6 +11,10 @@ import '../../application/auth_state_provider.dart';
 import '../widgets/otp_input_field.dart';
 import '../widgets/resend_timer.dart';
 
+/// Verifies the OTP or email code sent from [MobileNumberScreen]. State
+/// fields and [_verify]/[_resend] are unchanged — same calls into
+/// [authStateProvider] with the same arguments, same router-owned
+/// navigation-on-success contract. Only [build] is refreshed.
 class OtpVerifyScreen extends ConsumerStatefulWidget {
   final String? mobileNumber;
   final String? email;
@@ -102,7 +106,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
       body: DecoratedBox(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,9 +115,20 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.arrow_back_rounded),
                   style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.6)),
+                      backgroundColor: Colors.white.withValues(alpha: 0.7)),
                 ),
                 const SizedBox(height: AppSpacing.xl),
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.accentSoft,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(Icons.mark_email_read_outlined,
+                      color: AppColors.accentStrong, size: 28),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 const Text('Enter the code', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
@@ -127,9 +142,16 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 ),
                 if (_errorText != null) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Text(_errorText!,
-                      style:
-                          AppTypography.body.copyWith(color: AppColors.danger)),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.dangerSoft,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(_errorText!,
+                        style: AppTypography.body
+                            .copyWith(color: AppColors.danger)),
+                  ),
                 ],
                 const SizedBox(height: AppSpacing.lg),
                 Center(
