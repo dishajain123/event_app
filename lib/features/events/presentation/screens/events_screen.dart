@@ -50,6 +50,18 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     final taxonomy = ref.watch(mainCategoriesProvider);
+    // A console deletion/deactivation must not leave an invisible filter active.
+    final categories = taxonomy.asData?.value;
+    if (categories != null && _mainCategoryId != null) {
+      final selected = categories.where((item) => item.id == _mainCategoryId);
+      if (selected.isEmpty) {
+        _mainCategoryId = null;
+        _subCategoryId = null;
+      } else if (_subCategoryId != null &&
+          !selected.first.subCategories.any((item) => item.id == _subCategoryId)) {
+        _subCategoryId = null;
+      }
+    }
     final events = ref.watch(eventsListProvider(
       (mainCategoryId: _mainCategoryId, subCategoryId: _subCategoryId),
     ));

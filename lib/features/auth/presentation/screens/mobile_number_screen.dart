@@ -169,10 +169,10 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                       color: Colors.white, size: 30),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                const Text('Welcome back', style: AppTypography.display),
+                const Text('Sign in or create an account', style: AppTypography.display),
                 const SizedBox(height: AppSpacing.sm),
                 const Text(
-                  'Sign in to continue with your mobile OTP or email and password.',
+                  'Browse events freely. Sign in or create an account to enroll and manage your participation.',
                   style: AppTypography.bodyMuted,
                 ),
                 const SizedBox(height: AppSpacing.xxl),
@@ -230,9 +230,13 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                   fullWidth: true,
                   size: AppButtonSize.large,
                 ),
+                TextButton(
+                  onPressed: () => context.go(RoutePaths.events),
+                  child: const Text('Continue browsing events'),
+                ),
                 const SizedBox(height: AppSpacing.xxl),
                 const Text(
-                  'Only accounts you sign in to here are ever created — there is no separate sign-up.',
+                  'Use mobile OTP to sign in or create an account, or choose email to log in or sign up.',
                   style: AppTypography.captionSubtle,
                   textAlign: TextAlign.center,
                 ),

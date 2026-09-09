@@ -50,6 +50,10 @@ For a physical device, replace `10.0.2.2` with the host computer's LAN IP and en
 
 ## Guest-First Behavior
 
+Category names, nested subcategories, and event records come from the backend API. Discovery data refreshes immediately when the backend sends a change notification over `/discovery/changes` (SSE), and on resume/reconnection. There is no polling interval. Deploy the updated backend alongside the app; its shared Redis service distributes notifications across API workers. Reverse proxies must allow streaming without buffering and idle timeouts longer than the 15-second heartbeat. Unused discovery providers are disposed rather than cached for the whole session. Removed or inactive selected categories/subcategories are cleared from event filters.
+
+The console and app must target the same backend/database. Public discovery shows active categories and published-or-later events; creating a draft in the console does not publish it. Deleting a main category logically deletes its subcategories and events; deleting a subcategory logically deletes its events. Deleted records disappear from discovery while registration/payment history is retained. Events currently use lifecycle status changes rather than a hard-delete endpoint.
+
 Fresh app launches do not require login. Guests can browse public events, event details, categories, venues, schedules, sponsors, public competition content, and published media.
 
 Authentication is requested when a user performs an identity-dependent action, including event registration, child/other-participant/team actions, feedback submission, payments, viewing personal registrations or tickets, profile actions, and staff actions.

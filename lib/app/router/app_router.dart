@@ -11,6 +11,7 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../shells/public_mode_shell.dart';
 import '../shells/staff_mode_shell.dart';
 import 'route_paths.dart';
+import 'guest_routes.dart';
 import 'router_refresh_notifier.dart';
 
 // Feature screens are imported here so every route is registered in one
@@ -416,8 +417,8 @@ String? _redirect(Ref ref, GoRouterState state) {
 
   if (authState is AuthUnauthenticated) {
     if (location == RoutePaths.splash) return RoutePaths.home;
-    if (isAuthRoute || _isGuestAccessibleRoute(location)) return null;
-    return _loginPath(state.matchedLocation);
+    if (isAuthRoute || isGuestAccessibleRoute(location)) return null;
+    return _loginPath(state.uri.toString());
   }
 
   // Authenticated from here on (AuthState is sealed: Initializing |
@@ -457,24 +458,6 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   return null;
-}
-
-bool _isGuestAccessibleRoute(String location) {
-  if (location == RoutePaths.home ||
-      location == RoutePaths.search ||
-      location == RoutePaths.sponsorship ||
-      location == RoutePaths.volunteers) {
-    return true;
-  }
-  if (location.startsWith('/events/')) {
-    return !location.contains('/register') &&
-        !location.contains('/waitlist') &&
-        !location.contains('/refer') &&
-        !location.contains('/registrations/') &&
-        !location.contains('/feedback') &&
-        !location.contains('/networking');
-  }
-  return false;
 }
 
 String _loginPath(String returnTo) {

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/core_providers.dart';
+import '../../../core/providers/discovery_refresh_provider.dart';
 import '../data/events_api.dart';
 import '../data/events_repository.dart';
 import '../data/models/app_event.dart';
@@ -18,33 +19,38 @@ typedef EventsQuery = ({String? mainCategoryId, String? subCategoryId});
 
 const noEventsFilter = (mainCategoryId: null, subCategoryId: null);
 
-final eventsListProvider =
-    FutureProvider.family<List<AppEvent>, EventsQuery>((ref, query) async {
+final eventsListProvider = FutureProvider.autoDispose
+    .family<List<AppEvent>, EventsQuery>((ref, query) async {
+  ref.watch(discoveryRefreshProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.listEvents(
       mainCategoryId: query.mainCategoryId, subCategoryId: query.subCategoryId);
 });
 
 final eventDetailProvider =
-    FutureProvider.family<AppEvent, String>((ref, eventId) async {
+    FutureProvider.autoDispose.family<AppEvent, String>((ref, eventId) async {
+  ref.watch(discoveryRefreshProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getEvent(eventId);
 });
 
-final eventVenuesProvider =
-    FutureProvider.family<List<Venue>, String>((ref, eventId) async {
+final eventVenuesProvider = FutureProvider.autoDispose
+    .family<List<Venue>, String>((ref, eventId) async {
+  ref.watch(discoveryRefreshProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.listVenues(eventId);
 });
 
-final eventScheduleProvider =
-    FutureProvider.family<List<ScheduleItem>, String>((ref, eventId) async {
+final eventScheduleProvider = FutureProvider.autoDispose
+    .family<List<ScheduleItem>, String>((ref, eventId) async {
+  ref.watch(discoveryRefreshProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getSchedule(eventId);
 });
 
-final eventSponsorsProvider =
-    FutureProvider.family<List<Sponsor>, String>((ref, eventId) async {
+final eventSponsorsProvider = FutureProvider.autoDispose
+    .family<List<Sponsor>, String>((ref, eventId) async {
+  ref.watch(discoveryRefreshProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.listSponsors(eventId);
 });
