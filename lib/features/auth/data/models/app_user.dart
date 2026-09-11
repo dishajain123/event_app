@@ -1,7 +1,7 @@
 /// Mirrors `app/modules/identity/schemas.py`'s `UserOut` exactly.
 class AppUser {
   final String id;
-  final String mobileNumber;
+  final String? mobileNumber;
   final String? name;
   final String? email;
   final DateTime? emailVerifiedAt;
@@ -19,7 +19,7 @@ class AppUser {
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       id: json['id'] as String,
-      mobileNumber: json['mobile_number'] as String,
+      mobileNumber: json['mobile_number'] as String?,
       name: json['name'] as String?,
       email: json['email'] as String?,
       emailVerifiedAt: json['email_verified_at'] == null

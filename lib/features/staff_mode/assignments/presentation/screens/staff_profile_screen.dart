@@ -45,7 +45,7 @@ class StaffProfileScreen extends ConsumerWidget {
                     AppAvatar(
                       name: user.name?.isNotEmpty == true
                           ? user.name!
-                          : user.mobileNumber,
+                          : (user.mobileNumber ?? user.email ?? 'Account'),
                       size: 56,
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -59,7 +59,7 @@ class StaffProfileScreen extends ConsumerWidget {
                                   : 'Staff account',
                               style: AppTypography.title),
                           const SizedBox(height: 2),
-                          Text(user.mobileNumber, style: AppTypography.bodyMuted),
+                          Text((user.mobileNumber ?? user.email ?? 'Account'), style: AppTypography.bodyMuted),
                           const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -87,6 +87,13 @@ class StaffProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              if (authState.roles.staffModeEventIds.any(authState.roles.isEventManagerFor))
+                ListTile(
+                  leading: const Icon(Icons.manage_accounts),
+                  title: const Text('Volunteer accounts'),
+                  subtitle: const Text('Disable or reactivate accounts in your event scope'),
+                  onTap: () => context.push('/staff/accounts'),
+                ),
               const SizedBox(height: AppSpacing.xl),
               AppCard(
                 onTap: () async {

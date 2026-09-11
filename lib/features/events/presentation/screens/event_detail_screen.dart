@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -230,10 +231,12 @@ class EventDetailScreen extends ConsumerWidget {
   }
 }
 
-/// Deterministic hero gradient + icon derived from the event's own id and
-/// category — the same "no field for a cover image yet" fallback strategy
-/// used in [FeaturedEventCard]/[CompactEventCard], kept consistent here so
-/// the same event reads the same way across Home, Events, and Detail.
+/// The event hero. Renders [AppEvent.imageUrl] (the cover image uploaded in
+/// the Console) when present, falling back to a deterministic gradient + icon
+/// derived from the event's id — the same fallback strategy used in
+/// [FeaturedEventCard]/[CompactEventCard], kept consistent here so the same
+/// event reads the same way across Home, Events, and Detail. The fallback also
+/// covers the loading and failed-image states.
 class _HeroCover extends StatelessWidget {
   final AppEvent event;
   const _HeroCover({required this.event});
@@ -251,42 +254,45 @@ class _HeroCover extends StatelessWidget {
     Icons.celebration_rounded,
   ];
 
-  @override
-  Widget build(BuildContext context) {
+  static const _scrim = DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.transparent, Color(0x59000000)],
+        stops: [0.5, 1.0],
+      ),
+    ),
+  );
+
+  Widget _fallback() {
     final seed = event.id.codeUnits.fold(0, (a, b) => a + b);
     return Container(
       decoration: BoxDecoration(gradient: _gradients[seed % _gradients.length]),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            right: -30,
-            top: -30,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          Center(
-            child: Icon(_icons[seed % _icons.length],
-                color: Colors.white.withValues(alpha: 0.9), size: 64),
-          ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Color(0x59000000)],
-                stops: [0.5, 1.0],
-              ),
-            ),
-          ),
-        ],
+      child: Center(
+        child: Icon(_icons[seed % _icons.length],
+            color: Colors.white.withValues(alpha: 0.9), size: 64),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = event.imageUrl;
+    if (url == null || url.isEmpty) {
+      return Stack(fit: StackFit.expand, children: [_fallback(), _scrim]);
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (context, _) => _fallback(),
+          errorWidget: (context, _, __) => _fallback(),
+        ),
+        _scrim,
+      ],
     );
   }
 }

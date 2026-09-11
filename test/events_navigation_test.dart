@@ -8,9 +8,11 @@ import 'package:event_app/features/auth/application/session_roles.dart';
 import 'package:event_app/features/auth/data/auth_api.dart';
 import 'package:event_app/features/auth/data/auth_repository.dart';
 import 'package:event_app/features/auth/data/models/app_user.dart';
+import 'package:event_app/features/auth/data/models/role_name.dart';
 import 'package:event_app/features/auth/presentation/screens/mobile_number_screen.dart';
 import 'package:event_app/features/event_categories/application/event_categories_providers.dart';
 import 'package:event_app/features/events/application/events_providers.dart';
+import 'package:event_app/features/event_categories/data/models/category_models.dart';
 import 'package:event_app/features/events/presentation/screens/events_screen.dart';
 import 'package:event_app/features/notifications/data/notifications_api.dart';
 import 'package:event_app/features/notifications/data/notifications_repository.dart';
@@ -32,8 +34,34 @@ class _TestAuth extends AuthStateNotifier {
 }
 
 void main() {
+  testWidgets('disabled cached account cannot enter mobile Staff Mode', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final dio = Dio();
+    final container = ProviderContainer(overrides: [
+      authStateProvider.overrideWith((ref) => _TestAuth(
+        const AuthAuthenticated(
+          user: AppUser(id: 'disabled', mobileNumber: null, name: 'Disabled manager',
+            email: 'disabled@example.test', emailVerifiedAt: null, isActive: false),
+          roles: SessionRoles(globalRoles: [], scopedRolesByEvent: {
+            'event': {RoleName.eventManager},
+          }),
+        ), ref.read(appModeProvider.notifier), dio)),
+    ]);
+    await container.read(appModeProvider.notifier).switchToStaffMode();
+    final router = container.read(goRouterProvider);
+    router.go(RoutePaths.staffMyEvents);
+    await tester.pumpWidget(UncontrolledProviderScope(container: container,
+      child: MaterialApp.router(routerConfig: router)));
+    await tester.pumpAndSettle();
+    expect(find.byType(MobileNumberScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    dio.close();
+  });
+
   for (final signedIn in [false, true]) {
-    testWidgets('Events tab needs no profile (signed in: $signedIn)',
+    testWidgets(
+        'Events tab and category drill-down navigate safely (signed in: $signedIn)',
         (tester) async {
       SharedPreferences.setMockInitialValues({});
       final dio = Dio();
@@ -55,8 +83,22 @@ void main() {
               ref.read(appModeProvider.notifier),
               dio,
             )),
-        mainCategoriesProvider.overrideWith((ref) async => []),
-        eventsListProvider(noEventsFilter).overrideWith((ref) async => []),
+        mainCategoriesProvider.overrideWith((ref) async => [
+              const MainCategory(
+                  id: 'main-1',
+                  name: 'Test category',
+                  description: null,
+                  isActive: true,
+                  subCategories: [
+                    SubCategory(
+                        id: 'sub-1',
+                        mainCategoryId: 'main-1',
+                        name: 'Test subcategory',
+                        description: null,
+                        isActive: true),
+                  ]),
+            ]),
+        eventsListProvider.overrideWith((ref, query) async => []),
       ]);
       final router = container.read(goRouterProvider);
       try {
@@ -70,10 +112,39 @@ void main() {
         await tester.tap(find.text('Events'));
         await tester.pumpAndSettle();
 
-        expect(router.routeInformationProvider.value.uri.path, RoutePaths.events);
+        expect(
+            router.routeInformationProvider.value.uri.path, RoutePaths.events);
         expect(find.byType(EventsScreen), findsOneWidget);
         expect(find.byType(MobileNumberScreen), findsNothing);
         expect(find.byType(EditProfileScreen), findsNothing);
+        expect(tester.takeException(), isNull);
+        router.go(RoutePaths.home);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Test category'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Test subcategory'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final filtered = tester.widget<EventsScreen>(find.byType(EventsScreen));
+        expect(filtered.initialMainCategoryId, 'main-1');
+        expect(filtered.initialSubCategoryId, 'sub-1');
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.text('Test subcategory'), findsOneWidget);
+        await tester.tap(find.text('Test subcategory'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        router.pop();
+        await tester.pumpAndSettle();
+        router.pop();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Events'));
+        await tester.pumpAndSettle();
+        expect(
+            tester
+                .widget<EventsScreen>(find.byType(EventsScreen))
+                .initialSubCategoryId,
+            isNull);
         expect(tester.takeException(), isNull);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());

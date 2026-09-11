@@ -10,6 +10,12 @@ class RoutePaths {
   // Public Mode shell (Section 3.3).
   static const home = '/home';
   static const events = '/events';
+  static const categoryEvents = '/categories/:categoryId/events';
+  static String categoryEventsPath(String categoryId, {String? subCategoryId}) =>
+      Uri(path: '/categories/$categoryId/events', queryParameters: {
+        if (subCategoryId != null) 'subCategoryId': subCategoryId,
+      }).toString();
+
   static const mainCategory = '/categories/:categoryId';
   static String mainCategoryPath(String categoryId) =>
       '/categories/$categoryId';

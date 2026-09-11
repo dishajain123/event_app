@@ -1,3 +1,4 @@
+import '../../features/staff_mode/accounts/staff_accounts_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -158,6 +159,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => MainCategoryScreen(
           categoryId: state.pathParameters['categoryId']!,
+        ),
+      ),
+      // Category drill-down stays on the root navigator. Pushing the Events
+      // tab here would insert a second instance of the existing shell.
+      GoRoute(
+        path: RoutePaths.categoryEvents,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => EventsScreen(
+          initialMainCategoryId: state.pathParameters['categoryId']!,
+          initialSubCategoryId: state.uri.queryParameters['subCategoryId'],
         ),
       ),
       GoRoute(
@@ -372,6 +383,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AppSettingsScreen(),
       ),
 
+      GoRoute(
+        path: '/staff/accounts',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StaffAccountsScreen(),
+      ),
       // Staff Mode shell (Section 3.3, 6.5) — only ever reachable for an
       // account holding at least one of the four Staff-Mode-capable roles;
       // the redirect below is what actually enforces that, not the routes
@@ -425,6 +441,7 @@ String? _redirect(Ref ref, GoRouterState state) {
   // Unauthenticated | Authenticated — the two above are handled, so this
   // is the only remaining case).
   final authenticated = authState as AuthAuthenticated;
+  if (!authenticated.user.isActive) return isAuthRoute ? null : RoutePaths.mobileNumber;
 
   if (isAuthRoute) {
     // Always land in Public Mode first, regardless of role — an account
@@ -438,6 +455,9 @@ String? _redirect(Ref ref, GoRouterState state) {
   final appMode = ref.read(appModeProvider);
   final isStaffRoute = location.startsWith('/staff');
 
+  if (location == '/staff/accounts' && !roles.staffModeEventIds.any(roles.isEventManagerFor)) {
+    return RoutePaths.home;
+  }
   if (isStaffRoute) {
     // Defensive: a Staff Mode route is never reachable for an account
     // with no scoped role at all, no matter how this location was

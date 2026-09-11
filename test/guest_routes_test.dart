@@ -3,12 +3,15 @@ import 'package:event_app/app/router/route_paths.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('guests can browse all events, categories, search and event details', () {
+  test('guests can browse all events, categories, search and event details',
+      () {
     for (final path in [
       RoutePaths.home,
       RoutePaths.events,
       RoutePaths.search,
       RoutePaths.mainCategoryPath('category-1'),
+      RoutePaths.categoryEventsPath('category-1'),
+      RoutePaths.categoryEventsPath('category-1', subCategoryId: 'sub-1'),
       RoutePaths.eventDetailPath('event-1'),
       RoutePaths.mediaGalleryPath('event-1'),
     ]) {

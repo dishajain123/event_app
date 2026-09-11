@@ -11,7 +11,11 @@ bool isGuestAccessibleRoute(String location) {
   }
 
   final segments = Uri.parse(location).pathSegments;
-  if (segments.length == 2 && segments.first == 'categories') return true;
+  if (segments.firstOrNull == 'categories' &&
+      (segments.length == 2 ||
+          (segments.length == 3 && segments.last == 'events'))) {
+    return true;
+  }
   if (segments.length == 2 && segments.first == 'events') return true;
   return segments.length == 3 &&
       segments.first == 'events' &&

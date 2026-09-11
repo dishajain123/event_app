@@ -48,6 +48,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   final NotificationsRepository _notificationsRepository;
   final PushTokenSource _pushTokenSource = const PushTokenSource();
   bool _pushInitialized = false;
+  int _rolesRefreshRevision = 0;
 
   AuthStateNotifier(
       this._repository, this._appModeController, this._notificationsRepository)
@@ -160,8 +161,20 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> refreshRoles() async {
     final current = state;
     if (current is! AuthAuthenticated) return;
-    final assignments = await _repository.getMyRoleAssignments();
-    state = current.copyWith(roles: SessionRoles.fromAssignments(assignments));
+    final revision = ++_rolesRefreshRevision;
+    try {
+      final assignments = await _repository.getMyRoleAssignments();
+      if (!mounted || revision != _rolesRefreshRevision || !identical(state, current)) return;
+      state = current.copyWith(roles: SessionRoles.fromAssignments(assignments));
+    } on UnauthorizedException {
+      if (mounted && revision == _rolesRefreshRevision && identical(state, current)) {
+        state = const AuthUnauthenticated();
+        await _appModeController.reset();
+      }
+    } on AppException {
+      // Keep the current session through a transient network failure.
+      // Reconnection and foregrounding both trigger another refresh.
+    }
   }
 
   /// Updates the cached user in place after a successful profile edit

@@ -70,9 +70,8 @@ class _CategoryContent extends StatelessWidget {
             title: 'No subcategories yet',
             description: 'Organizers have not added subcategories here.',
             actionLabel: 'View category events',
-            onAction: () => context.push(RoutePaths.events, extra: {
-              'mainCategoryId': category.id,
-            }),
+            onAction: () =>
+                context.push(RoutePaths.categoryEventsPath(category.id)),
           )
         else
           ...subcategories.map(
@@ -100,10 +99,10 @@ class _CategoryContent extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(RoutePaths.events, extra: {
-                    'mainCategoryId': category.id,
-                    'subCategoryId': subcategory.id,
-                  }),
+                  onTap: () => context.push(RoutePaths.categoryEventsPath(
+                    category.id,
+                    subCategoryId: subcategory.id,
+                  )),
                 ),
               ),
             ),

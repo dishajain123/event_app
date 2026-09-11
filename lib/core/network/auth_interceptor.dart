@@ -48,6 +48,13 @@ class AuthInterceptor extends Interceptor {
   @override
   Future<void> onError(
       DioException err, ErrorInterceptorHandler handler) async {
+    final body = err.response?.data;
+    if (body is Map && body['error_code'] == 'account_disabled') {
+      await tokenStorage.clear();
+      onSessionExpired();
+      handler.next(err);
+      return;
+    }
     final isUnauthorized = err.response?.statusCode == 401;
     final alreadyRetried =
         err.requestOptions.extra['_retriedAfterRefresh'] == true;

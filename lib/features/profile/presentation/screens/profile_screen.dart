@@ -43,7 +43,7 @@ class ProfileScreen extends ConsumerWidget {
             children: [
               _ProfileHeader(
                   name: user.name,
-                  mobileNumber: user.mobileNumber,
+                  mobileNumber: user.mobileNumber ?? user.email ?? 'Account',
                   onTap: () => context.push(RoutePaths.editProfile)),
               const SizedBox(height: AppSpacing.xl),
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/misc/pressable.dart';
 import '../../data/models/app_event.dart';
 
 const _monthAbbreviations = [
@@ -28,48 +29,104 @@ String _formatDateRange(DateTime start, DateTime end, bool sameDay) {
   return '${_formatDate(start)} – ${_formatDate(end)}';
 }
 
-/// The event model has no cover-image field of its own (only the media
-/// gallery, from Phase 3 onward, carries real photos) — [coverImageUrl] is
-/// left as an optional, caller-supplied override for whenever a screen
-/// does have one on hand (e.g. the first gallery image). With none
-/// supplied, the fallback is a deterministic gradient + icon derived from
-/// the event's own category, never a random/mocked photo, so it stays
-/// meaningfully tied to real backend data rather than decorative filler.
-const _fallbackGradients = [
-  AppColors.pillarCorporate,
-  AppColors.pillarCommunity,
-  AppColors.pillarContribute,
-  AppColors.pillarLive,
-];
+/// The cover image is [AppEvent.imageUrl] — the optional image uploaded in
+/// the Console, stored via the backend media architecture. [coverImageUrl]
+/// stays as an optional caller-supplied override (e.g. a gallery image a
+/// screen already has on hand). When neither is present, the fallback is a
+/// gradient + icon derived from the event's *category* — so it reads as a
+/// deliberate category badge, not random filler — and it also covers the
+/// loading and failed-image states.
+LinearGradient eventCoverGradient(AppEvent event) {
+  final pillar =
+      (event.mainCategory?.name ?? event.category ?? '').toLowerCase();
+  if (pillar.contains('corporate')) return AppColors.pillarCorporate;
+  if (pillar.contains('community')) return AppColors.pillarCommunity;
+  if (pillar.contains('contribute')) return AppColors.pillarContribute;
+  if (pillar.contains('live')) return AppColors.pillarLive;
+  return const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.accent, AppColors.accentViolet],
+  );
+}
 
-const _fallbackIcons = [
-  Icons.event_rounded,
-  Icons.groups_rounded,
-  Icons.emoji_events_rounded,
-  Icons.celebration_rounded,
-  Icons.mic_rounded,
-  Icons.sports_soccer_rounded,
-];
-
-int _seedFor(String value) => value.codeUnits.fold(0, (a, b) => a + b);
+IconData eventCoverIcon(AppEvent event) {
+  final sub = (event.subCategory?.name ?? '').toLowerCase();
+  final pillar =
+      (event.mainCategory?.name ?? event.category ?? '').toLowerCase();
+  const map = <String, IconData>{
+    'sport': Icons.sports_soccer_rounded,
+    'cricket': Icons.sports_cricket_rounded,
+    'football': Icons.sports_soccer_rounded,
+    'run': Icons.directions_run_rounded,
+    'fitness': Icons.fitness_center_rounded,
+    'wellness': Icons.self_improvement_rounded,
+    'food': Icons.restaurant_rounded,
+    'beverage': Icons.local_bar_rounded,
+    'music': Icons.music_note_rounded,
+    'cultural': Icons.theater_comedy_rounded,
+    'performance': Icons.theater_comedy_rounded,
+    'talent': Icons.star_rounded,
+    'competition': Icons.emoji_events_rounded,
+    'innovation': Icons.lightbulb_rounded,
+    'startup': Icons.rocket_launch_rounded,
+    'showcase': Icons.storefront_rounded,
+    'leadership': Icons.record_voice_over_rounded,
+    'talk': Icons.record_voice_over_rounded,
+    'business': Icons.business_center_rounded,
+    'blood': Icons.bloodtype_rounded,
+    'tree': Icons.park_rounded,
+    'plantation': Icons.park_rounded,
+    'clean': Icons.cleaning_services_rounded,
+    'green': Icons.eco_rounded,
+    'education': Icons.school_rounded,
+    'social': Icons.volunteer_activism_rounded,
+    'ngo': Icons.diversity_1_rounded,
+    'family': Icons.family_restroom_rounded,
+    'fun': Icons.celebration_rounded,
+  };
+  for (final entry in map.entries) {
+    if (sub.contains(entry.key)) return entry.value;
+  }
+  if (pillar.contains('contribute')) return Icons.volunteer_activism_rounded;
+  if (pillar.contains('community')) return Icons.groups_rounded;
+  if (pillar.contains('corporate')) return Icons.business_center_rounded;
+  if (pillar.contains('live')) return Icons.podcasts_rounded;
+  return Icons.event_rounded;
+}
 
 class _CoverImage extends StatelessWidget {
   final String? imageUrl;
-  final String seed;
+  final AppEvent event;
+  final double iconSize;
 
-  const _CoverImage({this.imageUrl, required this.seed});
+  const _CoverImage({this.imageUrl, required this.event, this.iconSize = 40});
 
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      final s = _seedFor(seed);
-      return Container(
-        decoration: BoxDecoration(
-          gradient: _fallbackGradients[s % _fallbackGradients.length],
-        ),
-        child: Center(
-          child: Icon(_fallbackIcons[s % _fallbackIcons.length],
-              color: Colors.white.withValues(alpha: 0.92), size: 40),
+      return DecoratedBox(
+        decoration: BoxDecoration(gradient: eventCoverGradient(event)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Center(
+              child: Icon(eventCoverIcon(event),
+                  color: Colors.white.withValues(alpha: 0.95), size: iconSize),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.10),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -77,10 +134,12 @@ class _CoverImage extends StatelessWidget {
       imageUrl: imageUrl!,
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(color: AppColors.backgroundAlt),
-      errorWidget: (context, url, error) => Container(
-        color: AppColors.backgroundAlt,
-        child: const Icon(Icons.image_not_supported_outlined,
-            color: AppColors.inkSubtle),
+      errorWidget: (context, url, error) => DecoratedBox(
+        decoration: BoxDecoration(gradient: eventCoverGradient(event)),
+        child: Center(
+          child: Icon(eventCoverIcon(event),
+              color: Colors.white.withValues(alpha: 0.95), size: iconSize),
+        ),
       ),
     );
   }
@@ -102,7 +161,7 @@ class FeaturedEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Pressable(
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.card),
@@ -121,7 +180,10 @@ class FeaturedEventCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                _CoverImage(imageUrl: coverImageUrl, seed: event.id),
+                _CoverImage(
+                    imageUrl: coverImageUrl ?? event.imageUrl,
+                    event: event,
+                    iconSize: 46),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -208,71 +270,69 @@ class CompactEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowColor,
-                blurRadius: 14,
-                offset: Offset(0, 4),
+    return Pressable(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: const Color(0x0A000000)),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SizedBox(
+                width: 72,
+                height: 72,
+                child: _CoverImage(
+                    imageUrl: coverImageUrl ?? event.imageUrl,
+                    event: event,
+                    iconSize: 26),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  width: 72,
-                  height: 72,
-                  child: _CoverImage(imageUrl: coverImageUrl, seed: event.id),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(event.name,
-                        style: AppTypography.bodyStrong,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(event.name,
+                      style: AppTypography.bodyStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_rounded,
+                          size: 12, color: AppColors.inkSubtle),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDateRange(event.startDate, event.endDate,
+                            event.isSameDayEvent),
+                        style: AppTypography.caption,
+                      ),
+                    ],
+                  ),
+                  if (event.displayCategory != null) ...[
+                    const SizedBox(height: 4),
+                    Text(event.displayCategory!,
+                        style: AppTypography.captionSubtle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today_rounded,
-                            size: 12, color: AppColors.inkSubtle),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatDateRange(event.startDate, event.endDate,
-                              event.isSameDayEvent),
-                          style: AppTypography.caption,
-                        ),
-                      ],
-                    ),
-                    if (event.displayCategory != null) ...[
-                      const SizedBox(height: 4),
-                      Text(event.displayCategory!,
-                          style: AppTypography.captionSubtle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
-                    ],
                   ],
-                ),
+                ],
               ),
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.inkSubtle),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.inkSubtle),
+          ],
         ),
       ),
     );

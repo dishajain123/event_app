@@ -6,6 +6,7 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../core/network/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/chips/app_chip.dart';
 import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/states/app_empty_state.dart';
@@ -66,9 +67,23 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
       (mainCategoryId: _mainCategoryId, subCategoryId: _subCategoryId),
     ));
 
+    final count = events.asData?.value.length;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Events'),
+        titleSpacing: AppSpacing.lg,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Events'),
+            if (count != null)
+              Text(
+                count == 1 ? '1 event' : '$count events',
+                style: AppTypography.captionSubtle,
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -85,6 +100,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
       body: AppBackground(
         child: Column(
           children: [
+            const SizedBox(height: AppSpacing.sm),
             taxonomy.when(
               loading: () => const LinearProgressIndicator(),
               error: (error, _) => const SizedBox.shrink(),
@@ -102,14 +118,22 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg,
-                AppSpacing.sm,
+                AppSpacing.md,
                 AppSpacing.lg,
-                AppSpacing.sm,
+                AppSpacing.md,
               ),
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(AppRadius.input),
+                  border: Border.all(color: const Color(0x14000000)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.shadowColor,
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: TextField(
                   decoration: const InputDecoration(
@@ -152,7 +176,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                     );
                   }
                   return ListView.separated(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                      AppSpacing.lg,
+                      AppSpacing.xxxxl + AppSpacing.xl,
+                    ),
                     itemCount: visible.length,
                     separatorBuilder: (_, __) =>
                         const SizedBox(height: AppSpacing.md),
@@ -199,55 +228,76 @@ class _Filters extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          height: 40,
+          height: 44,
           child: ListView(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             children: [
-              AppChip(
+              _ChipCell(
                 label: 'All categories',
                 selected: mainCategoryId == null,
                 onTap: () => onMainChanged(null),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              for (final category in categories) ...[
-                AppChip(
+              for (final category in categories)
+                _ChipCell(
                   label: category.name,
                   selected: category.id == mainCategoryId,
                   onTap: () => onMainChanged(category.id),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-              ],
             ],
           ),
         ),
         if (mainCategoryId != null && subcategories.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           SizedBox(
-            height: 36,
+            height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               children: [
-                AppChip(
+                _ChipCell(
                   label: 'All subcategories',
                   selected: subCategoryId == null,
                   onTap: () => onSubChanged(null),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                for (final sub in subcategories) ...[
-                  AppChip(
+                for (final sub in subcategories)
+                  _ChipCell(
                     label: sub.name,
                     selected: sub.id == subCategoryId,
                     onTap: () => onSubChanged(sub.id),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
               ],
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+/// A single filter pill with consistent inter-chip spacing and vertical
+/// centering, so the row never looks like the capsules are touching each
+/// other or the edges of their track.
+class _ChipCell extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ChipCell({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(right: AppSpacing.sm),
+        child: AppChip(label: label, selected: selected, onTap: onTap),
+      ),
     );
   }
 }

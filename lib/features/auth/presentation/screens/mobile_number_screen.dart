@@ -9,13 +9,10 @@ import '../../../../core/utils/phone_formatter.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../application/auth_state_provider.dart';
+import '../widgets/password_reset_dialog.dart';
 import '../../../../app/router/route_paths.dart';
 
-/// Login/sign-in entry point. All state fields, [_submit], and
-/// [_recoverPassword] are unchanged from before — same mobile+OTP and
-/// email+password flows, calling the exact same [authStateProvider]
-/// methods with the exact same arguments. Only [build] (the visual layer)
-/// is refreshed.
+/// Mobile OTP and email sign-in, with an independently owned reset dialog.
 class MobileNumberScreen extends ConsumerStatefulWidget {
   final String? returnTo;
 
@@ -29,6 +26,7 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
   final _controller = TextEditingController();
   final _passwordController = TextEditingController();
   bool _submitting = false;
+  bool _recovering = false;
   bool _emailMode = false;
   bool _loginMode = true;
   String? _errorText;
@@ -98,39 +96,21 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
   }
 
   Future<void> _recoverPassword() async {
-    final emailController = TextEditingController(text: _controller.text.trim());
-    final codeController = TextEditingController();
-    final passwordController = TextEditingController();
+    if (_recovering) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _recovering = true);
     try {
-      final email = await showDialog<String>(
+      final reset = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Reset password'),
-          content: TextField(controller: emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email address')),
-          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')), ElevatedButton(onPressed: () => Navigator.pop(dialogContext, emailController.text.trim()), child: const Text('Send code'))],
-        ),
+        builder: (_) => PasswordResetDialog(initialEmail: _controller.text.trim()),
       );
-      if (email == null || !email.contains('@')) return;
-      await ref.read(authStateProvider.notifier).requestPasswordReset(email);
-      if (!mounted) return;
-      final values = await showDialog<List<String>>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Enter reset code'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: codeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Email code')),
-            TextField(controller: passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'New password')),
-          ]),
-          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')), ElevatedButton(onPressed: () => Navigator.pop(dialogContext, [codeController.text.trim(), passwordController.text]), child: const Text('Reset'))],
-        ),
-      );
-      if (values == null || values[0].isEmpty || values[1].length < 8) return;
-      await ref.read(authStateProvider.notifier).resetPassword(email: email, code: values[0], password: values[1]);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset. You can now sign in.')));
-    } on AppException catch (e) {
-      if (mounted) setState(() => _errorText = e.message);
+      if (reset == true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password reset. You can now sign in.')),
+        );
+      }
     } finally {
-      emailController.dispose(); codeController.dispose(); passwordController.dispose();
+      if (mounted) setState(() => _recovering = false);
     }
   }
 
@@ -218,7 +198,7 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                          onPressed: _recoverPassword,
+                          onPressed: _recovering ? null : _recoverPassword,
                           child: const Text('Forgot password?')),
                     ),
                 ],

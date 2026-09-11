@@ -30,6 +30,11 @@ class AppEvent {
   final DateTime endDate;
   final EventStatus status;
 
+  /// Public URL of the event's normalized 16:9 cover image, or null when no
+  /// image was uploaded in the Console — in which case the UI falls back to a
+  /// deterministic gradient placeholder (see `_CoverImage` / `_HeroCover`).
+  final String? imageUrl;
+
   const AppEvent({
     required this.id,
     required this.organizationId,
@@ -46,6 +51,7 @@ class AppEvent {
     required this.startDate,
     required this.endDate,
     required this.status,
+    this.imageUrl,
   });
 
   factory AppEvent.fromJson(Map<String, dynamic> json) {
@@ -76,6 +82,7 @@ class AppEvent {
       startDate: DateTime.parse(json['start_date'] as String),
       endDate: DateTime.parse(json['end_date'] as String),
       status: EventStatus.fromWire(json['status'] as String),
+      imageUrl: json['image_url'] as String?,
     );
   }
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import 'router/app_router.dart';
+import '../core/providers/discovery_refresh_provider.dart';
+import '../features/auth/application/auth_state_provider.dart';
 import '../features/notifications/application/push_token_source.dart';
 
 class EventApp extends ConsumerStatefulWidget {
@@ -33,6 +35,9 @@ class _EventAppState extends ConsumerState<EventApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(discoveryRefreshProvider, (_, next) {
+      ref.read(authStateProvider.notifier).refreshRoles();
+    });
     final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(
