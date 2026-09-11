@@ -45,6 +45,32 @@ class MainCategory {
     required this.subCategories,
   });
 
+  /// A compact preview of the published taxonomy, never operator-entered copies.
+  List<SubCategory> get activeSubCategoriesSorted {
+    final active = subCategories.where((item) => item.isActive).toList()
+      ..sort((a, b) {
+        final byName = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        return byName != 0 ? byName : a.id.compareTo(b.id);
+      });
+    return active;
+  }
+
+  String get homeSubtitle {
+    final active = activeSubCategoriesSorted;
+    if (active.isNotEmpty) {
+      return active.take(3).map((item) => item.name.trim()).join(' · ');
+    }
+    final summary = description?.trim();
+    return summary != null && summary.isNotEmpty
+        ? summary
+        : 'Explore this category';
+  }
+
+  int get homeMoreCount {
+    final count = activeSubCategoriesSorted.length;
+    return count > 3 ? count - 3 : 0;
+  }
+
   factory MainCategory.fromJson(Map<String, dynamic> json) {
     final rawSubCategories = json['sub_categories'] as List<dynamic>? ?? [];
     return MainCategory(

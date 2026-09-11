@@ -21,8 +21,10 @@ class AppTextField extends StatefulWidget {
   final VoidCallback? onEditingComplete;
   final bool autofocus;
   final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final List<TextInputFormatter>? inputFormatters;
   final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
 
   const AppTextField({
     super.key,
@@ -37,8 +39,10 @@ class AppTextField extends StatefulWidget {
     this.onEditingComplete,
     this.autofocus = false,
     this.prefixIcon,
+    this.suffixIcon,
     this.inputFormatters,
     this.focusNode,
+    this.textInputAction,
   });
 
   @override
@@ -116,12 +120,14 @@ class _AppTextFieldState extends State<AppTextField> {
             onChanged: widget.onChanged,
             onEditingComplete: widget.onEditingComplete,
             inputFormatters: widget.inputFormatters,
+            textInputAction: widget.textInputAction,
             style: AppTypography.body,
             cursorColor: AppColors.accent,
             decoration: InputDecoration(
               hintText: widget.hint,
               errorText: widget.errorText,
               prefixIcon: widget.prefixIcon,
+              suffixIcon: widget.suffixIcon,
             ),
           ),
         ),

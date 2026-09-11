@@ -43,7 +43,7 @@ Future<void> openRecovery(
     apiClientProvider.overrideWithValue(Dio()),
   ], child: const MaterialApp(home: MobileNumberScreen())));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Email + password'));
+  await tester.tap(find.text('Email'));
   await tester.pumpAndSettle();
   await tester.ensureVisible(find.text('Forgot password?'));
   await tester.tap(find.text('Forgot password?'));
@@ -103,7 +103,7 @@ void main() {
     await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: MobileNumberScreen())));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Email + password'));
+    await tester.tap(find.text('Email'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Forgot password?'));
     await tester.tap(find.text('Forgot password?'));

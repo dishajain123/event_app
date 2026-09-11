@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
+import '../../shared/widgets/scaffolds/app_bottom_nav_bar.dart';
 import '../router/route_paths.dart';
 
 const _tabs = [
@@ -43,9 +42,9 @@ const _tabs = [
 /// can — see app/router/app_router.dart's redirect logic and
 /// ProfileScreen's switch tile for how they reach Staff Mode from here.
 /// Navigation behavior is unchanged: tapping a tab still calls
-/// `context.go(_tabs[index].path)` exactly as before — only the bar
-/// itself is now a floating rounded pill instead of a flush
-/// [BottomNavigationBar].
+/// `context.go(_tabs[index].path)` exactly as before — only the bar's
+/// look changed, and now lives in the shared [AppBottomNavBar] so
+/// [StaffModeShell] stays visually in sync with it.
 class PublicModeShell extends StatelessWidget {
   final Widget child;
   const PublicModeShell({super.key, required this.child});
@@ -66,102 +65,15 @@ class PublicModeShell extends StatelessWidget {
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(bottom: false, child: child),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-          child: Container(
-            height: 66,
-            decoration: BoxDecoration(
-              color: AppColors.ink,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadowColorStrong,
-                  blurRadius: 24,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                for (var i = 0; i < _tabs.length; i++)
-                  Expanded(
-                    child: _NavItem(
-                      icon: _tabs[i].icon,
-                      activeIcon: _tabs[i].activeIcon,
-                      label: _tabs[i].label,
-                      selected: i == currentIndex,
-                      onTap: () {
-                        if (i == currentIndex) return;
-                        context.go(_tabs[i].path);
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          padding: EdgeInsets.symmetric(horizontal: selected ? 10 : 0),
-          decoration: BoxDecoration(
-            color: selected ? Colors.white.withValues(alpha: 0.12) : null,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                selected ? activeIcon : icon,
-                color: selected ? Colors.white : const Color(0xFF8C90B8),
-                size: 22,
-              ),
-              const SizedBox(height: 3),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 180),
-                style: AppTypography.captionSubtle.copyWith(
-                  fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? Colors.white : const Color(0xFF8C90B8),
-                ),
-                child: Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center),
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: AppBottomNavBar(
+        items: [
+          for (final tab in _tabs)
+            AppNavBarItem(
+                icon: tab.icon, activeIcon: tab.activeIcon, label: tab.label),
+        ],
+        currentIndex: currentIndex,
+        accentColor: AppColors.accent,
+        onTap: (index) => context.go(_tabs[index].path),
       ),
     );
   }

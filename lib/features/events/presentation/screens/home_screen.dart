@@ -8,6 +8,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/cards/piller_card.dart';
+import '../../../../shared/utils/pillar_style.dart';
+import '../../../../shared/widgets/misc/pressable.dart';
 import '../../../../shared/widgets/misc/section_header.dart';
 import '../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../shared/widgets/states/app_error_state.dart';
@@ -40,37 +42,33 @@ class HomeScreen extends ConsumerWidget {
       drawer: const _HomeDrawer(),
       appBar: AppBar(
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.7)),
+          builder: (context) => Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: _HeaderIconButton(
+              icon: Icons.menu_rounded,
+              onTap: () => Scaffold.of(context).openDrawer(),
+            ),
           ),
         ),
-        titleSpacing: 0,
+        leadingWidth: 56,
+        titleSpacing: AppSpacing.sm,
         title: const _BrandMark(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () => context.push(RoutePaths.search),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded),
-            onPressed: () => context.push(RoutePaths.notifications),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () => context.push(RoutePaths.profile),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.7)),
+          _HeaderIconButton(
+            icon: Icons.search_rounded,
+            onTap: () => context.push(RoutePaths.search),
           ),
           const SizedBox(width: AppSpacing.sm),
+          _HeaderIconButton(
+            icon: Icons.notifications_none_rounded,
+            onTap: () => context.push(RoutePaths.notifications),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          _HeaderIconButton(
+            icon: Icons.account_circle_outlined,
+            onTap: () => context.push(RoutePaths.profile),
+          ),
+          const SizedBox(width: AppSpacing.lg),
         ],
       ),
       body: AppBackground(
@@ -79,8 +77,11 @@ class HomeScreen extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(mainCategoriesProvider);
               ref.invalidate(eventsListProvider(noEventsFilter));
+              await ref.read(mainCategoriesProvider.future);
             },
             child: categories.when(
+              skipLoadingOnReload: true,
+              skipError: true,
               loading: () => const AppSkeleton.cardList(),
               error: (error, _) => ListView(
                 children: [
@@ -125,14 +126,14 @@ class _CategoryHomeContent extends ConsumerWidget {
       children: [
         Text(
           greetingName != null ? 'Hi, $greetingName 👋' : 'Welcome',
-          style: AppTypography.hero.copyWith(fontSize: 28, height: 34 / 28),
+          style: AppTypography.hero.copyWith(fontSize: 26, height: 32 / 26),
         ),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: 4),
         const Text(
           'One GO-ID. All of GO-360°. Pick a pillar to explore.',
           style: AppTypography.bodyMuted,
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         if (categories.isEmpty)
           const _EmptyCategories()
         else
@@ -140,9 +141,11 @@ class _CategoryHomeContent extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: categories.length,
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 240,
-              mainAxisExtent: 164,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 190,
+              mainAxisExtent: 88 +
+                  MediaQuery.textScalerOf(context).scale(21) +
+                  MediaQuery.textScalerOf(context).scale(34),
               crossAxisSpacing: AppSpacing.md,
               mainAxisSpacing: AppSpacing.md,
             ),
@@ -150,14 +153,13 @@ class _CategoryHomeContent extends ConsumerWidget {
               final category = categories[index];
               return _CategoryTile(
                 category: category,
-                index: index,
                 onTap: () => context.push(
                   RoutePaths.mainCategoryPath(category.id),
                 ),
               );
             },
           ),
-        const SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.xl),
         upcoming.when(
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
@@ -172,10 +174,11 @@ class _CategoryHomeContent extends ConsumerWidget {
                   title: 'Upcoming across the league',
                   onSeeAll: () => context.push(RoutePaths.events),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
                 SizedBox(
-                  height: 220,
+                  height: 226,
                   child: ListView.separated(
+                    physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     itemCount: visible.length,
                     separatorBuilder: (_, __) =>
@@ -204,36 +207,22 @@ class _CategoryHomeContent extends ConsumerWidget {
 
 class _CategoryTile extends StatelessWidget {
   final MainCategory category;
-  final int index;
   final VoidCallback onTap;
   const _CategoryTile({
     required this.category,
-    required this.index,
     required this.onTap,
   });
 
-  static const _gradients = [
-    AppColors.pillarCorporate,
-    AppColors.pillarCommunity,
-    AppColors.pillarContribute,
-    AppColors.pillarLive,
-  ];
-  static const _icons = [
-    Icons.business_center_rounded,
-    Icons.groups_rounded,
-    Icons.volunteer_activism_rounded,
-    Icons.star_rounded,
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final style = pillarStyleForCategory(category.name);
     return PillarCard(
       title: category.name,
-      subtitle: category.description?.trim().isNotEmpty == true
-          ? category.description!
-          : 'Explore this category',
-      icon: _icons[index % _icons.length],
-      gradient: _gradients[index % _gradients.length],
+      subtitle: category.homeSubtitle,
+      moreCount: category.homeMoreCount,
+      icon: style.icon,
+      gradient: style.gradient,
+      shadowTint: style.solid,
       onTap: onTap,
     );
   }
@@ -251,8 +240,7 @@ class _EmptyCategories extends StatelessWidget {
         ),
         child: const Column(
           children: [
-            Icon(Icons.category_outlined,
-                size: 44, color: AppColors.inkSubtle),
+            Icon(Icons.category_outlined, size: 44, color: AppColors.inkSubtle),
             SizedBox(height: AppSpacing.md),
             Text('No categories available', style: AppTypography.title),
             SizedBox(height: AppSpacing.xs),
@@ -266,27 +254,89 @@ class _EmptyCategories extends StatelessWidget {
       );
 }
 
+/// A consistent circular "soft surface" button for the app bar — white
+/// fill, a hairline border and a whisper-soft shadow instead of a flat
+/// translucent square, so the header reads as one deliberate system
+/// rather than default `IconButton` chrome.
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      pressedScale: 0.9,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0x0F000000)),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 10,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 20, color: AppColors.ink),
+      ),
+    );
+  }
+}
+
+/// The brand lockup: a small gradient mark plus the wordmark, so the
+/// header carries real brand identity instead of plain text.
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
 
   @override
-  Widget build(BuildContext context) => RichText(
-        text: const TextSpan(
-          children: [
-            TextSpan(
-              text: 'GO-',
-              style:
-                  TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink),
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              gradient: AppColors.brandGradientStrong,
+              borderRadius: BorderRadius.circular(9),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accentStrong.withValues(alpha: 0.28),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            TextSpan(
-              text: '360°',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                color: AppColors.accent,
-              ),
+            child: const Icon(Icons.hub_rounded, color: Colors.white, size: 16),
+          ),
+          const SizedBox(width: 9),
+          RichText(
+            text: const TextSpan(
+              children: [
+                TextSpan(
+                  text: 'GO-',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                      color: AppColors.ink),
+                ),
+                TextSpan(
+                  text: '360°',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    color: AppColors.accent,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       );
 }
 
@@ -350,8 +400,8 @@ class _DrawerTile extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(14),
         child: ListTile(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           leading: Icon(icon, color: AppColors.inkMuted),
           title: Text(label, style: AppTypography.bodyStrong),
           onTap: onTap,

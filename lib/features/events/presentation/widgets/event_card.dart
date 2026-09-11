@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/utils/pillar_style.dart';
 import '../../../../shared/widgets/misc/pressable.dart';
 import '../../data/models/app_event.dart';
 
@@ -36,63 +37,16 @@ String _formatDateRange(DateTime start, DateTime end, bool sameDay) {
 /// gradient + icon derived from the event's *category* — so it reads as a
 /// deliberate category badge, not random filler — and it also covers the
 /// loading and failed-image states.
-LinearGradient eventCoverGradient(AppEvent event) {
-  final pillar =
-      (event.mainCategory?.name ?? event.category ?? '').toLowerCase();
-  if (pillar.contains('corporate')) return AppColors.pillarCorporate;
-  if (pillar.contains('community')) return AppColors.pillarCommunity;
-  if (pillar.contains('contribute')) return AppColors.pillarContribute;
-  if (pillar.contains('live')) return AppColors.pillarLive;
-  return const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [AppColors.accent, AppColors.accentViolet],
-  );
+Gradient eventCoverGradient(AppEvent event) {
+  return pillarStyleForCategory(event.mainCategory?.name ?? event.category)
+      .gradient;
 }
 
 IconData eventCoverIcon(AppEvent event) {
-  final sub = (event.subCategory?.name ?? '').toLowerCase();
-  final pillar =
-      (event.mainCategory?.name ?? event.category ?? '').toLowerCase();
-  const map = <String, IconData>{
-    'sport': Icons.sports_soccer_rounded,
-    'cricket': Icons.sports_cricket_rounded,
-    'football': Icons.sports_soccer_rounded,
-    'run': Icons.directions_run_rounded,
-    'fitness': Icons.fitness_center_rounded,
-    'wellness': Icons.self_improvement_rounded,
-    'food': Icons.restaurant_rounded,
-    'beverage': Icons.local_bar_rounded,
-    'music': Icons.music_note_rounded,
-    'cultural': Icons.theater_comedy_rounded,
-    'performance': Icons.theater_comedy_rounded,
-    'talent': Icons.star_rounded,
-    'competition': Icons.emoji_events_rounded,
-    'innovation': Icons.lightbulb_rounded,
-    'startup': Icons.rocket_launch_rounded,
-    'showcase': Icons.storefront_rounded,
-    'leadership': Icons.record_voice_over_rounded,
-    'talk': Icons.record_voice_over_rounded,
-    'business': Icons.business_center_rounded,
-    'blood': Icons.bloodtype_rounded,
-    'tree': Icons.park_rounded,
-    'plantation': Icons.park_rounded,
-    'clean': Icons.cleaning_services_rounded,
-    'green': Icons.eco_rounded,
-    'education': Icons.school_rounded,
-    'social': Icons.volunteer_activism_rounded,
-    'ngo': Icons.diversity_1_rounded,
-    'family': Icons.family_restroom_rounded,
-    'fun': Icons.celebration_rounded,
-  };
-  for (final entry in map.entries) {
-    if (sub.contains(entry.key)) return entry.value;
-  }
-  if (pillar.contains('contribute')) return Icons.volunteer_activism_rounded;
-  if (pillar.contains('community')) return Icons.groups_rounded;
-  if (pillar.contains('corporate')) return Icons.business_center_rounded;
-  if (pillar.contains('live')) return Icons.podcasts_rounded;
-  return Icons.event_rounded;
+  return iconForTopic(
+    event.subCategory?.name,
+    fallbackPillar: event.mainCategory?.name ?? event.category,
+  );
 }
 
 class _CoverImage extends StatelessWidget {
@@ -105,41 +59,62 @@ class _CoverImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return DecoratedBox(
-        decoration: BoxDecoration(gradient: eventCoverGradient(event)),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Center(
-              child: Icon(eventCoverIcon(event),
-                  color: Colors.white.withValues(alpha: 0.95), size: iconSize),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.10),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _GradientFallback(event: event, iconSize: iconSize);
     }
     return CachedNetworkImage(
       imageUrl: imageUrl!,
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(color: AppColors.backgroundAlt),
-      errorWidget: (context, url, error) => DecoratedBox(
-        decoration: BoxDecoration(gradient: eventCoverGradient(event)),
-        child: Center(
-          child: Icon(eventCoverIcon(event),
-              color: Colors.white.withValues(alpha: 0.95), size: iconSize),
-        ),
+      errorWidget: (context, url, error) =>
+          _GradientFallback(event: event, iconSize: iconSize),
+    );
+  }
+}
+
+/// The no-image cover: a category gradient carrying an oversized,
+/// low-opacity icon bled off the top-right corner (a watermark, not a
+/// centerpiece) plus a soft top-left sheen — reads as a deliberately
+/// designed surface instead of "an icon in an empty box".
+class _GradientFallback extends StatelessWidget {
+  final AppEvent event;
+  final double iconSize;
+  const _GradientFallback({required this.event, required this.iconSize});
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = iconSize <= 30;
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: eventCoverGradient(event)),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (!compact)
+            Positioned(
+              right: -iconSize * 0.55,
+              top: -iconSize * 0.55,
+              child: Icon(eventCoverIcon(event),
+                  color: Colors.white.withValues(alpha: 0.18),
+                  size: iconSize * 2.6),
+            ),
+          if (compact)
+            Align(
+              alignment: Alignment.center,
+              child: Icon(eventCoverIcon(event),
+                  color: Colors.white.withValues(alpha: 0.95), size: iconSize),
+            ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.10),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
