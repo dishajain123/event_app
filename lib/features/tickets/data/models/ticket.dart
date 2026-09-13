@@ -158,3 +158,51 @@ class TicketValidation {
               : AppTicket.fromJson(json['ticket'] as Map<String, dynamic>),
           message: json['message'] as String);
 }
+
+/// Mirrors `app/modules/tickets/schemas.py`'s `LastScannedParticipantOut`.
+class LastScannedParticipant {
+  final String ticketId;
+  final String ticketCode;
+  final String? participantName;
+  final DateTime? checkedInAt;
+
+  const LastScannedParticipant({
+    required this.ticketId,
+    required this.ticketCode,
+    required this.participantName,
+    required this.checkedInAt,
+  });
+
+  factory LastScannedParticipant.fromJson(Map<String, dynamic> json) =>
+      LastScannedParticipant(
+        ticketId: json['ticket_id'] as String,
+        ticketCode: json['ticket_code'] as String,
+        participantName: json['participant_name'] as String?,
+        checkedInAt: json['checked_in_at'] != null
+            ? DateTime.parse(json['checked_in_at'] as String)
+            : null,
+      );
+}
+
+/// Mirrors `app/modules/tickets/schemas.py`'s `MyScanStatsOut` — powers the
+/// scan-count badge and last-scanned card on the barcode scanner screen.
+class MyScanStats {
+  final String eventId;
+  final int scannedCount;
+  final LastScannedParticipant? lastScanned;
+
+  const MyScanStats({
+    required this.eventId,
+    required this.scannedCount,
+    required this.lastScanned,
+  });
+
+  factory MyScanStats.fromJson(Map<String, dynamic> json) => MyScanStats(
+        eventId: json['event_id'] as String,
+        scannedCount: json['scanned_count'] as int,
+        lastScanned: json['last_scanned'] != null
+            ? LastScannedParticipant.fromJson(
+                json['last_scanned'] as Map<String, dynamic>)
+            : null,
+      );
+}

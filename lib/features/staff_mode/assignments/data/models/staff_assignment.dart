@@ -40,6 +40,13 @@ class StaffAssignment {
   final String? acceptedBy;
   final DateTime? acceptedAt;
   final DateTime? revokedAt;
+  // Only populated by GET /staff/assignments/mine — see StaffAssignmentOut's
+  // doc comment in app/modules/staff/schemas.py. Lets "My Events" show which
+  // event/when/where an assignment is for, instead of just a role label.
+  final String? eventName;
+  final DateTime? eventStartDate;
+  final DateTime? eventEndDate;
+  final String? venueName;
 
   const StaffAssignment({
     required this.id,
@@ -55,7 +62,14 @@ class StaffAssignment {
     required this.acceptedBy,
     required this.acceptedAt,
     required this.revokedAt,
+    this.eventName,
+    this.eventStartDate,
+    this.eventEndDate,
+    this.venueName,
   });
+
+  bool get isPastEvent =>
+      eventEndDate != null && eventEndDate!.isBefore(DateTime.now());
 
   factory StaffAssignment.fromJson(Map<String, dynamic> json) {
     return StaffAssignment(
@@ -78,6 +92,14 @@ class StaffAssignment {
       revokedAt: json['revoked_at'] != null
           ? DateTime.parse(json['revoked_at'] as String)
           : null,
+      eventName: json['event_name'] as String?,
+      eventStartDate: json['event_start_date'] != null
+          ? DateTime.parse(json['event_start_date'] as String)
+          : null,
+      eventEndDate: json['event_end_date'] != null
+          ? DateTime.parse(json['event_end_date'] as String)
+          : null,
+      venueName: json['venue_name'] as String?,
     );
   }
 }

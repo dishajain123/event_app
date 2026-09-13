@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/incidents_providers.dart';
 import '../../../assignments/application/staff_assignments_providers.dart';
+import '../../../../../core/network/dio_exception_mapper.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
@@ -11,6 +12,7 @@ import '../../../../../shared/widgets/cards/app_card.dart';
 import '../../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../../shared/widgets/scaffolds/app_background.dart';
 import '../../../../../shared/widgets/states/app_empty_state.dart';
+import '../../../../../shared/widgets/states/app_error_state.dart';
 
 /// [_openReport]'s event-picker logic and every provider/repository call
 /// are unchanged from before — this was previously a bare-spinner /
@@ -87,9 +89,10 @@ class IncidentsScreen extends ConsumerWidget {
       body: AppBackground(
         child: incidents.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-              child: Text('Unable to load incidents: $error',
-                  style: AppTypography.bodyMuted)),
+          error: (error, _) => AppErrorState(
+            error: mapDioException(error),
+            onRetry: () => ref.invalidate(incidentsProvider(null)),
+          ),
           data: (page) => RefreshIndicator(
             onRefresh: () async => ref.invalidate(incidentsProvider(null)),
             child: page.items.isEmpty

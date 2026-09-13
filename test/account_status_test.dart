@@ -104,15 +104,16 @@ void main() {
     expect(writes, 0);
     await tester.tap(find.text('Disable'));
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(
-        of: find.byType(AlertDialog), matching: find.text('Disable')));
+    // Two "Disable" texts are now on screen: the card's own action button
+    // (behind the sheet) and the confirm sheet's confirm button on top of
+    // it — the sheet's is the one added last.
+    await tester.tap(find.text('Disable').last);
     await tester.pumpAndSettle();
     expect(writes, 1);
     expect(active, isFalse);
     await tester.tap(find.text('Reactivate'));
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(
-        of: find.byType(AlertDialog), matching: find.text('Reactivate')));
+    await tester.tap(find.text('Reactivate').last);
     await tester.pumpAndSettle();
     expect(writes, 2);
     expect(active, isTrue);

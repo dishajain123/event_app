@@ -24,16 +24,19 @@ const _tabs = [
     label: 'My Events',
   ),
   (
-    path: RoutePaths.staffProfile,
-    icon: Icons.shield_outlined,
-    activeIcon: Icons.shield_rounded,
-    label: 'Staff'
-  ),
-  (
     path: RoutePaths.staffIncidents,
     icon: Icons.warning_amber_outlined,
     activeIcon: Icons.warning_amber_rounded,
     label: 'Incidents',
+  ),
+  // Kept last deliberately — the account/mode-switch tab reads most
+  // naturally at the far right, matching where a profile/account tab
+  // conventionally sits in bottom navigation.
+  (
+    path: RoutePaths.staffProfile,
+    icon: Icons.shield_outlined,
+    activeIcon: Icons.shield_rounded,
+    label: 'Staff'
   ),
 ];
 

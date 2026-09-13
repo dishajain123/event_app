@@ -108,4 +108,14 @@ class TicketsApi {
       'scans': [scan]
     });
   }
+
+  /// Powers the scanner's "scans by me" badge and last-scanned card —
+  /// scoped to this event because a staff member's assignment (and thus
+  /// their scanning) is always event-specific, even though this screen
+  /// itself has no event route param.
+  Future<MyScanStats> myScanStats(String eventId) async {
+    final response = await _dio.get<Map<String, dynamic>>('/check-ins/mine',
+        queryParameters: {'event_id': eventId});
+    return MyScanStats.fromJson(response.data!);
+  }
 }

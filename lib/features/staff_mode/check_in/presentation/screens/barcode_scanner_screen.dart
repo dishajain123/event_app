@@ -8,6 +8,8 @@ import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
 import '../../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../../tickets/application/tickets_providers.dart';
+import '../../../../tickets/data/models/ticket.dart';
 import '../../application/check_in_providers.dart';
 import '../../data/check_in_repository.dart';
 
@@ -42,6 +44,23 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   int _attentionCount = 0;
   bool _syncing = false;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  // "Scans by me" — refreshed after every successful/duplicate online scan
+  // against whichever event the just-scanned ticket belongs to (this
+  // screen itself has no event route param, so the event is only known
+  // once a ticket resolves).
+  MyScanStats? _scanStats;
+
+  Future<void> _refreshScanStats(String eventId) async {
+    try {
+      final stats =
+          await ref.read(ticketsRepositoryProvider).myScanStats(eventId);
+      if (mounted) setState(() => _scanStats = stats);
+    } catch (_) {
+      // Non-critical — the scanner keeps working even if the stats
+      // refresh fails; just don't update the badge this time.
+    }
+  }
 
   @override
   void initState() {
@@ -138,8 +157,9 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   void _handleResult(CheckInResult result) {
     if (!mounted) return;
     switch (result) {
-      case CheckInSuccess():
-        _showFeedback(_FeedbackKind.success, 'Checked in successfully.');
+      case CheckInSuccess(:final ticket):
+        _showFeedback(_FeedbackKind.success, 'Checked in ${ticket.ticketCode}');
+        _refreshScanStats(ticket.eventId);
       case CheckInQueuedOffline():
         _showFeedback(
             _FeedbackKind.queued, 'No connection — queued to sync later.');
@@ -206,6 +226,16 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         children: [
           MobileScanner(controller: _controller, onDetect: _handleDetect),
           const _ScannerOverlay(),
+          if (_scanStats != null)
+            Positioned(
+              // Sits below where the transient feedback banner renders
+              // (top: AppSpacing.xl) so the two never overlap right after
+              // a scan.
+              top: AppSpacing.xl + 76,
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              child: _ScanStatsPill(stats: _scanStats!),
+            ),
           if (_feedbackKind != null)
             _FeedbackBanner(
                 kind: _feedbackKind!, message: _feedbackMessage ?? ''),
@@ -247,6 +277,51 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shows how many participants THIS staff member has personally checked
+/// in at the current event, plus who they most recently scanned — closes
+/// a real gap where a volunteer scanning at a gate had no way to see
+/// their own scan count or confirm who they just let through.
+class _ScanStatsPill extends StatelessWidget {
+  final MyScanStats stats;
+  const _ScanStatsPill({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final last = stats.lastScanned;
+    return Material(
+      color: Colors.black.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        child: Row(
+          children: [
+            const Icon(Icons.how_to_reg_rounded,
+                color: AppColors.staffModeAccent, size: 18),
+            const SizedBox(width: AppSpacing.sm),
+            Text('${stats.scannedCount} scanned by you',
+                style: AppTypography.bodyStrong
+                    .copyWith(color: Colors.white)),
+            if (last != null) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Container(width: 1, height: 14, color: Colors.white24),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'Last: ${last.participantName ?? last.ticketCode}',
+                  style: AppTypography.caption
+                      .copyWith(color: Colors.white70),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -97,4 +97,12 @@ class TicketsRepository {
       throw mapDioException(e);
     }
   }
+
+  Future<MyScanStats> myScanStats(String eventId) async {
+    try {
+      return await _api.myScanStats(eventId);
+    } catch (e) {
+      throw mapDioException(e);
+    }
+  }
 }

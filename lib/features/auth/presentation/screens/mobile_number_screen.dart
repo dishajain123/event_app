@@ -18,8 +18,11 @@ import '../../../../app/router/route_paths.dart';
 /// unchanged from before — same [authStateProvider] calls, same
 /// normalization via [tryNormalizeMobileNumber], same navigation
 /// contracts. Everything below is a from-scratch visual composition: a
-/// sliding Mobile/Email switch, a live-formatted phone field, inline
-/// validity gating, and a crossfade between the two forms.
+/// bespoke orbit brand mark, a screen-height-aware layout that groups
+/// "branding" and "sign-in" as two deliberate blocks instead of a top-
+/// stacked form with dead space beneath it, a sliding Mobile/Email
+/// switch, a live-formatted phone field, inline validity gating, and a
+/// crossfade between the two forms.
 class MobileNumberScreen extends ConsumerStatefulWidget {
   final String? returnTo;
 
@@ -29,7 +32,8 @@ class MobileNumberScreen extends ConsumerStatefulWidget {
   ConsumerState<MobileNumberScreen> createState() => _MobileNumberScreenState();
 }
 
-class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
+class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen>
+    with SingleTickerProviderStateMixin {
   final _controller = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
@@ -40,11 +44,25 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
   bool _obscurePassword = true;
   String? _errorText;
 
+  late final AnimationController _entranceController;
+  late final Animation<double> _entranceCurve;
+
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onFieldChanged);
     _passwordController.addListener(_onFieldChanged);
+    // One subtle fade + rise on first paint — not per-element staggering,
+    // just enough motion for the screen to feel considered rather than
+    // static.
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    )..forward();
+    _entranceCurve = CurvedAnimation(
+      parent: _entranceController,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _onFieldChanged() {
@@ -59,6 +77,7 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
     _controller.dispose();
     _passwordController.dispose();
     _passwordFocusNode.dispose();
+    _entranceController.dispose();
     super.dispose();
   }
 
@@ -189,104 +208,214 @@ class _MobileNumberScreenState extends ConsumerState<MobileNumberScreen> {
       body: DecoratedBox(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.brandGradientStrong,
-                    borderRadius: BorderRadius.circular(17),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accentStrong.withValues(alpha: 0.28),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.lg),
+                child: ConstrainedBox(
+                  // Lets the sign-in block and the "continue browsing"
+                  // footer sit at opposite ends of the real screen height
+                  // instead of stacking at the top with dead space below —
+                  // while still scrolling normally once the keyboard (or a
+                  // small device) doesn't leave room for that.
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - AppSpacing.lg * 2,
                   ),
-                  child: const Icon(Icons.hub_rounded,
-                      color: Colors.white, size: 26),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                const Text('Welcome to GO-360°', style: AppTypography.display),
-                const SizedBox(height: 6),
-                const Text(
-                  'Sign in to register for events and manage your participation.',
-                  style: AppTypography.bodyMuted,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                _ModeSwitch(emailMode: _emailMode, onChanged: _setMode),
-                const SizedBox(height: AppSpacing.xl),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 240),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    final slide = Tween<Offset>(
-                      begin: Offset(
-                          child.key == const ValueKey('mobile-form')
-                              ? -0.04
-                              : 0.04,
-                          0),
-                      end: Offset.zero,
-                    ).animate(animation);
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(position: slide, child: child),
-                    );
-                  },
-                  child: _emailMode
-                      ? _EmailForm(
-                          key: const ValueKey('email-form'),
-                          emailController: _controller,
-                          passwordController: _passwordController,
-                          passwordFocusNode: _passwordFocusNode,
-                          obscurePassword: _obscurePassword,
-                          onToggleObscure: () => setState(
-                              () => _obscurePassword = !_obscurePassword),
-                          errorText: _errorText,
-                          loginMode: _loginMode,
-                          onToggleLoginMode: () => setState(() {
-                            _loginMode = !_loginMode;
-                            _errorText = null;
-                          }),
-                          recovering: _recovering,
-                          onForgotPassword: _recoverPassword,
-                          onSubmit: _submit,
-                        )
-                      : _MobileForm(
-                          key: const ValueKey('mobile-form'),
-                          controller: _controller,
-                          errorText: _errorText,
-                          onSubmit: _submit,
+                  child: IntrinsicHeight(
+                    child: FadeTransition(
+                      opacity: _entranceCurve,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.025),
+                          end: Offset.zero,
+                        ).animate(_entranceCurve),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: AppSpacing.sm),
+                            const _BrandMark(),
+                            const SizedBox(height: AppSpacing.md),
+                            const Text('Welcome to GO-360°',
+                                style: AppTypography.display),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Sign in to register for events and manage your participation.',
+                              style: AppTypography.bodyMuted,
+                            ),
+                            const SizedBox(height: AppSpacing.xxl),
+                            _ModeSwitch(
+                                emailMode: _emailMode, onChanged: _setMode),
+                            const SizedBox(height: AppSpacing.xl),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 240),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              transitionBuilder: (child, animation) {
+                                final slide = Tween<Offset>(
+                                  begin: Offset(
+                                      child.key ==
+                                              const ValueKey('mobile-form')
+                                          ? -0.04
+                                          : 0.04,
+                                      0),
+                                  end: Offset.zero,
+                                ).animate(animation);
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                      position: slide, child: child),
+                                );
+                              },
+                              child: _emailMode
+                                  ? _EmailForm(
+                                      key: const ValueKey('email-form'),
+                                      emailController: _controller,
+                                      passwordController: _passwordController,
+                                      passwordFocusNode: _passwordFocusNode,
+                                      obscurePassword: _obscurePassword,
+                                      onToggleObscure: () => setState(() =>
+                                          _obscurePassword =
+                                              !_obscurePassword),
+                                      errorText: _errorText,
+                                      loginMode: _loginMode,
+                                      onToggleLoginMode: () => setState(() {
+                                        _loginMode = !_loginMode;
+                                        _errorText = null;
+                                      }),
+                                      recovering: _recovering,
+                                      onForgotPassword: _recoverPassword,
+                                      onSubmit: _submit,
+                                    )
+                                  : _MobileForm(
+                                      key: const ValueKey('mobile-form'),
+                                      controller: _controller,
+                                      errorText: _errorText,
+                                      onSubmit: _submit,
+                                    ),
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            AppButton(
+                              label: _submitLabel,
+                              onPressed: (_submitting || !_canSubmit)
+                                  ? null
+                                  : _submit,
+                              loading: _submitting,
+                              fullWidth: true,
+                              size: AppButtonSize.large,
+                            ),
+                            const Spacer(),
+                            const SizedBox(height: AppSpacing.lg),
+                            Center(
+                              child: TextButton.icon(
+                                onPressed: () => context.go(RoutePaths.events),
+                                icon: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 16),
+                                label: const Text('Continue browsing events'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.inkMuted,
+                                  textStyle: AppTypography.button,
+                                  iconColor: AppColors.inkMuted,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                AppButton(
-                  label: _submitLabel,
-                  onPressed: (_submitting || !_canSubmit) ? null : _submit,
-                  loading: _submitting,
-                  fullWidth: true,
-                  size: AppButtonSize.large,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Center(
-                  child: TextButton(
-                    onPressed: () => context.go(RoutePaths.events),
-                    child: const Text('Continue browsing events'),
+                      ),
+                    ),
                   ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The onboarding brand mark: a soft gradient disc, a thin orbiting ring,
+/// and a small satellite dot — a bespoke "360°" motif built entirely from
+/// theme tokens (no external asset), replacing the generic hub-icon square.
+/// Circular rather than a rounded square so it reads as a seal/mark rather
+/// than an app-icon tile floating out of context.
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 64,
+      height: 64,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accentStrong.withValues(alpha: 0.26),
+                  blurRadius: 28,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 12),
                 ),
               ],
             ),
           ),
-        ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.accentViolet.withValues(alpha: 0.32),
+                width: 1.4,
+              ),
+            ),
+          ),
+          Container(
+            width: 50,
+            height: 50,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.brandGradientStrong,
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              '360°',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 1,
+            right: 6,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(color: AppColors.accentMagenta, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accentMagenta.withValues(alpha: 0.45),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
